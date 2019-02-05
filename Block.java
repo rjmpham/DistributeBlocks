@@ -26,15 +26,16 @@ public class Block implements Serializable {
 	public void setNonce(String nonce) throws FailedToHashException
 	{
 		this.nonce = nonce;
-		this.hashBlock = Hasher.calculateHash(this);
+		this.hashBlock = Hasher.calculateBlockHash(this);
 	}
 	
 	public Block (Object data, String hashPrevious) throws FailedToHashException
 	{
+		this.nonce = "";
 		this.data = data;
 		this.hashPrevious = hashPrevious;
 		this.timestamp = new Date().getTime();
-		this.hashData = Hasher.calculateHash(data);
-		this.hashBlock = Hasher.calculateHash(this);
+		this.hashData = Hasher.calculateObjectHash(data);
+		this.hashBlock = Hasher.calculateBlockHash(this);
 	}	
 }
