@@ -8,14 +8,15 @@ public class testDriver
 		String data = "Hello I am data.";
 		try
 		{
-		Block genesis = new Block(data, "");
+		Block genesis = new Block(data, "", 0);
 		System.out.println(genesis.getData());
 		System.out.println(genesis.getHashBlock());
 		blockchain.add(genesis);
-		blockchain.add(new Block("I am more data.", genesis.getHashBlock()));
+		blockchain.add(new Block("I am more data.", genesis.getHashBlock(),5));
 		System.out.println(blockchain.get(1).getData());
 		System.out.println(blockchain.get(1).getHashBlock());
 		System.out.println(blockchain.get(1).getHashPrevious());
+		System.out.println(blockchain.get(1).getTargetNumZeros());
 		}
 		catch (FailedToHashException e)
 		{
