@@ -16,9 +16,9 @@ import java.security.*;
 import java.util.ArrayList;
 
 public class Contract {
-  public String ID_Contract; //Hash of the contents of the Contract
-  public PublicKey PK_Sender; // senders address
-  public PublicKey PK_Reciever; // recivers address
+  public String id_Contract; //Hash of the contents of the Contract
+  public PublicKey pk_Sender; // senders address
+  public PublicKey pk_Reciever; // recivers address
   public float exchange; // the amount to be exchanged
   public byte[] signature; // for user's personal wallet
   public ArrayList<Contract_In> input = new ArrayList<Contract_In>();
@@ -30,18 +30,18 @@ public class Contract {
    * the sender and reciever as well as the ammount.
    */
   public Contract(PublicKey send,PublicKey recieve , float amount,  ArrayList<Contract_In> varriables) {
-		this.PK_Sender = send;
-		this.PK_Reciever = recieve;
+		this.pk_Sender = send;
+		this.pk_Reciever = recieve;
 		this.exchange = amount;
 		this.input = varriables;
 	}
 
-  // Calculate ID_Contract
+  // Calculate id_Contract
   private String calulateHash() throws FailedToHashException{
     count_Contracts++; //method to prevent identical hashes
     return Crypto.calculateObjectHash(
-      Crypto.keyToString(PK_Sender) +
-      Crypto.keyToString(PK_Reciever) +
+      Crypto.keyToString(pk_Sender) +
+      Crypto.keyToString(pk_Reciever) +
       Float.toString(exchange) + count_Contracts
       );
   }
