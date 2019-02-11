@@ -14,7 +14,7 @@ public class Block implements Serializable {
 	private Object data;				//Data being stored in the block. Should be serializable.
 	private long timestamp;				//timestamp for the block
 	private long targetNumZeros;		//How many zeros hashBlock must start with in order to be a mined block
-	
+
 	//Getter methods
 	public String getHashBlock() {return hashBlock;}
 	public String getHashData() {return hashData;}
@@ -23,18 +23,18 @@ public class Block implements Serializable {
 	public Object getData() {return data;}
 	public long getTimestamp() {return timestamp;}
 	public long getTargetNumZeros() {return targetNumZeros;}
-	
+
 	//Setter methods
 	public void setNonce(String nonce) throws FailedToHashException
 	{
 		this.nonce = nonce;
-		this.hashBlock = Hasher.calculateBlockHash(this);
+		this.hashBlock = Crypto.calculateBlockHash(this);
 	}
 	public void setTargetNumZeros(long targetNumZeros)
 	{
 		this.targetNumZeros = targetNumZeros;
 	}
-	
+
 	public Block (Object data, String hashPrevious, long targetNumZeros) throws FailedToHashException
 	{
 		this.nonce = "";
@@ -42,7 +42,7 @@ public class Block implements Serializable {
 		this.hashPrevious = hashPrevious;
 		this.timestamp = new Date().getTime();
 		this.data = data;
-		this.hashData = Hasher.calculateObjectHash(data);
-		this.hashBlock = Hasher.calculateBlockHash(this);
+		this.hashData = Crypto.calculateObjectHash(data);
+		this.hashBlock = Crypto.calculateBlockHash(this);
 	}
 }
