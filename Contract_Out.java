@@ -4,7 +4,7 @@ public class Contract_Out {
 
 	public String id; // of the contract
 	public PublicKey pk_Reciever; // of the coins
-	public float exchange; // amount trasnfered / reciver owns
+	public float exchange; // amount trasnfered / reciever owns
 	public String id_Parent; //the id of the transaction this output was created in
 
 	//Constructor

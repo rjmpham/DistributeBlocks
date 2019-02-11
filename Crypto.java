@@ -13,10 +13,14 @@ public class Crypto{
 
 	public static KeyPair keyPairGenerator() {
 		try {
-			KeyPairGenerator generator = KeyPairGenerator.getInstance("ECDSA","BC");
-			SecureRandom randy = SecureRandom.getInstance("SHA1PRNG");
+
+			// We should look into what we want from our keys
+			KeyPairGenerator generator = KeyPairGenerator.getInstance("DSA", "SUN");
+			SecureRandom randy = SecureRandom.getInstance("SHA1PRNG","SUN");
+
+
 			// Generate keys
-			generator.initialize(256, randy); // 256 byte keys magic number
+			generator.initialize(1024, randy); // Key size is important for later.
 	    KeyPair pair = generator.generateKeyPair();
 			return pair;
 		}catch(Exception e) {
