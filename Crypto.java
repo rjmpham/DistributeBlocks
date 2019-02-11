@@ -24,6 +24,9 @@ public class Crypto{
 		}
 	}
 
+	public static String keyToString(Key key) {
+		return Base64.getEncoder().encodeToString(key.getEncoded());
+	}
 	//Calculates the SHA-256 hash of the given object
 	//Input must be serializable
 	public static String calculateObjectHash(Object obj) throws FailedToHashException
