@@ -8,9 +8,9 @@ public class Validator
 	{
 		try
 		{
-			if (!block.getHashBlock().equals(Hasher.calculateBlockHash(block)))				//If the block hash isn't correct...
+			if (!block.getHashBlock().equals(Crypto.calculateBlockHash(block)))				//If the block hash isn't correct...
 				return false;
-			if (block.getHashData().equals(Hasher.calculateObjectHash(block.getData())))	//If the data hash isn't correct...
+			if (block.getHashData().equals(Crypto.calculateObjectHash(block.getData())))	//If the data hash isn't correct...
 				return false;
 			if (block.getHashPrevious().equals(hashPreviousBlock))							//If the previous hash isn't correct...
 				return false;
@@ -21,7 +21,7 @@ public class Validator
 			throw new FailedToHashException(block,e);
 		}
 	}
-	
+
 	//Checks whether an ArrayList of blocks is valid
 	public static boolean isValidBlockchain(ArrayList<Block> blockchain) throws FailedToHashException
 	{

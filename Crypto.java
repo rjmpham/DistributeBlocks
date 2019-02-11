@@ -1,14 +1,36 @@
-//Calculate the hash of serializable objects
+// Calculate the hash of serializable objects
+// Generates key pairs
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
-import java.security.MessageDigest;
+import java.security.*;
 import java.util.Base64;
 import java.util.ArrayList;
 
-public class Hasher{
-	
+public class Crypto{
+
+
+	public static KeyPair keyPairGenerator() {
+		try {
+
+			// We should look into what we want from our keys
+			KeyPairGenerator generator = KeyPairGenerator.getInstance("DSA", "SUN");
+			SecureRandom randy = SecureRandom.getInstance("SHA1PRNG","SUN");
+
+
+			// Generate keys
+			generator.initialize(1024, randy); // Key size is important for later.
+	    KeyPair pair = generator.generateKeyPair();
+			return pair;
+		}catch(Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static String keyToString(Key key) {
+		return Base64.getEncoder().encodeToString(key.getEncoded());
+	}
 	//Calculates the SHA-256 hash of the given object
 	//Input must be serializable
 	public static String calculateObjectHash(Object obj) throws FailedToHashException
@@ -30,7 +52,7 @@ public class Hasher{
 			throw new FailedToHashException(obj,e);
 		}
 	}
-	
+
 	public static String calculateBlockHash(Block block) throws FailedToHashException
 	{
 		try
@@ -49,7 +71,7 @@ public class Hasher{
 			buf.putLong(block.getTargetNumZeros());
 			md.update(buf.array());						//Feed in the targetNumZeros
 			//Output the hash of the block
-			byte[] hashByteArray = md.digest();			
+			byte[] hashByteArray = md.digest();
 			hash = Base64.getEncoder().encodeToString(hashByteArray);			//Convert the byte array hash into a string hash
 			return hash;
 		}
