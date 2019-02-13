@@ -62,7 +62,7 @@ public class Crypto{
 			//Feed in the fields of the object, except for the block hash and date. Timestamp and target will be done further down.
 			md.update(block.getHashData().getBytes());
 			md.update(block.getHashPrevious().getBytes());
-			md.update(block.getNonce().getBytes());
+			md.update(ByteBuffer.allocate(4).putInt(block.getNonce()).array());
 			//Before feeding in the timestamp and target, we have to convert them into a byte array
 			ByteBuffer buf = ByteBuffer.allocate(Long.BYTES);
 			buf.putLong(block.getTimestamp());

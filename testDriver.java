@@ -9,6 +9,7 @@ public class testDriver
 	public static HashMap<String,Contract_Out> funds = new HashMap<String,Contract_Out>();
 	public static Wallet wallet_Alice;
 	public static Wallet wallet_Bob;
+	public static int mineDifficulty = 3; // TODO: Determine this value somehow.
 	public static void main (String[] args)
 	{
 		ArrayList<Block> blockchain = new ArrayList<Block>();
@@ -23,11 +24,19 @@ System.out.println(Crypto.keyToString(wallet_Alice.publicKey));
 		String data = "Hello I am data.";
 		try
 		{
-		Block genesis = new Block(data, "", 0);
+		Block genesis = new Block(data, "", 2);
 		System.out.println(genesis.getData());
 		System.out.println(genesis.getHashBlock());
+
+		System.out.println("Block mined: " + genesis.isBlockMined());
+		genesis.mineBlock();
+		System.out.println("Block mined: " + genesis.isBlockMined());
 		blockchain.add(genesis);
-		blockchain.add(new Block("I am more data.", genesis.getHashBlock(),5));
+		Block secondBlock = new Block("I am more data.", genesis.getHashBlock(),mineDifficulty);
+		System.out.println("Block mined: " + secondBlock.isBlockMined());
+		secondBlock.mineBlock();
+		System.out.println("Block mined: " + secondBlock.isBlockMined());
+		blockchain.add(secondBlock);
 		System.out.println(blockchain.get(1).getData());
 		System.out.println(blockchain.get(1).getHashBlock());
 		System.out.println(blockchain.get(1).getHashPrevious());
