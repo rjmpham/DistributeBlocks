@@ -6,11 +6,11 @@ public class testDriver
 {
 
 	//list of Contract with funds
-	public static HashMap<String,Contract_Out> funds = new HashMap<String,Contract_Out>();
+	public static HashMap<String,Contract_Out> funds_HashMap = new HashMap<String,Contract_Out>();
 	public static Wallet wallet_Alice;
 	public static Wallet wallet_Bob;
 	public static int mineDifficulty = 3; // TODO: Determine this value somehow.
-	public static float minimumTransaction = 0.1f;
+	public static float minimumContractAmount = 0.1f;
 	public static void main (String[] args)
 	{
 		ArrayList<Block> blockchain = new ArrayList<Block>();

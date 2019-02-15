@@ -24,17 +24,6 @@ public class Block implements Serializable {
 	public long getTimestamp() {return timestamp;}
 	public long getTargetNumZeros() {return targetNumZeros;}
 
-	//Setter methods
-	public void setNonce(int nonce) throws FailedToHashException
-	{
-		this.nonce = nonce;
-		this.hashBlock = Crypto.calculateBlockHash(this);
-	}
-	public void setTargetNumZeros(int targetNumZeros)
-	{
-		this.targetNumZeros = targetNumZeros;
-	}
-
 	public Block (Object data, String hashPrevious, int targetNumZeros) throws FailedToHashException
 	{
 		this.nonce = 0;
@@ -44,6 +33,17 @@ public class Block implements Serializable {
 		this.data = data;
 		this.hashData = Crypto.calculateObjectHash(data);
 		this.hashBlock = Crypto.calculateBlockHash(this);
+	}
+
+	//Setter methods
+	public void setNonce(int nonce) throws FailedToHashException
+	{
+		this.nonce = nonce;
+		this.hashBlock = Crypto.calculateBlockHash(this);
+	}
+	public void setTargetNumZeros(int targetNumZeros)
+	{
+		this.targetNumZeros = targetNumZeros;
 	}
 
 	public void mineBlock() throws FailedToHashException {
