@@ -45,4 +45,64 @@ public class Contract {
       Float.toString(exchange) + count_Contracts
       );
   }
+
+
+  // Method to hendel the contract. Returns true of the contract is created
+  public boolean contractEnforcer() throws FailedToHashException{
+  /*
+  		if(verifiySignature() == false) {
+  			System.out.println("#Transaction Signature failed to verify");
+  			return false;
+  		}
+  */
+  		//gather transaction input (Make sure they are unspent):
+  		for(Contract_In i : input) {
+  			i.funds = testDriver.funds.get(i.id_Contract_Out);
+  		}
+
+  		//check if transaction is valid:
+  		if(getInputsValue() < testDriver.minimumTransaction) {
+  			System.out.println("#Transaction Inputs to small: " + getInputsValue());
+  			return false;
+  		}
+
+  		//generate transaction output:
+  		float remaining = getInputsValue() - exchange; //get exchange of input then the left over change:
+  		id_Contract = calulateHash();
+  		output.add(new Contract_Out( this.pk_Reciever, exchange,id_Contract)); //send exchange to recipient
+  		output.add(new Contract_Out( this.pk_Sender, remaining,id_Contract)); //send the left over 'change' back to sender
+
+  		//add output to Unspent list
+  		for(Contract_Out o : output) {
+  			testDriver.funds.put(o.id , o);
+  		}
+
+  		//remove transaction input from funds lists as spent:
+  		for(Contract_In i : input) {
+  			if(i.funds == null) continue; //if Transaction can't be found skip it
+  			testDriver.funds.remove(i.funds.id);
+  		}
+
+  		return true;
+  	}
+
+  //returns sum of input(funds) exchanges
+  	public float getInputsValue() {
+  		float total = 0;
+  		for(Contract_In i : input) {
+  			if(i.funds == null) continue; //if Transaction can't be found skip it
+  			total += i.funds.exchange;
+  		}
+  		return total;
+  	}
+
+  //returns sum of output:
+  	public float getOutputsValue() {
+  		float total = 0;
+  		for(Contract_Out o : output) {
+  			total += o.exchange;
+  		}
+  		return total;
+  	}
+
 }

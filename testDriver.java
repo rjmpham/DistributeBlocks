@@ -10,6 +10,7 @@ public class testDriver
 	public static Wallet wallet_Alice;
 	public static Wallet wallet_Bob;
 	public static int mineDifficulty = 3; // TODO: Determine this value somehow.
+	public static float minimumTransaction = 0.1f;
 	public static void main (String[] args)
 	{
 		ArrayList<Block> blockchain = new ArrayList<Block>();
@@ -19,8 +20,8 @@ public class testDriver
 		wallet_Bob = new Wallet();
 
 		System.out.println("Check Alice's keys:");
-System.out.println(Crypto.keyToString(wallet_Alice.privateKey));
-System.out.println(Crypto.keyToString(wallet_Alice.publicKey));
+		System.out.println(Crypto.keyToString(wallet_Alice.privateKey));
+		System.out.println(Crypto.keyToString(wallet_Alice.publicKey));
 		String data = "Hello I am data.";
 		try
 		{
