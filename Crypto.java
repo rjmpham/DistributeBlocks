@@ -1,5 +1,9 @@
-// Calculate the hash of serializable objects
-// Generates key pairs
+/*
+  Calculate the hash of serializable objects
+  Generates key pairs
+  Digitally signs messages
+  Verifies message is signed by someone
+*/
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
@@ -31,6 +35,52 @@ public class Crypto{
 	public static String keyToString(Key key) {
 		return Base64.getEncoder().encodeToString(key.getEncoded());
 	}
+
+	/*
+	  Input: Takes in the private key to be used as the signature,
+	  and the message to be signed as input.
+	  Details: Signs the message using the DSA signature algorithm, using
+	  SHA-1 message digest algorithm provided by SUN.
+	  Output: Returns the digital signature of the given message.
+
+	  Read: https://docs.oracle.com/javase/tutorial/security/apisign/index.html
+	  and  https://medium.com/programmers-blockchain/creating-your-first-blockchain-with-java-part-2-transactions-2cdac335e0ce
+	  and https://docs.oracle.com/javase/7/docs/api/java/security/Signature.html
+	  for more information. (switched from elliptic curves to use built in dsa)
+	*/
+	public static byte[] signMessage(PrivateKey privateKey, String input) {
+		try {
+			byte[] inputBytes = input.getBytes();
+			Signature dsAlgorithm = Signature.getInstance("SHA1withDSA", "SUN");
+			dsAlgorithm.initSign(privateKey);
+			dsAlgorithm.update(inputBytes);
+			return dsAlgorithm.sign();
+		} catch(Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	/*
+		Input: Takes in the public key used to verify the signature,
+		the data/message that was supposedly signed,
+		and the signature for the given data/message as input.
+		Details: Verifies the message using the DSA signature algorithm, using
+	    SHA-1 message digest algorithm provided by SUN.
+	    Output: Returns true if the signature + data correspond to the publicKey
+	    else returns false.
+	*/
+	public static boolean verifySignature(PublicKey publicKey, String data, byte[] signature) {
+		try {
+			byte[] dataBytes = data.getBytes();
+			Signature dsAlgorithm = Signature.getInstance("SHA1withDSA", "SUN");
+			dsAlgorithm.initVerify(publicKey);
+			dsAlgorithm.update(dataBytes);
+			return dsAlgorithm.verify(signature);
+		} catch(Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	//Calculates the SHA-256 hash of the given object
 	//Input must be serializable
 	public static String calculateObjectHash(Object obj) throws FailedToHashException
