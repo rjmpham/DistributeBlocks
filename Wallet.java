@@ -10,6 +10,7 @@ public class Wallet {
 	public HashMap<String,Contract_Out> funds_HashMap = new HashMap<String,Contract_Out>(); //funds in this wallet.
 
 	//Getter methods
+	public PrivateKey getPrivateKey(){return privateKey;}
 	public PublicKey getPublicKey(){return publicKey;}
 
 	public Wallet(){

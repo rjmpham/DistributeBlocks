@@ -15,13 +15,25 @@ public class testDriver
 	{
 		ArrayList<Block> blockchain = new ArrayList<Block>();
 
+		/*
+		 * Checking the creating of wallets, their keys and their signatures.
+		 */
 
 		wallet_Alice = new Wallet();
 		wallet_Bob = new Wallet();
-
 		System.out.println("Check Alice's keys:");
-		System.out.println(Crypto.keyToString(wallet_Alice.privateKey));
-		System.out.println(Crypto.keyToString(wallet_Alice.publicKey));
+
+		// Commands to observe the keys themselves
+		//System.out.println(Crypto.keyToString(wallet_Alice.getPrivateKey()));
+		//System.out.println(Crypto.keyToString(wallet_Alice.getPublicKey()));
+		byte[] signatureCheck = Crypto.signMessage(wallet_Alice.getPrivateKey(),"sign me");
+
+		if (Crypto.verifySignature(wallet_Alice.getPublicKey(),"This is the wrong data for this signature check",signatureCheck)) {
+			System.out.println("Alice signature works!");
+		} else {
+			System.out.println("Alice fails her signature check!");
+		}
+
 		String data = "Hello I am data.";
 		try
 		{
