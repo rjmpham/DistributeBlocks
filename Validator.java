@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class Validator
 {
@@ -23,12 +23,12 @@ public class Validator
 	}
 
 	//Checks whether an ArrayList of blocks is valid
-	public static boolean isValidBlockchain(ArrayList<Block> blockchain) throws FailedToHashException
+	public static boolean isValidBlockchain(LinkedList<Block> blockchain) throws FailedToHashException
 	{
-		Block currentBlock = blockchain.get(0);											//Get the genesis block
+		Block currentBlock = blockchain.getFirst();										//Get the genesis block
 		if (!isValidBlock(currentBlock,""))												//If the genesis block is not correct...
 			return false;
-		String previousHashBlock = blockchain.get(0).getHashBlock();
+		String previousHashBlock = blockchain.getFirst().getHashBlock();
 		for (int i = 1; i < blockchain.size(); i++)										//For all the blocks AFTER the genesis block
 		{
 			currentBlock = blockchain.get(i);
