@@ -1,9 +1,10 @@
 //Block for the blockchain
 //NOTE: The data stored in the block must be a serializable object
-package DistributeBlocks;
+package distributeblocks;
 
 import java.util.Date;
 import java.io.Serializable;
+import distributeblocks.crypto.*;
 
 
 

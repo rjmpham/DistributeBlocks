@@ -1,6 +1,6 @@
 //Indicates there was a problem with producing the hash of a certain object
 
-package DistributeBlocks;
+package distributeblocks;
 
 public class FailedToHashException extends Exception{
 	

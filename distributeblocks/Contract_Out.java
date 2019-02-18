@@ -1,6 +1,7 @@
-package DistributeBlocks;
+package distributeblocks;
 
 import java.security.*;
+import distributeblocks.crypto.*;
 
 public class Contract_Out {
 

@@ -9,11 +9,12 @@
  * Signatures have yet to be implemented and would verify
  * that it is the sender authorizing the sending of coin.
  */
-package DistributeBlocks;
+package distributeblocks;
 
 
 import java.security.*;
 import java.util.ArrayList;
+import distributeblocks.crypto.*;
 
 public class Contract {
   public String id_Contract; //Hash of the contents of the Contract

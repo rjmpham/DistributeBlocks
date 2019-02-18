@@ -5,13 +5,15 @@
   Verifies message is signed by someone
 */
 
-package DistributeBlocks;
+package distributeblocks.crypto;
 
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.security.*;
 import java.util.Base64;
+
+import distributeblocks.*;
 
 public class Crypto{
 

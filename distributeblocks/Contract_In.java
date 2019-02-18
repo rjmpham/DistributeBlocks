@@ -1,4 +1,4 @@
-package DistributeBlocks;
+package distributeblocks;
 
 public class Contract_In {
   public String id_Contract_Out; // Refers to Contract_Out -> ID_Contract

@@ -1,9 +1,10 @@
-package DistributeBlocks;
+package distributeblocks;
 
 import java.util.LinkedList;
 import java.security.Security;
 import java.util.HashMap;
 import java.io.IOException;
+import distributeblocks.crypto.*;
 
 
 public class testDriver
