@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.security.Security;
 import java.util.HashMap;
 import java.io.IOException;
@@ -15,7 +15,7 @@ public class testDriver
 	public static int stepThrough = 0;
 	public static void main (String[] args)
 	{
-		ArrayList<Block> blockchain = new ArrayList<Block>();
+		LinkedList<Block> blockchain = new LinkedList<Block>();
 
 		//If there are two arguements, stepThrough
 		if(args.length == 1){
