@@ -5,6 +5,8 @@
   Verifies message is signed by someone
 */
 
+package DistributeBlocks;
+
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;

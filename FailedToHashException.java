@@ -1,5 +1,7 @@
 //Indicates there was a problem with producing the hash of a certain object
 
+package DistributeBlocks;
+
 public class FailedToHashException extends Exception{
 	
 	Object targetObject;					//Reference to the object that was being hashed when this exception was raised

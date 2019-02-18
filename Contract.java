@@ -9,7 +9,7 @@
  * Signatures have yet to be implemented and would verify
  * that it is the sender authorizing the sending of coin.
  */
-
+package DistributeBlocks;
 
 
 import java.security.*;

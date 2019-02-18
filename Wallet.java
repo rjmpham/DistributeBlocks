@@ -1,3 +1,5 @@
+package DistributeBlocks;
+
 import java.security.*;
 import java.util.ArrayList;
 import java.util.HashMap;

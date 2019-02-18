@@ -1,3 +1,5 @@
+package DistributeBlocks;
+
 import java.util.LinkedList;
 
 public class Validator

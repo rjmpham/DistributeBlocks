@@ -1,8 +1,11 @@
 //Block for the blockchain
 //NOTE: The data stored in the block must be a serializable object
+package DistributeBlocks;
 
 import java.util.Date;
 import java.io.Serializable;
+
+
 
 public class Block implements Serializable {
 
@@ -49,7 +52,14 @@ public class Block implements Serializable {
 	public void mineBlock() throws FailedToHashException {
 		String target = new String(new char[targetNumZeros]).replace('\0', '0'); //Create a string with difficulty * "0"
 		while(!hashBlock.substring( 0, targetNumZeros).equals(target)) {
-			this.setNonce(nonce + 1);
+
+			if (nonce + 1 < Integer.MAX_VALUE) {
+				this.setNonce(nonce + 1);
+			} else {
+				// No hash was found, update the timestamp and try again.
+				timestamp = new Date().getTime();
+				this.setNonce(0);
+			}
 		}
 
 		// For testing.
