@@ -1,7 +1,9 @@
+import distributeblocks.*;
 import java.util.LinkedList;
 import java.security.Security;
 import java.util.HashMap;
 import java.io.IOException;
+import distributeblocks.crypto.*;
 
 public class testDriver
 {
@@ -13,6 +15,7 @@ public class testDriver
 	public static int mineDifficulty = 3; // TODO: Determine this value somehow.
 	public static float minimumContractAmount = 0.1f;
 	public static int stepThrough = 0;
+
 	public static void main (String[] args)
 	{
 		LinkedList<Block> blockchain = new LinkedList<Block>();

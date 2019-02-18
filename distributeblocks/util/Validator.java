@@ -1,4 +1,8 @@
+package distributeblocks.util;
+
 import java.util.LinkedList;
+import distributeblocks.*;
+import distributeblocks.crypto.*;
 
 public class Validator
 {
