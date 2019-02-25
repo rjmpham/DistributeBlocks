@@ -1,4 +1,4 @@
-import distributeblocks.*;
+package distributeblocks;
 import java.util.LinkedList;
 import java.security.Security;
 import java.util.HashMap;
