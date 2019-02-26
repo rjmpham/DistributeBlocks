@@ -11,5 +11,6 @@ public class NetworkService {
 
 	public static void init(int minPeers, int maxPeers){
 		networkManager = new NetworkManager(minPeers, maxPeers);
+		networkManager.initialize();
 	}
 }

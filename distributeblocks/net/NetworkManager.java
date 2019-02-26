@@ -44,6 +44,7 @@ public class NetworkManager {
 		// May want seperate services to make shutdowns easier?
 		executorService = Executors.newCachedThreadPool();
 		scheduledExecutorService = Executors.newScheduledThreadPool(1);
+		incommingQueue = new ArrayBlockingQueue<AbstractMessage>(256);
 	}
 
 
