@@ -108,7 +108,6 @@ public class NetworkManager {
 	}
 
 
-
 	/**
 	 * Processes the incomming queue.
 	 */

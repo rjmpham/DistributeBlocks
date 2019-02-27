@@ -1,5 +1,7 @@
 package distributeblocks.net.message;
 
+import distributeblocks.net.IPAddress;
+import distributeblocks.net.PeerNode;
 import distributeblocks.net.processor.AbstractMessageProcessor;
 
 import java.io.Serializable;
@@ -25,7 +27,12 @@ import java.io.Serializable;
  */
 public abstract class AbstractMessage implements Serializable {
 
-	public String senderIP;
+	public PeerNode senderNode;
+
+	public AbstractMessage() {
+
+
+	}
 
 	/**
 	 * Get a processor for the paticular message type.

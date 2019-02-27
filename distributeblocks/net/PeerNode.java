@@ -1,9 +1,6 @@
 package distributeblocks.net;
 
-import distributeblocks.net.message.AbstractMessage;
-import distributeblocks.net.message.ConnectionFailedMessage;
-import distributeblocks.net.message.ConnectionLostMessage;
-import distributeblocks.net.message.SendFailMessage;
+import distributeblocks.net.message.*;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -48,6 +45,7 @@ public class PeerNode {
 	public PeerNode(Socket socket) {
 
 		this.socket = socket;
+		this.address = new IPAddress(socket.getInetAddress().getHostName(), socket.getPort());
 		outQueue = new LinkedBlockingQueue<>();
 		executorService = Executors.newCachedThreadPool();
 
@@ -79,6 +77,8 @@ public class PeerNode {
 				// Connection success! Start listening
 				executorService.execute(new Listener());
 				executorService.execute(new Sender());
+
+				sendMessage(new ShakeMessage("Hey there ;)"));
 
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -137,6 +137,7 @@ public class PeerNode {
 				while (true) {
 
 					AbstractMessage message = (AbstractMessage) inputStream.readObject();
+					message.senderNode = PeerNode.this; // TODO: Is this really the nicest solution here?
 					NetworkService.getNetworkManager().asyncEnqueue(message);
 				}
 
