@@ -8,9 +8,11 @@ public class SendFailMessage extends AbstractMessage {
 
 
 	public PeerNode peerNode;
+	public AbstractMessage message;
 
-	public SendFailMessage(PeerNode peerNode) {
+	public SendFailMessage(PeerNode peerNode, AbstractMessage message) {
 		this.peerNode = peerNode;
+		this.message = message;
 	}
 
 	@Override

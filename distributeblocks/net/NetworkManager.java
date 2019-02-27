@@ -2,16 +2,22 @@ package distributeblocks.net;
 
 import distributeblocks.io.ConfigManager;
 import distributeblocks.net.message.AbstractMessage;
+import distributeblocks.net.message.ServerCrashMessage;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.concurrent.*;
 
 public class NetworkManager {
 
-	protected BlockingQueue<AbstractMessage> incommingQueue;
+	private LinkedBlockingQueue<AbstractMessage> incommingQueue;
 
 	private int minPeers = 0;
 	private int maxPeers = Integer.MAX_VALUE;
+	private int port = -1;
+	private IPAddress seedNodeAddr;
 
 	/**
 	 * Time in seconds between attempts at discovering more peer nodes.
@@ -21,6 +27,7 @@ public class NetworkManager {
 	private ExecutorService executorService;
 	private ScheduledExecutorService scheduledExecutorService; // For requesting new peers.
 	private ArrayList<PeerNode> peerNodes;
+	private ServerSocket serverSocket;
 
 
 	/**
@@ -36,15 +43,17 @@ public class NetworkManager {
 	 * @param maxPeers
 	 *   Maximum number of conencted peers.
 	 */
-	public NetworkManager(int minPeers, int maxPeers){
+	public NetworkManager(int minPeers, int maxPeers, int port, IPAddress seedNodeAddr){
 
 		this.maxPeers = maxPeers;
 		this.minPeers = minPeers;
+		this.port = port;
+		this.seedNodeAddr = seedNodeAddr;
 
 		// May want seperate services to make shutdowns easier?
 		executorService = Executors.newCachedThreadPool();
 		scheduledExecutorService = Executors.newScheduledThreadPool(1);
-		incommingQueue = new ArrayBlockingQueue<AbstractMessage>(256);
+		incommingQueue = new LinkedBlockingQueue<>();
 	}
 
 
@@ -64,6 +73,17 @@ public class NetworkManager {
 			// TODO: Do something to search for more peers.
 		}
 
+		// Begin listening for connections, and start the message processor
+
+		try {
+			serverSocket = new ServerSocket(port);
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Could not create server socket.");
+		}
+
+		executorService.execute(new Connectionlistener());
+		executorService.execute(new IncommingQueueProcessor());
 	}
 
 
@@ -77,7 +97,6 @@ public class NetworkManager {
 	 */
 	public void asyncEnqueue(AbstractMessage message){
 		incommingQueue.add(message);
-		incommingQueue.notify();
 	}
 
 
@@ -97,27 +116,52 @@ public class NetworkManager {
 
 
 		@Override
-		public void run() {
+		public synchronized void run() {
 
 			while (!shutDown){
 
-				if (incommingQueue.size() > 0){
-
-					// Process a message!
-					AbstractMessage m = incommingQueue.remove();
+				// Process a message!
+				AbstractMessage m = null;
+				try {
+					m = incommingQueue.take();
 					m.getProcessor().processMessage(m); // It wasnt supposed to be like this!!!
-
-				} else {
-
-					// Wait until notify() is called in the incomming queue.
-					try {
-						incommingQueue.wait();
-					} catch (InterruptedException e) {
-					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
 			}
 		}
 
+	}
+
+	/**
+	 * Listens for new connections from other nodes. (these dont have to be among the peer list,
+	 * maybe its someone who just wants to ask for friends).
+	 */
+	private class Connectionlistener implements Runnable {
+
+		@Override
+		public void run() {
+
+			while (true){
+
+				try {
+
+					System.out.println("Listening for connections!");
+
+					Socket socket = serverSocket.accept();
+
+					System.out.println("Received connection from: " + socket.getInetAddress());
+
+					PeerNode peerNode = new PeerNode(socket);
+					peerNodes.add(peerNode);
+
+				} catch (IOException e) {
+					e.printStackTrace();
+					asyncEnqueue(new ServerCrashMessage());
+				}
+			}
+
+		}
 	}
 
 }

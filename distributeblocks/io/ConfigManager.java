@@ -1,11 +1,13 @@
 package distributeblocks.io;
 
+import distributeblocks.net.IPAddress;
 import distributeblocks.net.PeerNode;
 import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -17,6 +19,15 @@ public class ConfigManager {
 
 	private static final String PEER_CONFIG_FILE = "./peer_config.txt";
 
+
+	public ConfigManager() {
+
+		// Temporary
+		ArrayList<PeerNode> peerNodes = new ArrayList<>();
+		peerNodes.add(new PeerNode(new IPAddress("localhost", 5833)));
+
+		//writePeerNodes(peerNodes);
+	}
 
 	/**
 	 * Reads peer node data from a config file.
@@ -35,7 +46,7 @@ public class ConfigManager {
 		}
 
 		String json = "";
-		PeerNode[] nodes;
+		IPAddress[] nodes;
 
 		try (Scanner scanner = new Scanner(file)){
 
@@ -44,21 +55,34 @@ public class ConfigManager {
 				json += scanner.nextLine();
 			}
 
-			nodes = gson.fromJson(json, PeerNode[].class);
+			nodes = gson.fromJson(json, IPAddress[].class);
 
 		} catch (Exception e){
 			e.printStackTrace();
 			throw new RuntimeException("Could not read the peer node config file.");
 		}
 
-		return new ArrayList<PeerNode>(Arrays.asList(nodes));
+		if (nodes != null) {
+
+			ArrayList<PeerNode> peerNodes = new ArrayList<PeerNode>();
+
+			for (IPAddress ip : nodes){
+				peerNodes.add(new PeerNode(ip));
+			}
+
+			return peerNodes;
+
+		} else return new ArrayList<>();
 	}
 
 
 	public void writePeerNodes(ArrayList<PeerNode> peerNodes){
 
-		PeerNode[] peers = new PeerNode[peerNodes.size()];
-		peers = peerNodes.toArray(peers);
+		IPAddress[] peers = new IPAddress[peerNodes.size()];
+
+		for (int i = 0; i < peerNodes.size(); i ++){
+			peers[i] = peerNodes.get(i).getAddress();
+		}
 
 		Gson gson = new Gson();
 		File file = new File(PEER_CONFIG_FILE);
