@@ -1,6 +1,7 @@
 package distributeblocks.net.processor;
 
 import distributeblocks.io.ConfigManager;
+import distributeblocks.net.NetworkManager;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.PeerNode;
 import distributeblocks.net.message.ShakeMessage;
@@ -15,16 +16,24 @@ public class ShakeProcessor extends AbstractMessageProcessor<ShakeMessage> {
 		System.out.println("Got a shake message from " + message.senderNode.getAddress() + ". AbstractMessage: " + message.getShakeMessage());
 
 		System.out.println("Listening port: " + message.listeningPort);
-		message.senderNode.asyncSendMessage(new ShakeResponseMessage("Hey back at ya ;)", NetworkService.getNetworkManager().getPort()));
 		message.senderNode.setListenPort(message.listeningPort);
+
+		boolean wantMoreFriends = NetworkService.getNetworkManager().inSeedMode() ?
+				false : NetworkService.getNetworkManager().needMorePeers();
+
+		if (NetworkService.getNetworkManager().isConnectedToNode(message.senderNode.getListeningAddress())){
+			wantMoreFriends = true;
+		}
+
+		message.senderNode.asyncSendMessage(new ShakeResponseMessage("Hey back at ya ;)",
+				NetworkService.getNetworkManager().getPort(), wantMoreFriends));
+		NetworkService.getNetworkManager().addNode(message.senderNode);
+
 
 		if (NetworkService.getNetworkManager().inSeedMode()){
 
-			// TODO: Reading the entire file, and then writing the entire file, is a bit inefficient.
 			ConfigManager configManager = new ConfigManager();
-			ArrayList<PeerNode> configNodes = configManager.readPeerNodes();
-			configNodes.add(message.senderNode);
-			configManager.writePeerNodes(configNodes);
+			configManager.addNodeAndWrite(message.senderNode);
 		}
 	}
 }

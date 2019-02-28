@@ -111,9 +111,11 @@ public class ConfigManager {
 	 *
 	 * @param node
 	 */
-	public void  addNodeAndWrite(PeerNode node){
+	public void addNodeAndWrite(PeerNode node){
 
 		ArrayList<PeerNode> nodes = this.readPeerNodes();
+
+		System.out.println("Adding node: " + node.getListeningAddress());
 
 		boolean found = false;
 		for (PeerNode n : nodes){
@@ -127,6 +129,19 @@ public class ConfigManager {
 			nodes.add(node);
 			this.writePeerNodes(nodes);
 		}
+	}
+
+	/**
+	 * Removes the node from the config list and writes.
+	 * If node isnt in list, does nothing.
+	 *
+	 * @param node
+	 */
+	public void removeNodeAndWrite(PeerNode node){
+
+		ArrayList<PeerNode> nodes = this.readPeerNodes();
+		nodes.remove(node);
+		this.writePeerNodes(nodes);
 	}
 
 

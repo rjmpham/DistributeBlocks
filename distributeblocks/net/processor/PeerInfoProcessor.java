@@ -32,7 +32,7 @@ public class PeerInfoProcessor extends AbstractMessageProcessor<PeerInfoMessage>
 
 			IPAddress address = message.peerAddresses.remove(ran.nextInt(Math.max(1, message.peerAddresses.size() - 1)));
 
-			if (address.port <= 0 || !networkManager.connectToNode(address)){
+			if (address.port <= 0 || networkManager.isConnectedToNode(address)|| !networkManager.connectToNode(address)){
 				i --;
 			} else {
 				suceeded ++;
@@ -42,6 +42,7 @@ public class PeerInfoProcessor extends AbstractMessageProcessor<PeerInfoMessage>
 
 		if (suceeded < needed){
 			// TODO: Do something about this!
+			System.out.println("Did not get enough peers in peer info :(");
 		}
 	}
 }

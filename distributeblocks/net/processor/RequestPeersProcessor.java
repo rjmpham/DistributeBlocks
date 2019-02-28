@@ -37,7 +37,7 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 					IPAddress addr = nodes.remove(ran.nextInt(Math.max(nodes.size() - 1, 1))).getListeningAddress();
 
 					// Dont send them the address if its their own address.
-					if (!addr.equals(message.senderNode.getListeningAddress())){
+					if (addr.port > 0 && !addr.equals(message.senderNode.getListeningAddress())){
 						addresses.add(addr);
 					}
 				}
@@ -50,7 +50,7 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 
 				IPAddress address = p.getListeningAddress();
 
-				if (!address.equals(message.senderNode.getListeningAddress())) {
+				if (address.port > 0 && !address.equals(message.senderNode.getListeningAddress())) {
 					addresses.add(address);
 				}
 			}

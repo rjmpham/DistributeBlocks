@@ -88,7 +88,7 @@ public class NetworkManager {
 		if (!seed) {
 			connectToPeers();
 
-			if (peerNodes.size() == 0){
+			/*if (peerNodes.size() == 0){
 
 				// Use the seed node to get peers.
 				PeerNode seedNode = new PeerNode(seedNodeAddr);
@@ -105,10 +105,25 @@ public class NetworkManager {
 				for (PeerNode p : peerNodes){
 					p.asyncSendMessage(new RequestPeersMessage());
 				}
-			}
-		}
+			}*/
 
-		// TODO: periodic alive checks.
+			scheduledExecutorService.schedule(new CheckNeedNodes(), 2, TimeUnit.SECONDS);
+		}
+	}
+
+	public void addNode(PeerNode node){
+		this.peerNodes.add(node);
+
+		ConfigManager manager = new ConfigManager();
+		manager.addNodeAndWrite(node);
+	}
+
+	public void removeNode(PeerNode node){
+		peerNodes.remove(node);
+	}
+
+	public boolean needMorePeers(){
+		return peerNodes.size() < minPeers;
 	}
 
 	public boolean inSeedMode(){
@@ -156,6 +171,27 @@ public class NetworkManager {
 		if (node.connect()){
 
 			peerNodes.add(node);
+			return true;
+		}
+
+		return false;
+	}
+
+	public boolean isConnectedToNode(IPAddress address){ //TODO: Would be less confusing to use PeerNode?
+
+
+		for (PeerNode p : peerNodes){
+			if (p.getListeningAddress().equals(address)){
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public boolean isSeedNode(PeerNode node){
+
+		if (node.getListeningAddress().equals(seedNodeAddr)){
 			return true;
 		}
 
@@ -234,6 +270,37 @@ public class NetworkManager {
 				}
 			}
 
+		}
+	}
+
+	/**
+	 * Do be run periodically
+	 */
+	private class CheckNeedNodes implements Runnable {
+
+
+		@Override
+		public void run() {
+
+			System.out.println("Checking if I need more friends.");
+			if (peerNodes.size() < minPeers){
+
+				System.out.println("I do");
+
+				if (peerNodes.size() > 0) {
+					for (PeerNode p : peerNodes) {
+						p.asyncSendMessage(new RequestPeersMessage());
+					}
+				} else {
+					PeerNode seed = new PeerNode(seedNodeAddr);
+					seed.connect();
+					seed.asyncSendMessage(new RequestPeersMessage());
+				}
+			} else {
+				System.out.println("I don't");
+			}
+
+			scheduledExecutorService.schedule(new CheckNeedNodes(), 10, TimeUnit.SECONDS);
 		}
 	}
 

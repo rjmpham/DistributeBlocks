@@ -155,7 +155,6 @@ public class PeerNode {
 	public void shutDown() {
 
 		shutDown = true;
-		outQueue.notifyAll();
 		executorService.shutdown();
 
 		try {
