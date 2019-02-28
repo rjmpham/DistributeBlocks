@@ -2,6 +2,7 @@ package distributeblocks.net;
 
 import distributeblocks.io.ConfigManager;
 import distributeblocks.net.message.AbstractMessage;
+import distributeblocks.net.message.RequestPeersMessage;
 import distributeblocks.net.message.ServerCrashMessage;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ public class NetworkManager {
 	private int maxPeers = Integer.MAX_VALUE;
 	private int port = -1;
 	private IPAddress seedNodeAddr;
+	private boolean seed;
 
 	/**
 	 * Time in seconds between attempts at discovering more peer nodes.
@@ -43,12 +45,17 @@ public class NetworkManager {
 	 * @param maxPeers
 	 *   Maximum number of conencted peers.
 	 */
-	public NetworkManager(int minPeers, int maxPeers, int port, IPAddress seedNodeAddr){
+	public NetworkManager(int minPeers, int maxPeers, int port, IPAddress seedNodeAddr, boolean seed){
 
 		this.maxPeers = maxPeers;
 		this.minPeers = minPeers;
 		this.port = port;
 		this.seedNodeAddr = seedNodeAddr;
+		this.seed = seed;
+
+		if (seed){
+			System.out.println("Starting in seed mode.");
+		}
 
 		// May want seperate services to make shutdowns easier?
 		executorService = Executors.newCachedThreadPool();
@@ -67,14 +74,7 @@ public class NetworkManager {
 		ConfigManager configManager = new ConfigManager();
 		peerNodes = configManager.readPeerNodes();
 
-		connectToPeers();
-
-		if (peerNodes.size() < minPeers){
-			// TODO: Do something to search for more peers.
-		}
-
 		// Begin listening for connections, and start the message processor
-
 		try {
 			serverSocket = new ServerSocket(port);
 		} catch (IOException e) {
@@ -84,8 +84,48 @@ public class NetworkManager {
 
 		executorService.execute(new Connectionlistener());
 		executorService.execute(new IncommingQueueProcessor());
+
+		if (!seed) {
+			connectToPeers();
+
+			if (peerNodes.size() == 0){
+
+				// Use the seed node to get peers.
+				PeerNode seedNode = new PeerNode(seedNodeAddr);
+				if (!seedNode.connect()){
+					throw new RuntimeException("I have no friends and seed node wont talk to me :(");
+				}
+
+				seedNode.asyncSendMessage(new RequestPeersMessage());
+
+			} else if (peerNodes.size() < minPeers){
+
+				System.out.println("Asking peers for new friends.");
+				// Ask everyone for new neigbors.
+				for (PeerNode p : peerNodes){
+					p.asyncSendMessage(new RequestPeersMessage());
+				}
+			}
+		}
+
+		// TODO: periodic alive checks.
 	}
 
+	public boolean inSeedMode(){
+		return seed;
+	}
+
+	public ArrayList<PeerNode> getPeerNodes(){
+		return peerNodes;
+	}
+
+	public int getMinPeers() {
+		return minPeers;
+	}
+
+	public int getPort() {
+		return port;
+	}
 
 	/**
 	 * Add a incomming message to a processing queue.
@@ -99,6 +139,28 @@ public class NetworkManager {
 		incommingQueue.add(message);
 	}
 
+	/**
+	 * Connects to a new node.
+	 *
+	 * NOTE: This is synchronous!
+	 *
+	 * @param address
+	 *
+	 * @return
+	 *   True on success, false on failure.
+	 */
+	public boolean connectToNode(IPAddress address){
+
+		PeerNode node = new PeerNode(address);
+
+		if (node.connect()){
+
+			peerNodes.add(node);
+			return true;
+		}
+
+		return false;
+	}
 
 	private void connectToPeers(){
 
@@ -106,6 +168,7 @@ public class NetworkManager {
 			p.asyncConnect();
 		}
 	}
+
 
 
 	/**
@@ -149,10 +212,21 @@ public class NetworkManager {
 
 					Socket socket = serverSocket.accept();
 
+					//TODO: In seed mode, should terminate connections after some time limit?
+					// Doesnt really matter for project I guess.
+
 					System.out.println("Received connection from: " + socket.getInetAddress());
 
 					PeerNode peerNode = new PeerNode(socket);
 					peerNodes.add(peerNode);
+
+
+					// If in seed mode, add the node to the list of known nodes.
+					// TODO: Need to do periodic alive checks to these nodes in order to hav a well maintained list.
+					if (seed){
+
+
+					}
 
 				} catch (IOException e) {
 					e.printStackTrace();

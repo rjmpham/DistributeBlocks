@@ -7,9 +7,17 @@ public class ShakeResponseMessage extends AbstractMessage {
 
 
 	public String messsage;
+	public int listeningPort;
 
-	public ShakeResponseMessage(String messsage) {
+	/**
+	 *
+	 * @param messsage
+	 * @param listeningPort
+	 *    The port that the sender is listening on.
+	 */
+	public ShakeResponseMessage(String messsage, int listeningPort) {
 		this.messsage = messsage;
+		this.listeningPort = listeningPort;
 	}
 
 	@Override

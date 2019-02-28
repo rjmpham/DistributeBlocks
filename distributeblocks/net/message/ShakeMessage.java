@@ -6,10 +6,19 @@ import distributeblocks.net.processor.ShakeProcessor;
 public class ShakeMessage extends AbstractMessage {
 
 
-	private String shakeMessage;
+	public String shakeMessage;
+	public int listeningPort;
 
-	public ShakeMessage(String shakeMessage) {
+
+	/**
+	 *
+	 * @param shakeMessage
+	 * @param listeningPort
+	 *   This is the port the node will be listening on (the sender of the message).
+	 */
+	public ShakeMessage(String shakeMessage, int listeningPort) {
 		this.shakeMessage = shakeMessage;
+		this.listeningPort = listeningPort;
 	}
 
 	public String getShakeMessage() {

@@ -6,5 +6,7 @@ public class ShakeResponseProcessor extends AbstractMessageProcessor<ShakeRespon
 	@Override
 	public void processMessage(ShakeResponseMessage message) {
 		System.out.println("Got shake response: " + message.messsage);
+
+		message.senderNode.setListenPort(message.listeningPort);
 	}
 }

@@ -15,6 +15,7 @@ public class PeerNode {
 
 
 	private IPAddress address;
+	private int listenPort = -1;
 	private ExecutorService executorService;
 	private Socket socket;
 	private LinkedBlockingQueue<AbstractMessage> outQueue;
@@ -33,6 +34,7 @@ public class PeerNode {
 	 */
 	public PeerNode(IPAddress address) {
 		this.address = address;
+		this.listenPort = address.port;
 		outQueue = new LinkedBlockingQueue<>();
 		executorService = Executors.newCachedThreadPool();
 	}
@@ -78,16 +80,53 @@ public class PeerNode {
 				executorService.execute(new Listener());
 				executorService.execute(new Sender());
 
-				sendMessage(new ShakeMessage("Hey there ;)"));
+				asyncSendMessage(new ShakeMessage("Hey there ;)", NetworkService.getNetworkManager().getPort()));
 
 			} catch (IOException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionFailedMessage(PeerNode.this));
 			}
 		});
 	}
 
-	public void sendMessage(AbstractMessage message) {
+	/**
+	 * Same as async connect, but does not trigger a connection fail message,
+	 * and obviously isnt async.
+	 *
+	 * @return
+	 *   True if connection was sucessfull, false otherwise.
+	 */
+	public boolean connect(){
+
+		if (address == null) {
+			throw new RuntimeException("You had a null address while trying to connect a peer node!");
+		}
+
+			try {
+				socket = new Socket(address.ip, address.port);
+				System.out.println("Connected to: " + address);
+
+				// Connection success! Start listening
+				executorService.execute(new Listener());
+				executorService.execute(new Sender());
+
+				asyncSendMessage(new ShakeMessage("Hey there ;)", NetworkService.getNetworkManager().getPort()));
+
+			} catch (IOException e) {
+				System.out.println("Failed to connect to " + address);
+				return false;
+			}
+
+			return true;
+	}
+
+
+	/**
+	 * Sends the given method to the node represented by this instance.
+	 *
+	 * @param message
+	 */
+	public void asyncSendMessage(AbstractMessage message) {
 
 		try {
 			outQueue.put(message);
@@ -98,8 +137,19 @@ public class PeerNode {
 	}
 
 
+	/**
+	 *
+	 * @return
+	 *   Deep copy of address.
+	 */
 	public IPAddress getAddress() {
-		return address;
+		return new IPAddress(address.ip, address.port);
+	}
+
+	public IPAddress getListeningAddress(){
+		IPAddress addr = this.getAddress();
+		addr.port = this.listenPort;
+		return addr;
 	}
 
 	public void shutDown() {
@@ -122,6 +172,13 @@ public class PeerNode {
 		}
 	}
 
+	public int getListenPort() {
+		return listenPort;
+	}
+
+	public void setListenPort(int listenPort) {
+		this.listenPort = listenPort;
+	}
 
 	/**
 	 * Processes incomming messages from the peer node and adds them to the networkmanager queue.

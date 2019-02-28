@@ -81,7 +81,7 @@ public class ConfigManager {
 		IPAddress[] peers = new IPAddress[peerNodes.size()];
 
 		for (int i = 0; i < peerNodes.size(); i ++){
-			peers[i] = peerNodes.get(i).getAddress();
+			peers[i] = peerNodes.get(i).getListeningAddress();
 		}
 
 		Gson gson = new Gson();

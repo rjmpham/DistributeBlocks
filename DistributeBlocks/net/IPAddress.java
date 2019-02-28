@@ -1,6 +1,8 @@
 package distributeblocks.net;
 
-public class IPAddress {
+import java.io.Serializable;
+
+public class IPAddress implements Serializable {
 
 
 	public String ip;

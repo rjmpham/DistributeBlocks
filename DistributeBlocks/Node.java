@@ -10,6 +10,7 @@ public class Node {
 	private static int maxPeers = 3;
 	private static int port = 5832;
 	private static IPAddress seedNode = new IPAddress("localhost", 5831); // TODO: Support multiple seed nodes.
+	private static boolean seed = false;
 
 	/**
 	 *
@@ -20,10 +21,11 @@ public class Node {
 
 
 		// TODO proper type checking and crap.
-		for (int i = 0; i < args.length - 1; i ++){
+		for (int i = 0; i < args.length; i ++){
 
 			String a = args[i];
 
+			System.out.println("got arg: " + args[i]);
 			switch (a){
 				case "minp":
 					minPeers = Integer.parseInt(args[i+1]);
@@ -33,16 +35,21 @@ public class Node {
 					break;
 				case "port":
 					port = Integer.parseInt(args[i+1]);
+					System.out.println("Got port: " + port);
 					break;
-				case "seed":
+				case "seedAddr":
 					String seedAddr = args[i+1];
 					int seedPort = Integer.parseInt(args[i+2]);
 					seedNode = new IPAddress(seedAddr, seedPort);
-
+					break;
+				case "seed":
+					seed = true;
+					break;
 			}
 		}
 
-		NetworkService.init(minPeers, maxPeers, port, seedNode);
+		// TODO: Maybe replace param list with config object.
+		NetworkService.init(minPeers, maxPeers, port, seedNode, seed);
 
 	}
 
