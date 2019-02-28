@@ -11,6 +11,7 @@ public class Node {
 	private static int port = 5832;
 	private static IPAddress seedNode = new IPAddress("localhost", 5831); // TODO: Support multiple seed nodes.
 	private static boolean seed = false;
+	public static String PEER_CONFIG_FILE = "./peer_config.txt";
 
 	/**
 	 *
@@ -45,6 +46,8 @@ public class Node {
 				case "seed":
 					seed = true;
 					break;
+				case "config":
+					PEER_CONFIG_FILE = args[i+1];
 			}
 		}
 

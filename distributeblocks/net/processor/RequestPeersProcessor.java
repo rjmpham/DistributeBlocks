@@ -33,8 +33,13 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 				int adressShareCount = Math.min(nodes.size(), 10);
 				Random ran = new Random();
 
-				while (addresses.size() < adressShareCount) {
-					addresses.add(nodes.remove(ran.nextInt(Math.max(nodes.size() - 1, 1))).getAddress());
+				while (nodes.size() > 0 && addresses.size() < adressShareCount) {
+					IPAddress addr = nodes.remove(ran.nextInt(Math.max(nodes.size() - 1, 1))).getListeningAddress();
+
+					// Dont send them the address if its their own address.
+					if (!addr.equals(message.senderNode.getListeningAddress())){
+						addresses.add(addr);
+					}
 				}
 			}
 
@@ -43,10 +48,11 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 			// Use connected peers only, dont want to try and set people up with dead friends.
 			for (PeerNode p : NetworkService.getNetworkManager().getPeerNodes()){
 
-				IPAddress address = p.getAddress();
-				address.port = p.getListenPort(); // So that they will connect to the ServerSocket of the node.
+				IPAddress address = p.getListeningAddress();
 
-				addresses.add(address);
+				if (!address.equals(message.senderNode.getListeningAddress())) {
+					addresses.add(address);
+				}
 			}
 		}
 

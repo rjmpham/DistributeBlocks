@@ -1,5 +1,6 @@
 package distributeblocks.io;
 
+import distributeblocks.Node;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.PeerNode;
 import com.google.gson.Gson;
@@ -17,7 +18,7 @@ import java.util.Scanner;
  */
 public class ConfigManager {
 
-	private static final String PEER_CONFIG_FILE = "./peer_config.txt";
+	//private static final String PEER_CONFIG_FILE = "./peer_config.txt";
 
 
 	public ConfigManager() {
@@ -39,7 +40,7 @@ public class ConfigManager {
 	public ArrayList<PeerNode> readPeerNodes(){
 
 		Gson gson = new Gson();
-		File file = new File(PEER_CONFIG_FILE);
+		File file = new File(Node.PEER_CONFIG_FILE);
 
 		if (!file.exists()){
 			file = createPeerConfigFile();
@@ -85,7 +86,7 @@ public class ConfigManager {
 		}
 
 		Gson gson = new Gson();
-		File file = new File(PEER_CONFIG_FILE);
+		File file = new File(Node.PEER_CONFIG_FILE);
 
 		if (!file.exists()){
 			file = createPeerConfigFile();
@@ -105,6 +106,31 @@ public class ConfigManager {
 
 
 	/**
+	 * Adds a node to the list of peer nodes,
+	 * if the node already exists in the list, then does nothing.
+	 *
+	 * @param node
+	 */
+	public void  addNodeAndWrite(PeerNode node){
+
+		ArrayList<PeerNode> nodes = this.readPeerNodes();
+
+		boolean found = false;
+		for (PeerNode n : nodes){
+			if (n.equals(node)){
+				found = true;
+				break;
+			}
+		}
+
+		if (!found){
+			nodes.add(node);
+			this.writePeerNodes(nodes);
+		}
+	}
+
+
+	/**
 	 * Tries to create the peer config file.
 	 *
 	 * @return
@@ -112,7 +138,7 @@ public class ConfigManager {
 	 */
 	private File createPeerConfigFile(){
 
-		File  file = new File(PEER_CONFIG_FILE);
+		File  file = new File(Node.PEER_CONFIG_FILE);
 
 		if (file.exists()){
 			return file;

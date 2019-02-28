@@ -1,8 +1,10 @@
 package distributeblocks.net.processor;
 
+import distributeblocks.io.ConfigManager;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkManager;
 import distributeblocks.net.NetworkService;
+import distributeblocks.net.PeerNode;
 import distributeblocks.net.message.PeerInfoMessage;
 
 import java.util.Random;
@@ -20,8 +22,9 @@ public class PeerInfoProcessor extends AbstractMessageProcessor<PeerInfoMessage>
 		int needed = networkManager.getMinPeers() - networkManager.getPeerNodes().size();
 		int suceeded = 0;
 		Random ran = new Random();
+		ConfigManager configManager = new ConfigManager();
 
-		for (int i = 0; i < needed ; i ++){
+		for (int i = 0; i < needed ; i ++){ // If none are needed, this message is ignored.
 
 			if (message.peerAddresses.size() == 0){
 				break;
@@ -33,6 +36,7 @@ public class PeerInfoProcessor extends AbstractMessageProcessor<PeerInfoMessage>
 				i --;
 			} else {
 				suceeded ++;
+				configManager.addNodeAndWrite(new PeerNode(address));
 			}
 		}
 

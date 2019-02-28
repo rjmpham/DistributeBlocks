@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Objects;
 import java.util.concurrent.*;
 
 public class PeerNode {
@@ -19,7 +20,6 @@ public class PeerNode {
 	private ExecutorService executorService;
 	private Socket socket;
 	private LinkedBlockingQueue<AbstractMessage> outQueue;
-
 
 	private volatile boolean shutDown = false;
 
@@ -178,6 +178,20 @@ public class PeerNode {
 
 	public void setListenPort(int listenPort) {
 		this.listenPort = listenPort;
+	}
+
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof PeerNode)) return false;
+		PeerNode peerNode = (PeerNode) o;
+		return getListeningAddress().equals(peerNode.getListeningAddress());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(getListeningAddress());
 	}
 
 	/**
