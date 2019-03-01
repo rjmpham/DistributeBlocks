@@ -216,7 +216,7 @@ public class PeerNode {
 				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			} catch (IOException e) {
 				e.printStackTrace();
-				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionFailedMessage(PeerNode.this));
+				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 				throw new RuntimeException("Class not found exception wut?");
@@ -242,7 +242,7 @@ public class PeerNode {
 				stream = new ObjectOutputStream(socket.getOutputStream());
 			} catch (IOException e) {
 				e.printStackTrace();
-				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionFailedMessage(PeerNode.this));
+				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			}
 
 			while (!shutDown) {

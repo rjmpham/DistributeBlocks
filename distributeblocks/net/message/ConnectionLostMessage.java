@@ -7,7 +7,7 @@ import distributeblocks.net.processor.ConnectionLostProcessor;
 public class ConnectionLostMessage extends AbstractMessage {
 
 
-	PeerNode peerNode;
+	public PeerNode peerNode;
 
 
 	public ConnectionLostMessage(PeerNode peerNode) {

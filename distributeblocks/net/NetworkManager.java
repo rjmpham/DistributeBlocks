@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.*;
 
 public class NetworkManager {
@@ -120,6 +121,13 @@ public class NetworkManager {
 
 	public void removeNode(PeerNode node){
 		peerNodes.remove(node);
+
+		// Also remove any node with the same address
+		for (int i = peerNodes.size() -1; i >= 0; i --){
+			if (peerNodes.get(i).getListeningAddress().equals(node.getListeningAddress())){
+				peerNodes.remove(i);
+			}
+		}
 	}
 
 	public boolean needMorePeers(){
@@ -282,10 +290,11 @@ public class NetworkManager {
 		@Override
 		public void run() {
 
-			System.out.println("Checking if I need more friends.");
+			//System.out.println("Checking if I need more friends.");
 			if (peerNodes.size() < minPeers){
 
-				System.out.println("I do");
+				//System.out.println("I do");
+				System.out.println("Getting more peers.");
 
 				if (peerNodes.size() > 0) {
 					for (PeerNode p : peerNodes) {
@@ -297,7 +306,24 @@ public class NetworkManager {
 					seed.asyncSendMessage(new RequestPeersMessage());
 				}
 			} else {
-				System.out.println("I don't");
+				//System.out.println("I don't");
+			}
+
+
+			// Consolidate connections. Maybe there could be a way to avoid duplicate connections in the first place?
+			HashMap<IPAddress, Boolean> addresses = new HashMap<>();
+
+			for (int i = peerNodes.size() - 1; i >= 0; i --){
+				if (addresses.containsKey(peerNodes.get(i).getListeningAddress())){
+					peerNodes.remove(i);
+				} else {
+					addresses.put(peerNodes.get(i).getListeningAddress(), true);
+				}
+			}
+
+			System.out.println("Connected Nodes: ");
+			for (PeerNode p : peerNodes){
+				System.out.println(" - " + p.getListeningAddress());
 			}
 
 			scheduledExecutorService.schedule(new CheckNeedNodes(), 10, TimeUnit.SECONDS);
