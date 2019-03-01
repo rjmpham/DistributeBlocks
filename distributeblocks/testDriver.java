@@ -126,11 +126,28 @@ public class testDriver
 		System.out.println("Block's target number of zeros : " + blockchain.get(1).getTargetNumZeros());
 
 		System.out.println();
+		/*
+		if (stepThrough == 1) {
+			System.out.println("\nPress Enter to continue");
+			try {
+				System.in.read();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		System.out.println("\n Testing contract")
+		//unable to test until genesis block has value
+		Contract alice_to_bob_5 = new Contract(wallet_Alice.getPrivateKey, wallet_Alice.getPublicKey, wallet_Bob.gegetPublicKey,);
+		*/
 		}
 		catch (FailedToHashException e)
 		{
 			System.out.println("Failed to create block.");
 		}
+
+
 
 
 	}
