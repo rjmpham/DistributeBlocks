@@ -9,7 +9,9 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class NetworkManager {
@@ -29,7 +31,7 @@ public class NetworkManager {
 
 	private ExecutorService executorService;
 	private ScheduledExecutorService scheduledExecutorService; // For requesting new peers.
-	private ArrayList<PeerNode> peerNodes;
+	private List<PeerNode> peerNodes;
 	private ServerSocket serverSocket;
 
 
@@ -73,7 +75,7 @@ public class NetworkManager {
 
 		// Grab known peer nodes from file.
 		ConfigManager configManager = new ConfigManager();
-		peerNodes = configManager.readPeerNodes();
+		peerNodes = Collections.synchronizedList(configManager.readPeerNodes());
 
 		// Begin listening for connections, and start the message processor
 		try {
@@ -112,23 +114,90 @@ public class NetworkManager {
 		}
 	}
 
-	public void addNode(PeerNode node){
+	public synchronized void addNode(PeerNode node){
 		this.peerNodes.add(node);
 
 		ConfigManager manager = new ConfigManager();
 		manager.addNodeAndWrite(node);
 	}
 
-	public void removeNode(PeerNode node){
-		peerNodes.remove(node);
 
-		// Also remove any node with the same address
-		for (int i = peerNodes.size() -1; i >= 0; i --){
-			if (peerNodes.get(i).getListeningAddress().equals(node.getListeningAddress())){
+	/**
+	 * Removes a node by reference.
+	 *
+	 * @param node
+	 */
+	public synchronized void removeNode(PeerNode node){
+
+
+		for (int i = 0; i < peerNodes.size(); i ++){
+			if (peerNodes.get(i) == node){ // At least I think this only checks if the reference is the same.
+				peerNodes.get(i).shutDown();
 				peerNodes.remove(i);
+				break;
 			}
 		}
 	}
+
+	/**
+	 * Remove node by index.
+	 *
+	 * @param index
+	 */
+	public synchronized void removeNode(int index){
+
+		peerNodes.get(index).shutDown();
+		peerNodes.remove(index);
+	}
+
+	/**
+	 * Remove all nodes with the given address.
+	 *
+	 * @param listeningAddress
+	 */
+	public synchronized  void removeNode(IPAddress listeningAddress){
+
+		ArrayList<Integer> toRemove = new ArrayList<>();
+
+		for (int i = 0; i < peerNodes.size(); i ++){
+
+			if (peerNodes.get(i).getListeningAddress().equals(listeningAddress)){
+				toRemove.add(i);
+			}
+		}
+
+		for (int rem : toRemove){
+			peerNodes.remove(rem);
+		}
+	}
+
+	public synchronized void removeDuplicateNodes(){
+
+		HashMap<IPAddress, Boolean> addresses = new HashMap<>();
+		ArrayList<Integer> toRemove = new ArrayList<>();
+
+		for (int i = peerNodes.size() - 1; i >= 0; i--) {
+			if (addresses.containsKey(peerNodes.get(i).getListeningAddress())) {
+				toRemove.add(i);
+			} else {
+				addresses.put(peerNodes.get(i).getListeningAddress(), true);
+			}
+		}
+
+		for (int i : toRemove){
+			System.out.println("Removing duplicate node: " + peerNodes.get(i).getListeningAddress());
+			removeNode(i);
+		}
+	}
+
+	public synchronized void printConnectedNodes(){
+		System.out.println("Connected Nodes: ");
+		for (PeerNode p : peerNodes) {
+			System.out.println(" - " + p.getListeningAddress());
+		}
+	}
+
+
 
 	public boolean needMorePeers(){
 		return peerNodes.size() < minPeers;
@@ -138,7 +207,7 @@ public class NetworkManager {
 		return seed;
 	}
 
-	public ArrayList<PeerNode> getPeerNodes(){
+	public List<PeerNode> getPeerNodes(){
 		return peerNodes;
 	}
 
@@ -265,12 +334,7 @@ public class NetworkManager {
 					peerNodes.add(peerNode);
 
 
-					// If in seed mode, add the node to the list of known nodes.
 					// TODO: Need to do periodic alive checks to these nodes in order to hav a well maintained list.
-					if (seed){
-
-
-					}
 
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -290,40 +354,38 @@ public class NetworkManager {
 		@Override
 		public void run() {
 
-			//System.out.println("Checking if I need more friends.");
-			if (peerNodes.size() < minPeers){
+			try {
 
-				//System.out.println("I do");
-				System.out.println("Getting more peers.");
+				//System.out.println("Checking if I need more friends.");
+				if (peerNodes.size() < minPeers) {
 
-				if (peerNodes.size() > 0) {
-					for (PeerNode p : peerNodes) {
-						p.asyncSendMessage(new RequestPeersMessage());
+					//System.out.println("I do");
+					System.out.println("Getting more peers.");
+
+					if (peerNodes.size() > 0) {
+						for (PeerNode p : peerNodes) {
+							p.asyncSendMessage(new RequestPeersMessage());
+						}
+					} else {
+						PeerNode seed = new PeerNode(seedNodeAddr);
+						seed.connect();
+						seed.asyncSendMessage(new RequestPeersMessage());
 					}
 				} else {
-					PeerNode seed = new PeerNode(seedNodeAddr);
-					seed.connect();
-					seed.asyncSendMessage(new RequestPeersMessage());
+					//System.out.println("I don't");
 				}
-			} else {
-				//System.out.println("I don't");
-			}
 
 
-			// Consolidate connections. Maybe there could be a way to avoid duplicate connections in the first place?
-			HashMap<IPAddress, Boolean> addresses = new HashMap<>();
+				// Consolidate connections. Maybe there could be a way to avoid duplicate connections in the first place?
+				/**/
 
-			for (int i = peerNodes.size() - 1; i >= 0; i --){
-				if (addresses.containsKey(peerNodes.get(i).getListeningAddress())){
-					peerNodes.remove(i);
-				} else {
-					addresses.put(peerNodes.get(i).getListeningAddress(), true);
-				}
-			}
+				//removeDuplicateNodes();
+				printConnectedNodes();
 
-			System.out.println("Connected Nodes: ");
-			for (PeerNode p : peerNodes){
-				System.out.println(" - " + p.getListeningAddress());
+
+			} catch (Exception e ){
+				e.printStackTrace();
+				// Not sure whats going on here.
 			}
 
 			scheduledExecutorService.schedule(new CheckNeedNodes(), 10, TimeUnit.SECONDS);

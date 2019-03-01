@@ -22,12 +22,15 @@ public class ShakeProcessor extends AbstractMessageProcessor<ShakeMessage> {
 				false : NetworkService.getNetworkManager().needMorePeers();
 
 		if (NetworkService.getNetworkManager().isConnectedToNode(message.senderNode.getListeningAddress())){
-			wantMoreFriends = true;
+			wantMoreFriends = false;
 		}
 
 		message.senderNode.asyncSendMessage(new ShakeResponseMessage("Hey back at ya ;)",
 				NetworkService.getNetworkManager().getPort(), wantMoreFriends));
-		NetworkService.getNetworkManager().addNode(message.senderNode);
+
+		if (wantMoreFriends) {
+			NetworkService.getNetworkManager().addNode(message.senderNode);
+		}
 
 
 		if (NetworkService.getNetworkManager().inSeedMode()){

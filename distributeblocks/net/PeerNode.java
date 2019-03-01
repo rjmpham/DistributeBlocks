@@ -165,9 +165,11 @@ public class PeerNode {
 		}
 
 		try {
-			socket.close();
+			if (socket != null) {
+				socket.close();
+			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 	}
 
@@ -187,6 +189,7 @@ public class PeerNode {
 		PeerNode peerNode = (PeerNode) o;
 		return getListeningAddress().equals(peerNode.getListeningAddress());
 	}
+
 
 	@Override
 	public int hashCode() {
@@ -215,7 +218,7 @@ public class PeerNode {
 				// Socket closed.
 				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			} catch (IOException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
@@ -241,7 +244,7 @@ public class PeerNode {
 			try {
 				stream = new ObjectOutputStream(socket.getOutputStream());
 			} catch (IOException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			}
 
@@ -255,7 +258,7 @@ public class PeerNode {
 					stream.writeObject(message);
 
 				} catch (InterruptedException | IOException e) {
-					e.printStackTrace();
+					//e.printStackTrace();
 					NetworkService.getNetworkManager().asyncEnqueue(new SendFailMessage(PeerNode.this,message ));
 				}
 			}
