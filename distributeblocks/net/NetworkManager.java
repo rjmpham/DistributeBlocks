@@ -433,6 +433,7 @@ public class NetworkManager {
 		private HashMap<Integer, Long> requestTimes;
 		private volatile int leftBound = 0;
 		private volatile int rightBound = 10;
+		private int highestBlock = 0;
 
 		private HashMap<Integer, Boolean> recievedBlocks;
 
@@ -446,15 +447,19 @@ public class NetworkManager {
 			recievedBlocks.put(blockMessage.blockHeight, true);
 
 			// Update bounds.
-			int min = Integer.MAX_VALUE;
-			for (int i : recievedBlocks.keySet()){
-				if (min > i){
+			int min = 0;
+			for (int i = 0; i < highestBlock; i ++){
+				if (recievedBlocks.keySet().contains(i)){
 					min = i;
+				} else {
+					break; // We found the lowest recieved block.
 				}
 			}
 
-			leftBound = min;
+			leftBound = Math.min(highestBlock - 1, min + 1); // So it doesnt try to grab n + 1 blocks.
 			rightBound = min + 10;
+
+			System.out.println("Got new left bound: " + leftBound);
 		}
 
 
@@ -509,13 +514,14 @@ public class NetworkManager {
 				for (int j = 0; j < highestHeaders.size(); j ++){
 					requestTimes.put(j, (long) 0.0); // too tired.
 				}
+				highestBlock = highestHeaders.size();
 
 				while (recievedBlocks.size() < highestHeaders.size()) {
 
-					if (i > rightBound) {
+					if (i > rightBound || i >= highestHeaders.size() - 1) {
 						Thread.sleep(1000); // Wait for responses.
 
-						if (requestTimes.get(i) + 5000 <  System.currentTimeMillis()) { // Only make another request every 5 seconds
+						if (requestTimes.get(leftBound) + 5000 <  System.currentTimeMillis()) { // Only make another request every 5 seconds
 							// Request lowest block again.
 							nodes.get(nodes.size() == 1 ? 0 : rand.nextInt(nodes.size() - 1)).asyncSendMessage(new RequestBlockMessage(highestHeaders.get(leftBound).blockHash, leftBound));
 							requestTimes.put(i, System.currentTimeMillis());
@@ -526,6 +532,8 @@ public class NetworkManager {
 						if (requestTimes.get(i) + 5000 <  System.currentTimeMillis()) { // Only make another request every 5 seconds
 							nodes.get(nodes.size() == 1 ? 0 : rand.nextInt(nodes.size() - 1)).asyncSendMessage(new RequestBlockMessage(highestHeaders.get(i).blockHash, i));
 							requestTimes.put(i, System.currentTimeMillis());
+						} else {
+							Thread.sleep(50);
 						}
 
 						if (i < highestHeaders.size() - 1){
