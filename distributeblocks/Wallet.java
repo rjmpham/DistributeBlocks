@@ -18,8 +18,8 @@ public class Wallet {
 
 	public Wallet(){
 	  KeyPair pair = Crypto.keyPairGenerator();
-    privateKey = pair.getPrivate();
-    publicKey = pair.getPublic();
+	  privateKey = pair.getPrivate();
+	  publicKey = pair.getPublic();
 	}
 
 	public float getFunds(){
@@ -54,10 +54,10 @@ public class Wallet {
 			contract_ArrayList.add(new Contract_In(funds.id));
 			if(sum > amount) break;
 		}
-		Contract newContract = new Contract(publicKey, receiver , amount, contract_ArrayList);
+		Contract newContract = new Contract(privateKey, publicKey, receiver , amount, contract_ArrayList);
 
 		//signatures not implemented
-		//newContract.generateSignature(privateKey);
+		//newContract.generateSignature(privateKey); no longer necessary as contracts are singed in constructor now, delete once confidence is gained
 
 		for(Contract_In i: contract_ArrayList){
 			funds_HashMap.remove(i.id_Contract_Out);
