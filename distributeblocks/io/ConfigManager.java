@@ -247,7 +247,7 @@ public class ConfigManager {
 		LinkedList<Block> blockChain = new LinkedList<>();
 		blockChain.add(Node.getGenisisBlock());
 
-		for (int i = 1; i < 10; i ++){
+		for (int i = 1; i < 50; i ++){
 
 			try {
 				Block block = new Block("This is data for block " + i, blockChain.get(i -1).getHashBlock(), Node.HASH_DIFFICULTY);

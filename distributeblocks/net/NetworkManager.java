@@ -275,7 +275,7 @@ public class NetworkManager {
 		PeerNode node = new PeerNode(address);
 
 		if (node.connect()) {
-			
+
 			addNode(node); // TODO: This may ahve caused issues with cfg file.
 
 			return true;
@@ -430,7 +430,7 @@ public class NetworkManager {
 	private class AquireChain implements Runnable {
 
 
-		private HashMap<Integer, Long> requestTimes;
+		private volatile HashMap<Integer, Long> requestTimes;
 		private volatile int leftBound = 0;
 		private volatile int rightBound = 10;
 		private int highestBlock = 0;
@@ -444,22 +444,26 @@ public class NetworkManager {
 		}
 
 		public void gotBlock(BlockMessage blockMessage){
-			recievedBlocks.put(blockMessage.blockHeight, true);
 
-			// Update bounds.
-			int min = 0;
-			for (int i = 0; i < highestBlock; i ++){
-				if (recievedBlocks.keySet().contains(i)){
-					min = i;
-				} else {
-					break; // We found the lowest recieved block.
+			synchronized (recievedBlocks) {
+
+				recievedBlocks.put(blockMessage.blockHeight, true);
+
+				// Update bounds.
+				int min = 0;
+				for (int i = 0; i < highestBlock; i++) {
+					if (recievedBlocks.keySet().contains(i)) {
+						min = i;
+					} else {
+						break; // We found the lowest recieved block.
+					}
 				}
+
+				leftBound = Math.min(highestBlock - 1, min + 1); // So it doesnt try to grab n + 1 blocks.
+				rightBound = min + 10;
+
+				System.out.println("Got new left bound: " + leftBound);
 			}
-
-			leftBound = Math.min(highestBlock - 1, min + 1); // So it doesnt try to grab n + 1 blocks.
-			rightBound = min + 10;
-
-			System.out.println("Got new left bound: " + leftBound);
 		}
 
 
@@ -518,26 +522,30 @@ public class NetworkManager {
 
 				while (recievedBlocks.size() < highestHeaders.size()) {
 
-					if (i > rightBound || i >= highestHeaders.size() - 1) {
-						Thread.sleep(1000); // Wait for responses.
+					Thread.sleep(100);
+					synchronized (recievedBlocks) {
 
-						if (requestTimes.get(leftBound) + 5000 <  System.currentTimeMillis()) { // Only make another request every 5 seconds
+						if (i > rightBound || i >= highestHeaders.size() - 1) {
+						//	Thread.sleep(100); // Wait for responses.
+
+							//if (requestTimes.get(leftBound) + 3000 <  System.currentTimeMillis()) { // Only make another request every 3 seconds
 							// Request lowest block again.
 							nodes.get(nodes.size() == 1 ? 0 : rand.nextInt(nodes.size() - 1)).asyncSendMessage(new RequestBlockMessage(highestHeaders.get(leftBound).blockHash, leftBound));
 							requestTimes.put(i, System.currentTimeMillis());
-						}
-					} else {
+							//}
+						} else {
 
 
-						if (requestTimes.get(i) + 5000 <  System.currentTimeMillis()) { // Only make another request every 5 seconds
+							//if (requestTimes.get(i) + 3000 <  System.currentTimeMillis()) { // Only make another request every 3 seconds
 							nodes.get(nodes.size() == 1 ? 0 : rand.nextInt(nodes.size() - 1)).asyncSendMessage(new RequestBlockMessage(highestHeaders.get(i).blockHash, i));
 							requestTimes.put(i, System.currentTimeMillis());
-						} else {
-							Thread.sleep(50);
-						}
+							//} else {
+							//Thread.sleep(100);
+							//}
 
-						if (i < highestHeaders.size() - 1){
-							i ++;
+							if (i < highestHeaders.size() - 1) {
+								i++;
+							}
 						}
 					}
 

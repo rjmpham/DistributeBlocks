@@ -12,7 +12,7 @@ public class RequestBlockMessage extends AbstractMessage {
 		this.blockHash = blockHash;
 		this.blockHeight = blockHeight;
 
-		System.out.println("Requesting block: " + blockHeight);
+		//System.out.println("Requesting block: " + blockHeight);
 	}
 
 	@Override

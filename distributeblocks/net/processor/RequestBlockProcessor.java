@@ -8,7 +8,7 @@ import distributeblocks.net.message.RequestBlockMessage;
 public class RequestBlockProcessor extends AbstractMessageProcessor<RequestBlockMessage> {
 	@Override
 	public void processMessage(RequestBlockMessage message) {
-		System.out.println("Got block request");
+		//System.out.println("Got block request");
 
 		// Send em the block.
 		for (Block b : Node.getBlockchain()){
