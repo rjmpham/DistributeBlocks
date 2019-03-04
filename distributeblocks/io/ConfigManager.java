@@ -1,16 +1,22 @@
 package distributeblocks.io;
 
+import com.google.gson.reflect.TypeToken;
+import distributeblocks.Block;
+import distributeblocks.FailedToHashException;
 import distributeblocks.Node;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.PeerNode;
 import com.google.gson.Gson;
 
+import javax.swing.*;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Scanner;
 
 /**
@@ -145,6 +151,68 @@ public class ConfigManager {
 	}
 
 
+
+	public void saveBlockChain(LinkedList<Block> blockChain){
+
+		Gson gson = new Gson();
+		File file = new File(Node.BLOCKCHAIN_FILE);
+
+		try (PrintWriter writer = new PrintWriter(file)){
+
+
+			String json = gson.toJson(blockChain);
+			writer.write(json);
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Could not save blockchain to file.");
+		}
+
+
+	}
+
+	public LinkedList<Block> loadBlockCHain(){
+
+		Gson gson = new Gson();
+		File file = new File(Node.BLOCKCHAIN_FILE);
+
+		if (!file.exists()){
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Could not create blockchain file!");
+			}
+
+			// Create new chain with genisis node.
+			LinkedList<Block> chain = new LinkedList<>();
+			chain.add(Node.getGenisisBlock());
+			saveBlockChain(chain);
+
+			//saveBlockChain(generateTestChain()); // TESTING ONLY.
+		}
+
+		String json = "";
+		LinkedList<Block> blockChain = new LinkedList<>();
+
+		try (Scanner scanner = new Scanner(file)){
+
+			while (scanner.hasNextLine()){
+				// Use  stringbuilder maybe.
+				json += scanner.nextLine();
+			}
+
+			blockChain = gson.fromJson(json, new TypeToken<LinkedList<Block>>(){}.getType());
+			return blockChain;
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			throw new RuntimeException("could not read the blockchain file.");
+		}
+
+	}
+
+
 	/**
 	 * Tries to create the peer config file.
 	 *
@@ -173,5 +241,24 @@ public class ConfigManager {
 		return file;
 	}
 
+
+	private LinkedList<Block> generateTestChain(){
+
+		LinkedList<Block> blockChain = new LinkedList<>();
+		blockChain.add(Node.getGenisisBlock());
+
+		for (int i = 1; i < 10; i ++){
+
+			try {
+				Block block = new Block("This is data for block " + i, blockChain.get(i -1).getHashBlock(), Node.HASH_DIFFICULTY);
+				blockChain.add(block);
+			} catch (FailedToHashException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Error making test chain");
+			}
+		}
+
+		return blockChain;
+	}
 
 }

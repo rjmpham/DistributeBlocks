@@ -114,6 +114,7 @@ public class PeerNode {
 
 			} catch (IOException e) {
 				System.out.println("Failed to connect to " + address);
+				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionFailedMessage(this));
 				return false;
 			}
 
