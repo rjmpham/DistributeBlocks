@@ -450,7 +450,7 @@ public class NetworkManager {
 				recievedBlocks.put(blockMessage.blockHeight, true);
 
 				// Update bounds.
-				int min = 0;
+				int min = -1;
 				for (int i = 0; i < highestBlock; i++) {
 					if (recievedBlocks.keySet().contains(i)) {
 						min = i;
