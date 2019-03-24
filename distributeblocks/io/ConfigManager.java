@@ -189,7 +189,7 @@ public class ConfigManager {
 			chain.add(Node.getGenisisBlock());
 			saveBlockChain(chain);
 
-			saveBlockChain(generateTestChain()); // TESTING ONLY.
+			//saveBlockChain(generateTestChain()); // TESTING ONLY.
 		}
 
 		String json = "";
