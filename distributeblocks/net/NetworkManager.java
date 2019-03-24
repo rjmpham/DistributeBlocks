@@ -43,17 +43,14 @@ public class NetworkManager {
 	private volatile boolean shutDown = false;
 
 	/**
-	 * @param minPeers Minimum number of connected peers. Will periodicaly attempt to discover new peers if
-	 *                 number of connected peers is less than this value.
-	 * @param maxPeers Maximum number of conencted peers.
 	 */
-	public NetworkManager(int minPeers, int maxPeers, int port, IPAddress seedNodeAddr, boolean seed) {
+	public NetworkManager(NetworkConfig networkConfig) {
 
-		this.maxPeers = maxPeers;
-		this.minPeers = minPeers;
-		this.port = port;
-		this.seedNodeAddr = seedNodeAddr;
-		this.seed = seed;
+		this.maxPeers = networkConfig.maxPeers;
+		this.minPeers = networkConfig.minPeers;
+		this.port = networkConfig.port;
+		this.seedNodeAddr = networkConfig.seedNode;
+		this.seed = networkConfig.seed;
 
 		if (seed) {
 			System.out.println("Starting in seed mode.");
@@ -147,7 +144,6 @@ public class NetworkManager {
 					break;
 				}
 			}
-
 		}
 	}
 
@@ -156,7 +152,7 @@ public class NetworkManager {
 	 *
 	 * @param index
 	 */
-	public synchronized void removeNode(int index) {
+	public void removeNode(int index) {
 
 		synchronized (peerNodes) {
 			peerNodes.get(index).shutDown();
@@ -206,10 +202,13 @@ public class NetworkManager {
 		}
 	}
 
-	public synchronized void printConnectedNodes() {
-		System.out.println("Connected Nodes: ");
-		for (PeerNode p : getPeerNodes()) {
-			System.out.println(" - " + p.getListeningAddress());
+	public void printConnectedNodes() {
+
+		synchronized (peerNodes) {
+			System.out.println("Connected Nodes: ");
+			for (PeerNode p : getPeerNodes()) {
+				System.out.println(" - " + p.getListeningAddress());
+			}
 		}
 	}
 
@@ -260,6 +259,21 @@ public class NetworkManager {
 	 */
 	public void asyncEnqueue(AbstractMessage message) {
 		incommingQueue.add(message);
+	}
+
+
+	/**
+	 * Sends the given message to all connected peers.
+	 *
+	 * @param message
+	 */
+	public void asyncSendToAllPeers(AbstractMessage message){
+
+		synchronized (peerNodes){
+			for (PeerNode n : peerNodes){
+				n.asyncSendMessage(message);
+			}
+		}
 	}
 
 	/**

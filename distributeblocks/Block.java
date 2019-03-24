@@ -17,7 +17,9 @@ public class Block implements Serializable {
 	private int nonce;					//Nonce used in the hash of the block to get the right number of zeros
 	private Object data;				//Data being stored in the block. Should be serializable.
 	private long timestamp;				//timestamp for the block
-	private int targetNumZeros;			//How many zeros hashBlock must start with in order to be a mined block
+
+	private int targetNumZeros;		//How many zeros hashBlock must start with in order to be a mined block
+	private volatile boolean stopMining; // Flag that can be set to terminate a mining operation
 
 	//Getter methods
 	public String getHashBlock() {return hashBlock;}
@@ -42,11 +44,12 @@ public class Block implements Serializable {
 		this.data = data;
 		this.hashData = Crypto.calculateObjectHash(data);
 		this.hashBlock = Crypto.calculateBlockHash(this);
+		stopMining = false;
 	}
 
 	public void mineBlock() throws FailedToHashException {
 		String target = new String(new char[targetNumZeros]).replace('\0', '0'); //Create a string with difficulty * "0"
-		while(!hashBlock.substring( 0, targetNumZeros).equals(target)) {
+		while(!hashBlock.substring( 0, targetNumZeros).equals(target) && !stopMining) {
 
 			if (this.nonce + 1 < Integer.MAX_VALUE) {
 				this.nonce += 1;
@@ -73,4 +76,12 @@ public class Block implements Serializable {
 		return false;
 	}
 
+
+	public boolean isStopMining() {
+		return stopMining;
+	}
+
+	public void setStopMining(boolean stopMining) {
+		this.stopMining = stopMining;
+	}
 }

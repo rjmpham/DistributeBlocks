@@ -2,6 +2,7 @@ package distributeblocks;
 
 import distributeblocks.io.ConfigManager;
 import distributeblocks.net.IPAddress;
+import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
 
 import java.util.LinkedList;
@@ -14,6 +15,7 @@ public class Node {
 	private static int port = 5832;
 	private static IPAddress seedNode = new IPAddress("localhost", 5831); // TODO: Support multiple seed nodes.
 	private static boolean seed = false;
+	private static boolean mining = false;
 
 	public static String PEER_CONFIG_FILE = "./peer_config.txt";
 	public static String BLOCKCHAIN_FILE = "./blockchain.txt";
@@ -61,12 +63,30 @@ public class Node {
 				case "chainfile":
 					BLOCKCHAIN_FILE = args[i+1];
 					break;
+				case "mining":
+					String state = args[i+1];
+					if (state.equals("y")){
+						mining = true;
+					} else {
+						mining = false;
+					}
+					break;
 			}
 		}
 
 		Node.init();
+
+
+		NetworkConfig config = new NetworkConfig();
+		config.maxPeers = maxPeers;
+		config.maxPeers = minPeers;
+		config.port = port;
+		config.seed = seed;
+		config.seedNode = seedNode;
+		config.mining = mining;
+
 		// TODO: Maybe replace param list with config object.
-		NetworkService.init(minPeers, maxPeers, port, seedNode, seed);
+		NetworkService.init(config);
 
 	}
 
