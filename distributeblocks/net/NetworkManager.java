@@ -156,7 +156,7 @@ public class NetworkManager {
 	 *
 	 * @param index
 	 */
-	public synchronized void removeNode(int index) {
+	public void removeNode(int index) {
 
 		synchronized (peerNodes) {
 			peerNodes.get(index).shutDown();
@@ -206,10 +206,13 @@ public class NetworkManager {
 		}
 	}
 
-	public synchronized void printConnectedNodes() {
-		System.out.println("Connected Nodes: ");
-		for (PeerNode p : getPeerNodes()) {
-			System.out.println(" - " + p.getListeningAddress());
+	public void printConnectedNodes() {
+
+		synchronized (peerNodes) {
+			System.out.println("Connected Nodes: ");
+			for (PeerNode p : getPeerNodes()) {
+				System.out.println(" - " + p.getListeningAddress());
+			}
 		}
 	}
 
