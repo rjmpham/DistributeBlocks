@@ -501,7 +501,6 @@ public class NetworkManager {
 					}
 				}
 
-				var temp = Node.getBlockchain();
 
 				if (highestHeaders.size() <= Node.getBlockchain().size()){
 					System.out.println("Already have the highest chain");
