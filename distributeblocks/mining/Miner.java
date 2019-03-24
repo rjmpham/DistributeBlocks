@@ -3,6 +3,7 @@ package distributeblocks.mining;
 import distributeblocks.Block;
 import distributeblocks.FailedToHashException;
 import distributeblocks.net.NetworkService;
+import distributeblocks.net.message.AbstractMessage;
 import distributeblocks.net.message.BlockBroadcastMessage;
 import distributeblocks.net.message.MiningFinishedMessage;
 import sun.nio.ch.Net;
@@ -24,11 +25,11 @@ public class Miner {
 
     public Miner() {
 
-        executorService = Executors.newFixedThreadPool(1);
+        executorService = Executors.newCachedThreadPool();
     }
 
 
-    public void startMining(String data, Block previousBlock, int targetNumZeros){
+    public synchronized void startMining(String data, Block previousBlock, int targetNumZeros){
 
 
         if (minerFuture != null && !minerFuture.isDone()){
@@ -37,21 +38,26 @@ public class Miner {
         }
 
         System.out.println("Starting new mining operation.");
-        miner = new BlockMiner(previousBlock, data, targetNumZeros);
+        this.miner = new BlockMiner(previousBlock, data, targetNumZeros);
         minerFuture = executorService.submit(miner);
     }
 
 
-    public void stopMining(){
+    public synchronized void stopMining(){
 
         // Kill it with fire.
-        System.out.println("Killing miner.");
-        miner.killMiner();
+
+        if (miner != null) {
+            System.out.println("Killing miner.");
+            miner.killMiner();
+        }
 
 
         try {
-            minerFuture.get();
-            System.out.println("Miner has been violently murdered.");
+            if (minerFuture != null) {
+                minerFuture.get();
+                System.out.println("Miner has been violently murdered.");
+            }
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -98,12 +104,19 @@ public class Miner {
 
                 try {
 
+                    System.out.println("Beginning mining");
+
                     currentBlock = new Block(data, previousBlock.getHashBlock(), targetNumZeros);
                     currentBlock.mineBlock();
 
-                    // TODO Mining done, broadcast it!
-                    NetworkService.getNetworkManager().asyncSendToAllPeers(new BlockBroadcastMessage(currentBlock)); // Send block to peers.
-                    NetworkService.getNetworkManager().asyncEnqueue(new MiningFinishedMessage(currentBlock));        // Send block to be processed on processing queue for this node
+                    if (currentBlock.isBlockMined()) {
+                        System.out.println("Sending mining finished message.");
+                        AbstractMessage message = new MiningFinishedMessage(currentBlock, Miner.this);
+                        NetworkService.getNetworkManager().asyncEnqueue(message);        // Send block to be processed on processing queue for this node
+                    }
+
+                    System.out.println("Finished Mining");
+
                     stop = true;
 
                 } catch (FailedToHashException e) {

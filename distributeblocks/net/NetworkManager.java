@@ -4,6 +4,7 @@ import distributeblocks.Block;
 import distributeblocks.BlockHeader;
 import distributeblocks.Node;
 import distributeblocks.io.ConfigManager;
+import distributeblocks.mining.Miner;
 import distributeblocks.net.message.*;
 
 import java.io.IOException;
@@ -25,6 +26,7 @@ public class NetworkManager {
 	private int port = -1;
 	private IPAddress seedNodeAddr;
 	private boolean seed;
+	private boolean mining;
 
 	/**
 	 * Time in seconds between attempts at discovering more peer nodes.
@@ -35,6 +37,8 @@ public class NetworkManager {
 	private ScheduledExecutorService scheduledExecutorService; // For requesting new peers.
 	private List<PeerNode> peerNodes;
 	private ServerSocket serverSocket;
+
+	private Miner miner;
 
 
 	/**
@@ -51,6 +55,8 @@ public class NetworkManager {
 		this.port = networkConfig.port;
 		this.seedNodeAddr = networkConfig.seedNode;
 		this.seed = networkConfig.seed;
+		this.mining = networkConfig.mining;
+		this.miner = new Miner();
 
 		if (seed) {
 			System.out.println("Starting in seed mode.");
@@ -89,24 +95,7 @@ public class NetworkManager {
 		if (!seed) {
 			connectToPeers();
 
-			/*if (peerNodes.size() == 0){
 
-				// Use the seed node to get peers.
-				PeerNode seedNode = new PeerNode(seedNodeAddr);
-				if (!seedNode.connect()){
-					throw new RuntimeException("I have no friends and seed node wont talk to me :(");
-				}
-
-				seedNode.asyncSendMessage(new RequestPeersMessage());
-
-			} else if (peerNodes.size() < minPeers){
-
-				System.out.println("Asking peers for new friends.");
-				// Ask everyone for new neigbors.
-				for (PeerNode p : peerNodes){
-					p.asyncSendMessage(new RequestPeersMessage());
-				}
-			}*/
 
 			scheduledExecutorService.schedule(new CheckNeedNodes(), 2, TimeUnit.SECONDS);
 
@@ -319,6 +308,10 @@ public class NetworkManager {
 		return false;
 	}
 
+	public Miner getMiner(){
+		return miner;
+	}
+
 	private void connectToPeers() {
 
 		for (PeerNode p : getPeerNodes()) {
@@ -326,6 +319,19 @@ public class NetworkManager {
 		}
 	}
 
+	/**
+	 * Begins mining, but only if mining is set to true.
+	 */
+	public void beginMining(){
+		// TODO READ THE BELOW TODO
+		if (mining){
+
+			// TODO When transaction broadcasts are added, trigger mining in the transaction broadcast processor based on some condition.
+			// At the moment just going to mine in a loop.
+			LinkedList<Block> chain = new ConfigManager().loadBlockCHain();
+			miner.startMining(chain.size() + 1 + "", chain.get(chain.size() -1), Node.HASH_DIFFICULTY);
+		}
+	}
 
 	/**
 	 * Processes the incomming queue.
@@ -518,6 +524,7 @@ public class NetworkManager {
 
 				if (highestHeaders.size() <= Node.getBlockchain().size()){
 					System.out.println("Already have the highest chain");
+					beginMining();
 					return;
 				}
 
@@ -582,6 +589,11 @@ public class NetworkManager {
 
 				ConfigManager configManager = new ConfigManager();
 				configManager.saveBlockChain(blockChain);
+
+
+				beginMining();
+
+
 
 			} catch (InterruptedException e) {
 				e.printStackTrace();

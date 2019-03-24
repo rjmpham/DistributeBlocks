@@ -19,7 +19,7 @@ public class Node {
 
 	public static String PEER_CONFIG_FILE = "./peer_config.txt";
 	public static String BLOCKCHAIN_FILE = "./blockchain.txt";
-	public static int HASH_DIFFICULTY = 3;
+	public static int HASH_DIFFICULTY = 4;
 
 
 	private static LinkedList<Block> blockchain;
@@ -79,7 +79,7 @@ public class Node {
 
 		NetworkConfig config = new NetworkConfig();
 		config.maxPeers = maxPeers;
-		config.maxPeers = minPeers;
+		config.minPeers = minPeers;
 		config.port = port;
 		config.seed = seed;
 		config.seedNode = seedNode;
