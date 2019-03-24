@@ -14,10 +14,10 @@ public class Block implements Serializable {
 	private String hashBlock;			//Hash of the entire block (not including this field)
 	private String hashData;			//Hash of the data
 	private String hashPrevious;		//Hash of the previous block
-	private int nonce;				//Nonce used in the hash of the block to get the right number of zeros
+	private int nonce;					//Nonce used in the hash of the block to get the right number of zeros
 	private Object data;				//Data being stored in the block. Should be serializable.
 	private long timestamp;				//timestamp for the block
-	private int targetNumZeros;		//How many zeros hashBlock must start with in order to be a mined block
+	private int targetNumZeros;			//How many zeros hashBlock must start with in order to be a mined block
 
 	//Getter methods
 	public String getHashBlock() {return hashBlock;}
@@ -28,6 +28,11 @@ public class Block implements Serializable {
 	public long getTimestamp() {return timestamp;}
 	public long getTargetNumZeros() {return targetNumZeros;}
 
+	/*
+	 *  Block require a body, a pointer to the previous block (hashPrevious), and a target to mine.
+	 *  This method attempts to mine the current data, by making the first hash which is unlikley
+	 *  to be valid.
+	 */
 	public Block (Object data, String hashPrevious, int targetNumZeros) throws FailedToHashException
 	{
 		this.nonce = 0;
@@ -39,28 +44,18 @@ public class Block implements Serializable {
 		this.hashBlock = Crypto.calculateBlockHash(this);
 	}
 
-	//Setter methods
-	public void setNonce(int nonce) throws FailedToHashException
-	{
-		this.nonce = nonce;
-		this.hashBlock = Crypto.calculateBlockHash(this);
-	}
-	public void setTargetNumZeros(int targetNumZeros)
-	{
-		this.targetNumZeros = targetNumZeros;
-	}
-
 	public void mineBlock() throws FailedToHashException {
 		String target = new String(new char[targetNumZeros]).replace('\0', '0'); //Create a string with difficulty * "0"
 		while(!hashBlock.substring( 0, targetNumZeros).equals(target)) {
 
-			if (nonce + 1 < Integer.MAX_VALUE) {
-				this.setNonce(nonce + 1);
+			if (this.nonce + 1 < Integer.MAX_VALUE) {
+				this.nonce += 1;
 			} else {
 				// No hash was found, update the timestamp and try again.
 				timestamp = new Date().getTime();
-				this.setNonce(0);
+				this.nonce=0;
 			}
+			this.hashBlock = Crypto.calculateBlockHash(this);
 		}
 
 		// For testing.
