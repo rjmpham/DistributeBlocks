@@ -6,7 +6,6 @@ import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.AbstractMessage;
 import distributeblocks.net.message.BlockBroadcastMessage;
 import distributeblocks.net.message.MiningFinishedMessage;
-import sun.nio.ch.Net;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
