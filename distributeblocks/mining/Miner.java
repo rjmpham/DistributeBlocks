@@ -4,7 +4,6 @@ import distributeblocks.Block;
 import distributeblocks.FailedToHashException;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.AbstractMessage;
-import distributeblocks.net.message.BlockBroadcastMessage;
 import distributeblocks.net.message.MiningFinishedMessage;
 
 import java.util.concurrent.ExecutionException;
@@ -24,7 +23,7 @@ public class Miner {
 
     public Miner() {
 
-        executorService = Executors.newCachedThreadPool();
+        executorService = Executors.newFixedThreadPool(1);
     }
 
 

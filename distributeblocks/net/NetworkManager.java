@@ -326,6 +326,8 @@ public class NetworkManager {
 		// TODO READ THE BELOW TODO
 		if (mining){
 
+			System.out.println("Mining: " + mining);
+
 			// TODO When transaction broadcasts are added, trigger mining in the transaction broadcast processor based on some condition.
 			// At the moment just going to mine in a loop.
 			LinkedList<Block> chain = new ConfigManager().loadBlockCHain();
