@@ -206,10 +206,17 @@ public class NetworkManager {
 		}
 	}
 
-	public synchronized void printConnectedNodes() {
+	public void printConnectedNodes() {
 		System.out.println("Connected Nodes: ");
+
+		ArrayList<PeerNode> nodes = new ArrayList<>();
+
 		for (PeerNode p : getPeerNodes()) {
-			System.out.println(" - " + p.getListeningAddress());
+
+			if (!nodes.contains(p)) {
+				System.out.println(" - " + p.getListeningAddress());
+				nodes.add(p);
+			}
 		}
 	}
 
