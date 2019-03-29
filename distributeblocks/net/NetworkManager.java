@@ -4,6 +4,7 @@ import distributeblocks.Block;
 import distributeblocks.BlockHeader;
 import distributeblocks.Node;
 import distributeblocks.io.ConfigManager;
+import distributeblocks.mining.Miner;
 import distributeblocks.net.message.*;
 
 import java.io.IOException;
@@ -25,6 +26,7 @@ public class NetworkManager {
 	private int port = -1;
 	private IPAddress seedNodeAddr;
 	private boolean seed;
+	private boolean mining;
 
 	/**
 	 * Time in seconds between attempts at discovering more peer nodes.
@@ -36,6 +38,8 @@ public class NetworkManager {
 	private List<PeerNode> peerNodes;
 	private ServerSocket serverSocket;
 
+	private Miner miner;
+
 
 	/**
 	 * Flag that the queue processors will use to determine if they should shutdown.
@@ -43,17 +47,16 @@ public class NetworkManager {
 	private volatile boolean shutDown = false;
 
 	/**
-	 * @param minPeers Minimum number of connected peers. Will periodicaly attempt to discover new peers if
-	 *                 number of connected peers is less than this value.
-	 * @param maxPeers Maximum number of conencted peers.
 	 */
-	public NetworkManager(int minPeers, int maxPeers, int port, IPAddress seedNodeAddr, boolean seed) {
+	public NetworkManager(NetworkConfig networkConfig) {
 
-		this.maxPeers = maxPeers;
-		this.minPeers = minPeers;
-		this.port = port;
-		this.seedNodeAddr = seedNodeAddr;
-		this.seed = seed;
+		this.maxPeers = networkConfig.maxPeers;
+		this.minPeers = networkConfig.minPeers;
+		this.port = networkConfig.port;
+		this.seedNodeAddr = networkConfig.seedNode;
+		this.seed = networkConfig.seed;
+		this.mining = networkConfig.mining;
+		this.miner = new Miner();
 
 		if (seed) {
 			System.out.println("Starting in seed mode.");
@@ -92,24 +95,7 @@ public class NetworkManager {
 		if (!seed) {
 			connectToPeers();
 
-			/*if (peerNodes.size() == 0){
 
-				// Use the seed node to get peers.
-				PeerNode seedNode = new PeerNode(seedNodeAddr);
-				if (!seedNode.connect()){
-					throw new RuntimeException("I have no friends and seed node wont talk to me :(");
-				}
-
-				seedNode.asyncSendMessage(new RequestPeersMessage());
-
-			} else if (peerNodes.size() < minPeers){
-
-				System.out.println("Asking peers for new friends.");
-				// Ask everyone for new neigbors.
-				for (PeerNode p : peerNodes){
-					p.asyncSendMessage(new RequestPeersMessage());
-				}
-			}*/
 
 			scheduledExecutorService.schedule(new CheckNeedNodes(), 2, TimeUnit.SECONDS);
 
@@ -147,7 +133,6 @@ public class NetworkManager {
 					break;
 				}
 			}
-
 		}
 	}
 
@@ -156,7 +141,7 @@ public class NetworkManager {
 	 *
 	 * @param index
 	 */
-	public synchronized void removeNode(int index) {
+	public void removeNode(int index) {
 
 		synchronized (peerNodes) {
 			peerNodes.get(index).shutDown();
@@ -269,6 +254,21 @@ public class NetworkManager {
 		incommingQueue.add(message);
 	}
 
+
+	/**
+	 * Sends the given message to all connected peers.
+	 *
+	 * @param message
+	 */
+	public void asyncSendToAllPeers(AbstractMessage message){
+
+		synchronized (peerNodes){
+			for (PeerNode n : peerNodes){
+				n.asyncSendMessage(message);
+			}
+		}
+	}
+
 	/**
 	 * Connects to a new node.
 	 * <p>
@@ -312,6 +312,10 @@ public class NetworkManager {
 		return false;
 	}
 
+	public Miner getMiner(){
+		return miner;
+	}
+
 	private void connectToPeers() {
 
 		for (PeerNode p : getPeerNodes()) {
@@ -319,6 +323,21 @@ public class NetworkManager {
 		}
 	}
 
+	/**
+	 * Begins mining, but only if mining is set to true.
+	 */
+	public void beginMining(){
+		// TODO READ THE BELOW TODO
+		if (mining){
+
+			System.out.println("Mining: " + mining);
+
+			// TODO When transaction broadcasts are added, trigger mining in the transaction broadcast processor based on some condition.
+			// At the moment just going to mine in a loop.
+			LinkedList<Block> chain = new ConfigManager().loadBlockCHain();
+			miner.startMining(chain.size() + 1 + "", chain.get(chain.size() -1), Node.HASH_DIFFICULTY);
+		}
+	}
 
 	/**
 	 * Processes the incomming queue.
@@ -508,10 +527,10 @@ public class NetworkManager {
 					}
 				}
 
-				var temp = Node.getBlockchain();
 
 				if (highestHeaders.size() <= Node.getBlockchain().size()){
 					System.out.println("Already have the highest chain");
+					beginMining();
 					return;
 				}
 
@@ -576,6 +595,11 @@ public class NetworkManager {
 
 				ConfigManager configManager = new ConfigManager();
 				configManager.saveBlockChain(blockChain);
+
+
+				beginMining();
+
+
 
 			} catch (InterruptedException e) {
 				e.printStackTrace();

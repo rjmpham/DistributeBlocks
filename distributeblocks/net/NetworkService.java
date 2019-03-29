@@ -9,8 +9,8 @@ public class NetworkService {
 		return networkManager;
 	}
 
-	public static void init(int minPeers, int maxPeers, int port, IPAddress seedNode, boolean seed){
-		networkManager = new NetworkManager(minPeers, maxPeers, port, seedNode, seed);
+	public static void init(NetworkConfig networkConfig){
+		networkManager = new NetworkManager(networkConfig);
 		networkManager.initialize();
 	}
 }

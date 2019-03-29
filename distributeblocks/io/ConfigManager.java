@@ -152,7 +152,7 @@ public class ConfigManager {
 
 
 
-	public void saveBlockChain(LinkedList<Block> blockChain){
+	public synchronized void saveBlockChain(LinkedList<Block> blockChain){
 
 		Gson gson = new Gson();
 		File file = new File(Node.BLOCKCHAIN_FILE);
@@ -171,7 +171,7 @@ public class ConfigManager {
 
 	}
 
-	public LinkedList<Block> loadBlockCHain(){
+	public synchronized LinkedList<Block> loadBlockCHain(){
 
 		Gson gson = new Gson();
 		File file = new File(Node.BLOCKCHAIN_FILE);
