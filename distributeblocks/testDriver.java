@@ -8,12 +8,12 @@ import distributeblocks.crypto.*;
 public class testDriver
 {
 
-	//list of Contract with funds
-	public static HashMap<String,Contract_Out> funds_HashMap = new HashMap<String,Contract_Out>();
+	//list of Transaction with funds
+	public static HashMap<String,TransactionOut> funds_HashMap = new HashMap<String,TransactionOut>();
 	public static Wallet wallet_Alice;
 	public static Wallet wallet_Bob;
 	public static int mineDifficulty = 3; // TODO: Determine this value somehow.
-	public static float minimumContractAmount = 0.1f;
+	public static float minimumTransactionAmount = 0.1f;
 	public static int stepThrough = 0;
 
 	public static void main (String[] args)
@@ -137,9 +137,9 @@ public class testDriver
 			}
 		}
 
-		System.out.println("\n Testing contract")
+		System.out.println("\n Testing transaction")
 		//unable to test until genesis block has value
-		Contract alice_to_bob_5 = new Contract(wallet_Alice.getPrivateKey, wallet_Alice.getPublicKey, wallet_Bob.gegetPublicKey,);
+		Transaction alice_to_bob_5 = new Transaction(wallet_Alice.getPrivateKey, wallet_Alice.getPublicKey, wallet_Bob.gegetPublicKey,);
 		*/
 		}
 		catch (FailedToHashException e)

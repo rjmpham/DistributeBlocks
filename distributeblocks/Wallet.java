@@ -10,7 +10,7 @@ public class Wallet {
 
 	public PrivateKey privateKey;
 	public PublicKey publicKey;
-	public HashMap<String,Contract_Out> funds_HashMap = new HashMap<String,Contract_Out>(); //funds in this wallet.
+	public HashMap<String,TransactionOut> funds_HashMap = new HashMap<String,TransactionOut>(); //funds in this wallet.
 
 	//Getter methods
 	public PrivateKey getPrivateKey(){return privateKey;}
@@ -24,8 +24,8 @@ public class Wallet {
 
 	public float getFunds(){
 		float sum = 0;
-		for (Map.Entry<String,Contract_Out> i: testDriver.funds_HashMap.entrySet()){
-			Contract_Out funds = i.getValue();
+		for (Map.Entry<String,TransactionOut> i: testDriver.funds_HashMap.entrySet()){
+			TransactionOut funds = i.getValue();
 
 			//check to see if the funds have this publicKey as owner
 			if(funds.isMine(publicKey)){
@@ -37,32 +37,32 @@ public class Wallet {
 		return sum;
 	}
 
-	// Makes a new contract from this wallet to send money
-	public Contract makeContract(PublicKey receiver, float amount){
+	// Makes a new transaction from this wallet to send money
+	public Transaction makeTransaction(PublicKey receiver, float amount){
 		if(getFunds()< amount){
-			//check funds to see if a contract is possible
-			System.out.println("Insuficient funds to generate contract.");
+			//check funds to see if a transaction is possible
+			System.out.println("Insuficient funds to generate transaction.");
 			return null;
 		}
-		// To access contract inputs
-		ArrayList<Contract_In> contract_ArrayList = new ArrayList<Contract_In>();
+		// To access transaction inputs
+		ArrayList<TransactionIn> transaction_ArrayList = new ArrayList<TransactionIn>();
 		float sum = 0;
-		for (Map.Entry<String, Contract_Out> item: funds_HashMap.entrySet()){
-			Contract_Out funds = item.getValue();
+		for (Map.Entry<String, TransactionOut> item: funds_HashMap.entrySet()){
+			TransactionOut funds = item.getValue();
 			sum += funds.getExchange();
 			// All funds available have been given to the wallet owner and therefore are exchanges.
-			contract_ArrayList.add(new Contract_In(funds.id));
+			transaction_ArrayList.add(new TransactionIn(funds.id));
 			if(sum > amount) break;
 		}
-		Contract newContract = new Contract(privateKey, publicKey, receiver , amount, contract_ArrayList);
+		Transaction newTransaction = new Transaction(privateKey, publicKey, receiver , amount, transaction_ArrayList);
 
 		//signatures not implemented
-		//newContract.generateSignature(privateKey); no longer necessary as contracts are singed in constructor now, delete once confidence is gained
+		//newTransaction.generateSignature(privateKey); no longer necessary as transactions are singed in constructor now, delete once confidence is gained
 
-		for(Contract_In i: contract_ArrayList){
-			funds_HashMap.remove(i.id_Contract_Out);
+		for(TransactionIn i: transaction_ArrayList){
+			funds_HashMap.remove(i.id_Transaction_Out);
 		}
-		return newContract;
+		return newTransaction;
 	}
 
 }
