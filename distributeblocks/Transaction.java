@@ -36,11 +36,11 @@ public class Transaction {
    * Generating transactions requires the public keys of both
    * the sender and receiver as well as the amount.
    */
-  public Transaction(PrivateKey senderPrivateKey, PublicKey send,PublicKey recieve , float amount,  ArrayList<TransactionIn> varriables) {
+  public Transaction(PrivateKey senderPrivateKey, PublicKey send, PublicKey recieve , float amount,  ArrayList<TransactionIn> variables) {
 		this.pk_Sender = send;
 		this.pk_Receiver = recieve;
 		this.exchange = amount;
-		this.input = varriables;
+		this.input = variables;
 		this.timestamp = new Date().getTime();
 		try {
 			this.id_Transaction = calculateHash();
@@ -58,7 +58,8 @@ public class Transaction {
     return Crypto.calculateObjectHash(
       Crypto.keyToString(pk_Sender) +
       Crypto.keyToString(pk_Receiver) +
-      Float.toString(exchange) + timestamp
+      Float.toString(exchange) + 
+      timestamp
       );
   }
 
@@ -69,7 +70,7 @@ public class Transaction {
    * Output: Sets the signature field of this transaction class
    */
   public void generateSignature( PrivateKey privateKey ) {
-	  this.signature = Crypto.signMessage(privateKey, this.id_Transaction );
+	  this.signature = Crypto.signMessage(privateKey, this.id_Transaction);
 	  return;
   }
   
