@@ -62,22 +62,19 @@ public class Wallet {
 			System.out.println("Insuficient funds to generate transaction.");
 			return null;
 		}
-		// To access transaction inputs
+		// Create a list of the inputs needed to fulfill this transaction
 		ArrayList<TransactionIn> transaction_ArrayList = new ArrayList<TransactionIn>();
 		float sum = 0;
 		for (Map.Entry<String, TransactionOut> item: funds_HashMap.entrySet()){
 			// Add funds to the transaction_ArrayList
 			TransactionOut funds = item.getValue();
 			sum += funds.getExchange();
-			transaction_ArrayList.add(new TransactionIn(funds.id));
+			transaction_ArrayList.add(new TransactionIn(funds.id, funds.getExchange()));
 			
 			// Until the requested amount is exceeded
 			if(sum > amount) break;
 		}
 		Transaction newTransaction = new Transaction(privateKey, publicKey, receiver, amount, transaction_ArrayList);
-
-		//signatures not implemented
-		//newTransaction.generateSignature(privateKey); no longer necessary as transactions are singed in constructor now, delete once confidence is gained
 
 		// remove the funds used to create this transaction
 		/*
