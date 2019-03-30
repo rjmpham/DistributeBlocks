@@ -50,9 +50,11 @@ public class Transaction {
 		generateSignature(senderPrivateKey);
 	}
 
-  // Calculate id_Transaction
-  //This hash is based on the public keys of the sender and receiver,
-  //the amount to be sent, and the timestamp of the transaction
+  /*
+   * Calculate id_Transaction
+   * This hash is based on the public keys of the sender and receiver,
+   * the amount to be sent, and the timestamp of the transaction
+   */
   private String calculateHash() throws FailedToHashException{
     //count_Transactions++; //method to prevent identical hashes
     return Crypto.calculateObjectHash(
@@ -74,7 +76,9 @@ public class Transaction {
 	  return;
   }
   
-  //A method to return this transaction's signature
+  /*
+   * A method to return this transaction's signature
+   */
   public byte[] getSignature() {
 	  return this.signature;
   }
@@ -88,7 +92,14 @@ public class Transaction {
 	  return Crypto.verifySignature(this.pk_Sender, this.id_Transaction, this.signature);
   }
   
-  // Method to handle the transaction. Returns true if the transaction is created
+  /*
+   * Method to handle the transaction. This will verify that
+   * the transaction is valid, and create the appropriate
+   * outputs if so.
+   * 
+   * Returns true if the transaction is created, false otherwise
+   */
+  // TODO: should this really throw a FailedToHashException, or just return false
   public boolean transactionEnforcer() throws FailedToHashException{
   		if(verifySignature() == false) {
   			System.out.println("#Transaction Signature failed to verify");
@@ -96,11 +107,13 @@ public class Transaction {
   		}
   
   		//gather transactions that are inputs (Make sure they are unspent):
+  		// TODO: REMOVE RELIANCE ON THE TEST DRIVER
   		for(TransactionIn i : input) {
   			i.funds = testDriver.funds_HashMap.get(i.id_Transaction_Out);
   		}
 
   		//check if a transaction is valid:
+  		// TODO: REMOVE RELIANCE ON THE TEST DRIVER
   		if(getExchangeAmount() < testDriver.minimumTransactionAmount) {
   			System.out.println("# Inputs too small: " + getExchangeAmount());
   			return false;
@@ -114,11 +127,13 @@ public class Transaction {
   		output.add(new TransactionOut( this.pk_Sender, remaining, id_Transaction)); //send the left over 'change' back to sender
 
   		//add output to funds list
+  		// TODO: REMOVE RELIANCE ON THE TEST DRIVER
   		for(TransactionOut o : output) {
   			testDriver.funds_HashMap.put(o.id , o);
   		}
 
   		//remove transaction input from funds lists as spent:
+  		// TODO: REMOVE RELIANCE ON THE TEST DRIVER
   		for(TransactionIn i : input) {
   			if(i.funds == null) continue; //if the transaction can't be found skip it
   			testDriver.funds_HashMap.remove(i.funds.id);
@@ -126,7 +141,9 @@ public class Transaction {
   		return true;
   	}
 
-  	//returns sum of exchanges values
+  	/*
+  	 * returns sum of exchanges values
+  	 */
   	public float getExchangeAmount() {
   		float total = 0;
   		for(TransactionIn i : input) {
@@ -136,7 +153,9 @@ public class Transaction {
   		return total;
   	}
 
-  	//returns sum of output:
+  	/*
+  	 * returns sum of output
+  	 */
   	public float getExchangeOutput() {
   		float total = 0;
   		for(TransactionOut o : output) {
