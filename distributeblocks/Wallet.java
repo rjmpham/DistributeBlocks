@@ -8,13 +8,9 @@ import distributeblocks.crypto.*;
 
 public class Wallet {
 
-	public PrivateKey privateKey;
-	public PublicKey publicKey;
-	public HashMap<String, TransactionOut> funds_HashMap = new HashMap<String,TransactionOut>(); //funds in this wallet.
-
-	//Getter methods
-	public PrivateKey getPrivateKey(){return privateKey;}
-	public PublicKey getPublicKey(){return publicKey;}
+	private PrivateKey privateKey;
+	private PublicKey publicKey;
+	private HashMap<String, TransactionOut> funds_HashMap = new HashMap<String,TransactionOut>(); //funds in this wallet.
 
 	public Wallet(){
 	  KeyPair pair = Crypto.keyPairGenerator();
@@ -45,7 +41,7 @@ public class Wallet {
 			//check to see if the funds have this publicKey as owner
 			if(funds.isMine(publicKey)){
 				//if yes, account for them as part of the funds
-				funds_HashMap.put(funds.id,funds);
+				funds_HashMap.put(funds.getId(), funds);
 			}
 		}
 	}
@@ -69,7 +65,7 @@ public class Wallet {
 			// Add funds to the transaction_ArrayList
 			TransactionOut funds = item.getValue();
 			sum += funds.getExchange();
-			transaction_ArrayList.add(new TransactionIn(funds.id, funds.getExchange()));
+			transaction_ArrayList.add(new TransactionIn(funds.getId(), funds.getExchange()));
 			
 			// Until the requested amount is exceeded
 			if(sum > amount) break;
@@ -86,9 +82,22 @@ public class Wallet {
 		 * Only after they are verified should they be removed.
 		 */
 		for(TransactionIn i: transaction_ArrayList){
-			funds_HashMap.remove(i.id_Transaction_Out);
+			funds_HashMap.remove(i.getSourceId());
 		}
 		return newTransaction;
 	}
 
+	/*
+	 * Returns the private key of this Wallet
+	 */
+	public PrivateKey getPrivateKey(){
+		return privateKey;
+		}
+	
+	/*
+	 * Returns the public key of this Wallet
+	 */
+	public PublicKey getPublicKey(){
+		return publicKey;
+		}
 }

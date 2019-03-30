@@ -1,12 +1,12 @@
 package distributeblocks;
 
 public class TransactionIn {
-	public String id_Transaction_Out; 	// ID of the source TransactionOut
-	public TransactionOut funds; 		// Pointer to the source TransactionOut
-	private float exchange;				// Amount of funds being used
+	private String sourceId; 		// ID of the source TransactionOut
+	private TransactionOut funds; 	// Pointer to the source TransactionOut
+	private float exchange;			// Amount of funds being used
 
-	public TransactionIn(String id_Transaction_Out, float exchange) {
-		this.id_Transaction_Out = id_Transaction_Out;
+	public TransactionIn(String sourceId, float exchange) {
+		this.sourceId = sourceId;
 		this.exchange = exchange;
 	}
 	
@@ -15,5 +15,12 @@ public class TransactionIn {
 	 */
 	public float getExchange() {
 		return exchange;
+	}
+	
+	/*
+	 * Returns the id of this transaction's source
+	 */
+	public String getSourceId() {
+		return sourceId;
 	}
 }

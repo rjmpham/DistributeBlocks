@@ -1,4 +1,13 @@
-/* Transaction Class for the contents of blocks in the chain.
+package distributeblocks;
+
+import java.security.*;
+import java.util.ArrayList;
+import java.util.Date;
+
+import distributeblocks.crypto.*;
+
+/* 
+ * Transaction Class for the contents of blocks in the chain.
  * Transactions can be expanded to have more features but
  * currently only enforce the exchange of our currency.
  *
@@ -12,27 +21,18 @@
  * Transactions are signed upon creation by the sender
  * (this is different from the tutorial which required 2 separate steps (create then sign))
  */
-package distributeblocks;
-
-
-import java.security.*;
-import java.util.ArrayList;
-import java.util.Date;
-
-import distributeblocks.crypto.*;
-
 public class Transaction {
 	private static final float MIN_TRANSACTION_AMOUNT = 0.1f;
 	
-	public String id_Transaction; //Hash of the contents of the Transaction
-	public PublicKey pk_Sender; // senders address
-	public PublicKey pk_Receiver; // receivers address
-	public float exchange; // the amount to be exchanged
-	public byte[] signature; // for user's personal wallet
-	public ArrayList<TransactionIn> input = new ArrayList<TransactionIn>();
-	public ArrayList<TransactionOut> output = new ArrayList<TransactionOut>();
-	//private static int count_Transactions = 0; // estimates number of transactions created.
+	private String id_Transaction; //Hash of the contents of the Transaction
+	private PublicKey pk_Sender; // senders address
+	private PublicKey pk_Receiver; // receivers address
+	private float exchange; // the amount to be exchanged
+	private byte[] signature; // for user's personal wallet
+	private ArrayList<TransactionIn> input = new ArrayList<TransactionIn>();
+	private ArrayList<TransactionOut> output = new ArrayList<TransactionOut>();
 	private long timestamp; //timestamp for the block
+	//private static int count_Transactions = 0; // estimates number of transactions created.
 
 	/*
    	* Generating transactions requires the public keys of both
@@ -110,8 +110,8 @@ public class Transaction {
   
   		// Verify that the incoming transactions are valid
   		for(TransactionIn i : input) {
-  			if (! isValidSource(i.id_Transaction_Out)) {
-  				System.out.println("Invalid source transaction: " + i.id_Transaction_Out);
+  			if (! isValidSource(i.getSourceId())) {
+  				System.out.println("Invalid source transaction: " + i.getSourceId());
   				return false;
   			}
   		}
@@ -162,5 +162,4 @@ public class Transaction {
   	public static boolean isValidSource(String id_Transaction_Out) {
   		return true;
   	}
-
 }

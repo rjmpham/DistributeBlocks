@@ -5,12 +5,11 @@ import distributeblocks.crypto.*;
 
 public class TransactionOut {
 
-	public String id; 				// ID of the transaction
-	public PublicKey pk_Receiver; 	// Receiver of the coins
-	public String id_Parent; 		// The id of the transaction this output was created in
+	private String id; 				// ID of the transaction
+	private PublicKey pk_Receiver; 	// Receiver of the coins
+	private String id_Parent; 		// The id of the transaction this output was created in
 	private float exchange; 		// Amount transfered / receiver owns
 
-	//Constructor
 	public TransactionOut(PublicKey pk_Target, float amount, String id_Input) throws FailedToHashException{
 		this.pk_Receiver = pk_Target;
 		this.exchange = amount;
@@ -30,6 +29,13 @@ public class TransactionOut {
 	 */
 	public float getExchange() {
 		return exchange;
+	}
+	
+	/*
+	 * Returns the id of this TransactionOut
+	 */
+	public String getId() {
+		return id;
 	}
 
 }
