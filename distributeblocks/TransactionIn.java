@@ -1,5 +1,13 @@
 package distributeblocks;
 
+/*
+ * TransactionIn is used to keep track of a
+ * previously created transactions whose funds
+ * are being used to create a new transaction.
+ * 
+ * This is one of the required pieces for a
+ * full Transaction.
+ */
 public class TransactionIn {
 	private String sourceId; 		// ID of the source TransactionOut
 	private TransactionOut funds; 	// Pointer to the source TransactionOut

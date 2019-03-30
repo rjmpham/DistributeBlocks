@@ -3,6 +3,14 @@ package distributeblocks;
 import java.security.*;
 import distributeblocks.crypto.*;
 
+/*
+ * TransactionOut is used to keep track of a
+ * specific exchange of funds to some 
+ * receiving party.
+ * 
+ * This is one of the required pieces for a
+ * full Transaction.
+ */
 public class TransactionOut {
 
 	private String id; 				// ID of the transaction

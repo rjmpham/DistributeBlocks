@@ -6,6 +6,17 @@ import java.util.HashMap;
 import java.util.Map;
 import distributeblocks.crypto.*;
 
+
+/*
+ * Wallet keeps track of all TransactionOut
+ * objects which resulted from transactions
+ * to its owner.
+ * 
+ * The Wallet is able to receive funds from Transactions,
+ * create new Transactions, and check the total funds
+ * available.
+ * 
+ */
 public class Wallet {
 
 	private PrivateKey privateKey;
@@ -31,11 +42,11 @@ public class Wallet {
 	}
 	
 	/*
-	 * Checks over each transaction in incomingFunds and adds any matching
+	 * Checks over each transaction in incomingTransactions and adds any matching
 	 * this wallet's public key to its own funds.
 	 */
-	public void receiveFunds(HashMap<String, TransactionOut> incomingFunds) {
-		for (Map.Entry<String,TransactionOut> i: incomingFunds.entrySet()){
+	public void receiveFunds(HashMap<String, TransactionOut> incomingTransactions) {
+		for (Map.Entry<String,TransactionOut> i: incomingTransactions.entrySet()){
 			TransactionOut funds = i.getValue();
 
 			//check to see if the funds have this publicKey as owner
