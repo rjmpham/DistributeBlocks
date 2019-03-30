@@ -3,18 +3,18 @@ package distributeblocks;
 import java.security.*;
 import distributeblocks.crypto.*;
 
-public class Contract_Out {
+public class TransactionOut {
 
-	public String id; // of the contract
+	public String id; // of the transaction
 	public PublicKey pk_Receiver; // of the coins
-	public float exchange; // amount trasnfered / reciever owns
+	public float exchange; // amount transfered / receiver owns
 	public String id_Parent; //the id of the transaction this output was created in
 
 	//
 	public float getExchange() {return exchange;}
 
 	//Constructor
-	public Contract_Out(PublicKey pk_Target, float amount, String id_Input) throws FailedToHashException{
+	public TransactionOut(PublicKey pk_Target, float amount, String id_Input) throws FailedToHashException{
 		this.pk_Receiver = pk_Target;
 		this.exchange = amount;
 		this.id_Parent = id_Input;
