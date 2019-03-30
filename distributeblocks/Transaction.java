@@ -102,16 +102,16 @@ public class Transaction {
 
   		//check if a transaction is valid:
   		if(getExchangeAmount() < testDriver.minimumTransactionAmount) {
-  			System.out.println("# Inputs to small: " + getExchangeAmount());
+  			System.out.println("# Inputs too small: " + getExchangeAmount());
   			return false;
   		}
 
   		//generate transaction output:
   		float remaining = getExchangeAmount() - exchange;
-      //get exchange amount of input then the left over change:
+  		//get exchange amount of input then the left over change:
   		//id_Transaction = calculateHash(); this is no longer necessary but leaving it in case want to revert, should delete once confidence is gained
-  		output.add(new TransactionOut( this.pk_Receiver, exchange,id_Transaction)); //send exchange to receiver
-  		output.add(new TransactionOut( this.pk_Sender, remaining,id_Transaction)); //send the left over 'change' back to sender
+  		output.add(new TransactionOut( this.pk_Receiver, exchange, id_Transaction)); //send exchange to receiver
+  		output.add(new TransactionOut( this.pk_Sender, remaining, id_Transaction)); //send the left over 'change' back to sender
 
   		//add output to funds list
   		for(TransactionOut o : output) {
@@ -123,11 +123,10 @@ public class Transaction {
   			if(i.funds == null) continue; //if the transaction can't be found skip it
   			testDriver.funds_HashMap.remove(i.funds.id);
   		}
-
   		return true;
   	}
 
-  //returns sum of exchanges values
+  	//returns sum of exchanges values
   	public float getExchangeAmount() {
   		float total = 0;
   		for(TransactionIn i : input) {
@@ -137,7 +136,7 @@ public class Transaction {
   		return total;
   	}
 
-  //returns sum of output:
+  	//returns sum of output:
   	public float getExchangeOutput() {
   		float total = 0;
   		for(TransactionOut o : output) {

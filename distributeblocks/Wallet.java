@@ -55,6 +55,7 @@ public class Wallet {
 	 * This will create a new transaction utilizing the funds available.
 	 * Any overage will be sent back to this wallet.
 	 */
+	// TODO: allow for a transaction fee
 	public Transaction makeTransaction(PublicKey receiver, float amount){
 		if(availableFunds() < amount){
 			//check funds to see if a transaction is possible
@@ -71,15 +72,6 @@ public class Wallet {
 			transaction_ArrayList.add(new TransactionIn(funds.id));
 			
 			// Until the requested amount is exceeded
-			/*
-			 * TODO: WHAT ABOUT OVERAGE? 
-			 * if the sum is greater than the amount,
-			 * I want the difference back!
-			 * 
-			 * We need a new transaction back to this wallet
-			 * with the same TransactionOut id, splitting up
-			 * the last value between the two parties.
-			 */
 			if(sum > amount) break;
 		}
 		Transaction newTransaction = new Transaction(privateKey, publicKey, receiver, amount, transaction_ArrayList);
