@@ -37,32 +37,32 @@ public class Wallet {
 		return sum;
 	}
 
-	// Makes a new contract from this wallet to send money
-	public Transaction makeContract(PublicKey receiver, float amount){
+	// Makes a new transaction from this wallet to send money
+	public Transaction makeTransaction(PublicKey receiver, float amount){
 		if(getFunds()< amount){
-			//check funds to see if a contract is possible
-			System.out.println("Insuficient funds to generate contract.");
+			//check funds to see if a transaction is possible
+			System.out.println("Insuficient funds to generate transaction.");
 			return null;
 		}
-		// To access contract inputs
-		ArrayList<TransactionIn> contract_ArrayList = new ArrayList<TransactionIn>();
+		// To access transaction inputs
+		ArrayList<TransactionIn> transaction_ArrayList = new ArrayList<TransactionIn>();
 		float sum = 0;
 		for (Map.Entry<String, TransactionOut> item: funds_HashMap.entrySet()){
 			TransactionOut funds = item.getValue();
 			sum += funds.getExchange();
 			// All funds available have been given to the wallet owner and therefore are exchanges.
-			contract_ArrayList.add(new TransactionIn(funds.id));
+			transaction_ArrayList.add(new TransactionIn(funds.id));
 			if(sum > amount) break;
 		}
-		Transaction newContract = new Transaction(privateKey, publicKey, receiver , amount, contract_ArrayList);
+		Transaction newTransaction = new Transaction(privateKey, publicKey, receiver , amount, transaction_ArrayList);
 
 		//signatures not implemented
-		//newContract.generateSignature(privateKey); no longer necessary as contracts are singed in constructor now, delete once confidence is gained
+		//newTransaction.generateSignature(privateKey); no longer necessary as transactions are singed in constructor now, delete once confidence is gained
 
-		for(TransactionIn i: contract_ArrayList){
+		for(TransactionIn i: transaction_ArrayList){
 			funds_HashMap.remove(i.id_Transaction_Out);
 		}
-		return newContract;
+		return newTransaction;
 	}
 
 }

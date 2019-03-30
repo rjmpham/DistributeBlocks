@@ -137,7 +137,7 @@ public class testDriver
 			}
 		}
 
-		System.out.println("\n Testing contract")
+		System.out.println("\n Testing transaction")
 		//unable to test until genesis block has value
 		Transaction alice_to_bob_5 = new Transaction(wallet_Alice.getPrivateKey, wallet_Alice.getPublicKey, wallet_Bob.gegetPublicKey,);
 		*/
