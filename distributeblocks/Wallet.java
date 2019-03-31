@@ -15,9 +15,11 @@ import distributeblocks.crypto.*;
  * The Wallet is able to receive funds from Transactions,
  * create new Transactions, and check the total funds
  * available.
- * 
  */
 public class Wallet {
+	// Coin base keys are used for signing block reward transactions from a static source
+	private static final String COIN_BASE_DIR = System.getProperty("user.dir") + "/coinBase";
+	private static final KeyPair COIN_BASE_KEYS = Crypto.loadKeyPair(COIN_BASE_DIR, Crypto.GEN_ALGORITHM);
 
 	private PrivateKey privateKey;
 	private PublicKey publicKey;
