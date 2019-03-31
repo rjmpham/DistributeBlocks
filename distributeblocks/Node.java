@@ -88,16 +88,6 @@ public class Node {
 
 		// TODO: Maybe replace param list with config object.
 		NetworkService.init(config);
-
-		/*while (true){
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			System.out.println("Still alive");
-		}*/
-
 	}
 
 	public static void init(){
