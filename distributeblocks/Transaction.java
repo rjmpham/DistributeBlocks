@@ -73,7 +73,7 @@ public class Transaction {
    	* (which is a hash of the public keys for the sender/receiver, the amount sent, and the number of transactions in existence)
    	* Output: Sets the signature field of this transaction class
    	*/
-	public void generateSignature( PrivateKey privateKey ) {
+	public void generateSignature(PrivateKey privateKey) {
 	  this.signature = Crypto.signMessage(privateKey, this.id_Transaction);
 	  return;
   }
@@ -101,8 +101,7 @@ public class Transaction {
    	* 
    	* Returns true if the transaction is created, false otherwise
    	*/
-	// TODO: should this really throw a FailedToHashException, or just return false
-	public boolean transactionEnforcer() throws FailedToHashException{
+	public boolean transactionEnforcer() {
   		if(verifySignature() == false) {
   			System.out.println("#Transaction Signature failed to verify");
   			return false;
@@ -121,13 +120,20 @@ public class Transaction {
   			System.out.println("# Inputs too small: " + getInputExchange());
   			return false;
   		}
-
+  		
+  		try {
   		//generate transaction output:
   		float remaining = getInputExchange() - exchange;
-  		output.add(new TransactionOut(this.pk_Receiver, exchange, id_Transaction));	// Send exchange to receiver
-  		output.add(new TransactionOut(this.pk_Sender, remaining, id_Transaction)); 	// Send the left over 'change' back to sender
+  		output.add(new TransactionOut(this.pk_Receiver, exchange, id_Transaction));		// Send exchange to receiver
+  		if (remaining != 0.0f)
+  			output.add(new TransactionOut(this.pk_Sender, remaining, id_Transaction)); 	// Send the left over 'change' back to sender
 
   		return true;
+  		
+  		} catch (FailedToHashException e) {
+  			System.out.println("Failed to hash transaction");
+  			return false;
+  		}
 	}
 
   	/*

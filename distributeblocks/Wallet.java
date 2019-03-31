@@ -2,6 +2,7 @@ package distributeblocks;
 
 import java.security.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import distributeblocks.crypto.*;
@@ -18,8 +19,10 @@ import distributeblocks.crypto.*;
  */
 public class Wallet {
 	// Coin base keys are used for signing block reward transactions from a static source
+	private static final String COIN_BASE_ID = "COIN_BASE";
 	private static final String COIN_BASE_DIR = System.getProperty("user.dir") + "/coinBase";
 	private static final KeyPair COIN_BASE_KEYS = Crypto.loadKeyPair(COIN_BASE_DIR, Crypto.GEN_ALGORITHM);
+	private static final float BLOCK_REWARD_AMOUNT = 5.0f;
 
 	private PrivateKey privateKey;
 	private PublicKey publicKey;
@@ -113,4 +116,22 @@ public class Wallet {
 	public PublicKey getPublicKey(){
 		return publicKey;
 		}
+	
+	/*
+	 * Makes a new transaction from the COIN_BASE.
+	 * The block reward transaction can go to any PublicKey, but
+	 * is usually given to the creator of the block (calling node). 
+	 */
+	public static Transaction makeBlockReward(PublicKey receiver) {
+		// Create a TransactionIn from the COIN_BASE
+		ArrayList<TransactionIn> transaction_ArrayList = new ArrayList<TransactionIn>();
+		transaction_ArrayList.add(new TransactionIn(COIN_BASE_ID, BLOCK_REWARD_AMOUNT));
+		// Create a Transaction to the receiver
+		Transaction newTransaction = new Transaction(COIN_BASE_KEYS.getPrivate(), 
+													COIN_BASE_KEYS.getPublic(), 
+													receiver, 
+													BLOCK_REWARD_AMOUNT, 
+													transaction_ArrayList);
+		return newTransaction;
+	}
 }
