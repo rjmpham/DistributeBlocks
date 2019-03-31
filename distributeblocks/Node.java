@@ -1,10 +1,12 @@
 package distributeblocks;
 
+import distributeblocks.crypto.Crypto;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
 
+import java.lang.reflect.Field;
 import java.util.LinkedList;
 
 public class Node {
@@ -90,6 +92,7 @@ public class Node {
 
 	public static void init(){
 
+		new BlockChain(); // Load the chain (generates the file).
 	}
 
 
@@ -98,7 +101,27 @@ public class Node {
 		// TODO: Deal with the damn timestamp!!!!!
 
 		try {
-			Block block = new Block("Genisis", "", HASH_DIFFICULTY);
+			Block block = new Block("Genisis", "", 0);
+
+
+			// TODO: This is a crappy hack to get all the nodes to have the same genesis block. Do something else?
+			try {
+				Field timeStamp = Block.class.getDeclaredField("timestamp");
+				timeStamp.setAccessible(true);
+				timeStamp.set(block, 0);
+
+				Field hashBlock = Block.class.getDeclaredField("hashBlock");
+				hashBlock.setAccessible(true);
+				hashBlock.set(block, Crypto.calculateBlockHash(block));
+
+			} catch (NoSuchFieldException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+
+			block.mineBlock();
+
 			return block;
 		} catch (FailedToHashException e) {
 			e.printStackTrace();
