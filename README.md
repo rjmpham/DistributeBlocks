@@ -18,12 +18,12 @@ If you are lazy:
 
 java -jar CoinCoin.jar seed port 1234
 
-java -jar CoinCoin.jar port 2000 seedAddr localhost 1234 cg ./node_1_config.txt chainfile node_1_chainfile.txt
+java -jar CoinCoin.jar port 2000 seedAddr localhost 1234 config ./node_1_config.txt chainfile node_1_chainfile.txt
 
-java -jar CoinCoin.jar port 2001 seedAddr localhost 1234 cg ./node_2_config.txt chainfile node_2_chainfile.txt
+java -jar CoinCoin.jar port 2001 seedAddr localhost 1234 config ./node_2_config.txt chainfile node_2_chainfile.txt
 
-java -jar CoinCoin.jar port 2002 seedAddr localhost 1234 cg ./node_3_config.txt chainfile node_3_chainfile.txt
+java -jar CoinCoin.jar port 2002 seedAddr localhost 1234 config ./node_3_config.txt chainfile node_3_chainfile.txt
 
-java -jar CoinCoin.jar port 2003 seedAddr localhost 1234 cg ./node_4_config.txt chainfile node_4_chainfile.txt
+java -jar CoinCoin.jar port 2003 seedAddr localhost 1234 config ./node_4_config.txt chainfile node_4_chainfile.txt
 
 Just remember to change the name of the .jar
