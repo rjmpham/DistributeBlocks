@@ -25,7 +25,8 @@ public class Wallet {
 
 	private PrivateKey privateKey;
 	private PublicKey publicKey;
-	private HashMap<String, TransactionOut> funds_HashMap = new HashMap<String,TransactionOut>(); //funds in this wallet.
+	private HashMap<String, TransactionOut> funds_HashMap = new HashMap<String,TransactionOut>(); 	// Funds in this wallet.
+	private HashMap<String, TransactionOut> onHold_HashMap = new HashMap<String,TransactionOut>(); 	// Spent funds waiting to be removed
 
 	public Wallet(){
 	  KeyPair pair = Crypto.keyPairGenerator();
@@ -46,11 +47,11 @@ public class Wallet {
 	}
 	
 	/*
-	 * Checks over each transaction in incomingTransactions and adds any matching
+	 * Checks over each transaction in verifiedTransactions and adds any matching
 	 * this wallet's public key to its own funds.
 	 */
-	public void receiveFunds(HashMap<String, TransactionOut> incomingTransactions) {
-		for (Map.Entry<String,TransactionOut> i: incomingTransactions.entrySet()){
+	public void receiveFunds(HashMap<String, TransactionOut> verifiedTransactions) {
+		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
 			TransactionOut funds = i.getValue();
 
 			//check to see if the funds have this publicKey as owner
@@ -60,11 +61,38 @@ public class Wallet {
 			}
 		}
 	}
+	
+	/*
+	 * Checks over each transaction in verifiedTransaction and removed any matching
+	 * transactions which were on hold in this wallet. This essentially marks the
+	 * funds as permanently spent by removing them from the wallet completely.
+	 */
+	public void clearFundsOnHold(HashMap<String, TransactionOut> verifiedTransactions) {
+		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
+			funds_HashMap.remove(i.getKey());
+		}
+	}
+	
+	/*
+	 * Returns a transaction which was spent and on hold back into
+	 * the HashMap of available funds. This method may be called when
+	 * a transaction is disregarded by the network, and the user would
+	 * like to attempt to use the funds for a new transaction instead.
+	 */
+	public void rescindHeldFunds(String transactionOutId) {
+		TransactionOut rescinded = onHold_HashMap.get(transactionOutId);
+		if (rescinded != null)
+			funds_HashMap.put(rescinded.getId(), rescinded);
+	}
 
 	/*
 	 * Makes a new transaction from this wallet to send money.
 	 * This will create a new transaction utilizing the funds available.
 	 * Any overage will be sent back to this wallet.
+	 * 
+	 * Available funds which were used to create this transaction will be
+	 * put 'on hold' until they are either verified and cleared, or rescinded
+	 * to the wallet.
 	 */
 	// TODO: allow for a transaction fee
 	public Transaction makeTransaction(PublicKey receiver, float amount){
@@ -87,17 +115,11 @@ public class Wallet {
 		}
 		Transaction newTransaction = new Transaction(privateKey, publicKey, receiver, amount, transaction_ArrayList);
 
-		// remove the funds used to create this transaction
-		/*
-		 * TODO: THIS IS DANGEROUS!
-		 * What if the transaction never goes through?
-		 * These transactions shouldn't be removed, but should be
-		 * placed on hold until it is verified that they are used.
-		 * 
-		 * Only after they are verified should they be removed.
-		 */
+		// put the funds used to create this transaction on hold
 		for(TransactionIn i: transaction_ArrayList){
+			TransactionOut spent = funds_HashMap.get(i.getSourceId());
 			funds_HashMap.remove(i.getSourceId());
+			onHold_HashMap.put(spent.getId(), spent);
 		}
 		return newTransaction;
 	}
