@@ -1,9 +1,6 @@
 package distributeblocks.net;
 
-import distributeblocks.Block;
-import distributeblocks.BlockChain;
-import distributeblocks.BlockHeader;
-import distributeblocks.Node;
+import distributeblocks.*;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.mining.Miner;
 import distributeblocks.net.message.*;
@@ -14,7 +11,10 @@ import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class NetworkManager {
+public class NetworkManager implements NetworkActions {
+
+	private HashMap<String, Transaction> transanctionPool;
+	private HashMap<String, Transaction> orphanedTransactionPool;
 
 	private LinkedBlockingQueue<AbstractMessage> incommingQueue;
 	private LinkedBlockingQueue<ArrayList<BlockHeader>> headerQueue;
@@ -69,6 +69,8 @@ public class NetworkManager {
 		incommingQueue = new LinkedBlockingQueue<>();
 		headerQueue = new LinkedBlockingQueue<>();
 		blockQueue = new LinkedBlockingQueue<>();
+		transanctionPool = new HashMap<>();
+		orphanedTransactionPool = new HashMap<>();
 	}
 
 
@@ -331,10 +333,16 @@ public class NetworkManager {
 		}
 	}
 
+
+
 	/**
 	 * Begins mining, but only if mining is set to true.
+	 *
+	 * Internal to net stuff only.
+	 *
+	 * See startMining()
 	 */
-	public void beginMining(){
+	 public void beginMining(){
 		// TODO READ THE BELOW TODO
 		if (mining){
 
@@ -346,6 +354,37 @@ public class NetworkManager {
 			miner.startMining(chain.size() + 1 + "", chain.get(chain.size() -1), Node.HASH_DIFFICULTY);
 		}
 	}
+
+
+	// ============================= NetworkActions =============================
+
+
+	/**
+	 * Begins mining, but only if mining is set to true.
+	 */
+	@Override
+	public void startMining(){
+		mining = true;
+		beginMining();
+	}
+
+	@Override
+	public void stopMining() {
+
+		if (miner != null){
+			miner.stopMining();
+		}
+
+		mining = false;
+	}
+
+	@Override
+	public void broadcastTransaction(Transaction transaction) {
+
+	}
+
+
+	// ==========================================================
 
 	/**
 	 * Processes the incomming queue.

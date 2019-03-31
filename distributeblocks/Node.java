@@ -3,6 +3,7 @@ package distributeblocks;
 import distributeblocks.crypto.Crypto;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.net.IPAddress;
+import distributeblocks.net.NetworkActions;
 import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
 
@@ -87,6 +88,15 @@ public class Node {
 
 		// TODO: Maybe replace param list with config object.
 		NetworkService.init(config);
+
+		/*while (true){
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			System.out.println("Still alive");
+		}*/
 
 	}
 
