@@ -22,8 +22,6 @@ public class Node {
 	public static int HASH_DIFFICULTY = 4;
 
 
-	private static LinkedList<Block> blockchain;
-
 	/**
 	 *
 	 *
@@ -92,14 +90,8 @@ public class Node {
 
 	public static void init(){
 
-		ConfigManager configManager = new ConfigManager();
-		blockchain = configManager.loadBlockCHain();
-
 	}
 
-	public static LinkedList<Block> getBlockchain(){
-		return blockchain;
-	}
 
 	public static Block getGenisisBlock(){
 

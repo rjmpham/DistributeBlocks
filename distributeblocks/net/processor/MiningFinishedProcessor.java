@@ -1,6 +1,7 @@
 package distributeblocks.net.processor;
 
 import distributeblocks.Block;
+import distributeblocks.BlockChain;
 import distributeblocks.Node;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.mining.Miner;
@@ -20,9 +21,9 @@ public class MiningFinishedProcessor extends AbstractMessageProcessor<MiningFini
 
         ConfigManager configManager = new ConfigManager();
         // Add the newly mined block to our chain
-        LinkedList<Block> chains = configManager.loadBlockCHain();
-        chains.add(message.block);
-        configManager.saveBlockChain(chains);
+        BlockChain blockChain = new BlockChain();
+        blockChain.addBlock(message.block);
+        blockChain.save();
 
         NetworkService.getNetworkManager().asyncSendToAllPeers(new BlockBroadcastMessage(message.block)); // Send block to peers.
         NetworkService.getNetworkManager().beginMining();

@@ -1,8 +1,8 @@
 package distributeblocks.net.processor;
 
 import distributeblocks.Block;
+import distributeblocks.BlockChain;
 import distributeblocks.BlockHeader;
-import distributeblocks.Node;
 import distributeblocks.net.message.HeaderInfoMessage;
 import distributeblocks.net.message.RequestHeadersMessage;
 
@@ -19,7 +19,9 @@ public class RequestHeadersProcessor extends AbstractMessageProcessor<RequestHea
 		int i = 0;
 		ArrayList<BlockHeader> headers = new ArrayList<>();
 
-		for (Block b : Node.getBlockchain()){
+		System.out.println("Longest chain: " + new BlockChain().getLongestChain().size());
+
+		for (Block b : new BlockChain().getLongestChain()){
 
 			headers.add(new BlockHeader(b.getHashBlock(), i++));
 		}

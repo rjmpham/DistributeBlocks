@@ -1,6 +1,7 @@
 package distributeblocks.net;
 
 import distributeblocks.Block;
+import distributeblocks.BlockChain;
 import distributeblocks.BlockHeader;
 import distributeblocks.Node;
 import distributeblocks.io.ConfigManager;
@@ -19,7 +20,7 @@ public class NetworkManager {
 	private LinkedBlockingQueue<ArrayList<BlockHeader>> headerQueue;
 	private LinkedBlockingQueue<BlockMessage> blockQueue;
 
-	private AquireChain aquireChain; // TODO: Replace with events to make this not awfull?
+	private volatile AquireChain aquireChain; // TODO: Replace with events to make this not awfull?
 
 	private int minPeers = 0;
 	private int maxPeers = Integer.MAX_VALUE;
@@ -100,6 +101,13 @@ public class NetworkManager {
 			scheduledExecutorService.schedule(new CheckNeedNodes(), 2, TimeUnit.SECONDS);
 
 			// Now request header info from everyone since we restarted (or started for the first time).
+			beginAquireChainOperation();
+		}
+	}
+
+	public void beginAquireChainOperation(){
+
+		if (this.aquireChain == null){
 			this.aquireChain = new AquireChain();
 			executorService.execute(this.aquireChain);
 		}
@@ -334,7 +342,7 @@ public class NetworkManager {
 
 			// TODO When transaction broadcasts are added, trigger mining in the transaction broadcast processor based on some condition.
 			// At the moment just going to mine in a loop.
-			LinkedList<Block> chain = new ConfigManager().loadBlockCHain();
+			LinkedList<Block> chain = new BlockChain().getLongestChain();
 			miner.startMining(chain.size() + 1 + "", chain.get(chain.size() -1), Node.HASH_DIFFICULTY);
 		}
 	}
@@ -528,8 +536,12 @@ public class NetworkManager {
 				}
 
 
-				if (highestHeaders.size() <= Node.getBlockchain().size()){
+				BlockChain blockChain = new BlockChain();
+
+				if (highestHeaders.size() <= blockChain.getLongestChain().size()){
 					System.out.println("Already have the highest chain");
+					System.out.println(blockChain.getLongestChain().size());
+					System.out.println(highestHeaders.size());
 					beginMining();
 					return;
 				}
@@ -580,26 +592,22 @@ public class NetworkManager {
 				System.out.println("AQUIRED THE BLOCKCHAIN!");
 
 				// Process blocks into a chain and save wooo!
-				LinkedList<Block> blockChain = new LinkedList<>();
 
 				for (int j = 0; j < highestHeaders.size(); j ++) {
 
 					for (BlockMessage m : blockQueue) {
 
 						if (m.blockHeight == j) {
-							blockChain.add(m.block);
+							blockChain.addBlock(m.block);
 							break;
 						}
 					}
 				}
 
-				ConfigManager configManager = new ConfigManager();
-				configManager.saveBlockChain(blockChain);
-
+				blockChain.save();
 
 				beginMining();
-
-
+				aquireChain = null;
 
 			} catch (InterruptedException e) {
 				e.printStackTrace();

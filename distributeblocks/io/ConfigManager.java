@@ -14,10 +14,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.Period;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * Reading and writing to config files goes here.
@@ -152,7 +149,7 @@ public class ConfigManager {
 
 
 
-	public synchronized void saveBlockChain(LinkedList<Block> blockChain){
+	public synchronized void saveBlockChain(ArrayList<LinkedList<Block>> blockChain){
 
 		Gson gson = new Gson();
 		File file = new File(Node.BLOCKCHAIN_FILE);
@@ -171,7 +168,7 @@ public class ConfigManager {
 
 	}
 
-	public synchronized LinkedList<Block> loadBlockCHain(){
+	public synchronized ArrayList<LinkedList<Block>> loadBlockCHain(){
 
 		Gson gson = new Gson();
 		File file = new File(Node.BLOCKCHAIN_FILE);
@@ -185,15 +182,19 @@ public class ConfigManager {
 			}
 
 			// Create new chain with genisis node.
-			LinkedList<Block> chain = new LinkedList<>();
-			chain.add(Node.getGenisisBlock());
+			ArrayList<LinkedList<Block>>chain = new ArrayList<>();
+			LinkedList newFork = new LinkedList();
+
+
+			newFork.add(Node.getGenisisBlock());
+			chain.add(newFork);
 			saveBlockChain(chain);
 
-			//saveBlockChain(generateTestChain()); // TESTING ONLY.
+			//save(generateTestChain()); // TESTING ONLY.
 		}
 
 		String json = "";
-		LinkedList<Block> blockChain = new LinkedList<>();
+		ArrayList<LinkedList<Block> >blockChain = new ArrayList<>();
 
 		try (Scanner scanner = new Scanner(file)){
 
@@ -202,7 +203,7 @@ public class ConfigManager {
 				json += scanner.nextLine();
 			}
 
-			blockChain = gson.fromJson(json, new TypeToken<LinkedList<Block>>(){}.getType());
+			blockChain = gson.fromJson(json, new TypeToken<ArrayList<LinkedList<Block>>>(){}.getType());
 			return blockChain;
 
 		} catch (FileNotFoundException e) {

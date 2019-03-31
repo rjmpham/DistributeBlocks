@@ -1,6 +1,7 @@
 package distributeblocks.net.processor;
 
 import distributeblocks.Block;
+import distributeblocks.BlockChain;
 import distributeblocks.Node;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.mining.Miner;
@@ -17,11 +18,10 @@ public class BlockBroadcastProcessor extends AbstractMessageProcessor<BlockBroad
 
         // TODO verify the block is actualy legit!
         ConfigManager configManager = new ConfigManager();
-        LinkedList<Block> chain = configManager.loadBlockCHain();
+        BlockChain blockChain = new BlockChain();
 
-        chain.add(message.block);
-
-        configManager.saveBlockChain(chain);
+        blockChain.addBlock(message.block);
+        blockChain.save();
         System.out.println("Added block to the chain!");
 
         // TODO Here is the spot to stop mining and restart mining

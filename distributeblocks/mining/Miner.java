@@ -6,10 +6,7 @@ import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.AbstractMessage;
 import distributeblocks.net.message.MiningFinishedMessage;
 
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 public class Miner {
 
@@ -63,7 +60,11 @@ public class Miner {
             e.printStackTrace();
         }
 
-        executorService.shutdownNow();
+        /*try {
+            executorService.awaitTermination(3000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }*/
     }
 
 
