@@ -38,7 +38,7 @@ public class Node {
 	// TODO: implement this
 	// TODO:  error handling
 	public void exit() {
-		WalletManager.saveWallet(wallet, walletPath);
+		WalletManager.saveWallet(walletPath, wallet);
 	}
 	
 	/*
@@ -50,7 +50,7 @@ public class Node {
 	public void createWallet(String path) {
 		wallet = new Wallet();
 		walletPath = path;
-		WalletManager.saveWallet(wallet, path);
+		WalletManager.saveWallet(path, wallet);
 	}
 	
 	/*

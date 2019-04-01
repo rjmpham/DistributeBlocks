@@ -41,11 +41,11 @@ public class Wallet {
 	/*
 	 * Constructor to reload a wallet
 	 */
-	public Wallet(PrivateKey privateKey, PublicKey publicKey, 
+	public Wallet(KeyPair keys, 
 					HashMap<String,TransactionOut> funds_HashMap, 
 					HashMap<String,TransactionOut> onHold_HashMap) {
-		this.privateKey = privateKey;
-		this.publicKey = publicKey;
+		this.privateKey = keys.getPrivate();
+		this.publicKey = keys.getPublic();
 		this.funds_HashMap = funds_HashMap;
 		this.onHold_HashMap = onHold_HashMap;
 	}
