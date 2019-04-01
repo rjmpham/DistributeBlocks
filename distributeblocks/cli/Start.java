@@ -2,6 +2,7 @@ package distributeblocks.cli;
 
 import java.util.concurrent.Callable;
 
+import distributeblocks.Node;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkConfig;
 import picocli.CommandLine.Command;
@@ -11,8 +12,12 @@ import picocli.CommandLine.Parameters;
 
 @Command(description = "Starts a node in the Coin^2 network",
 		 name = "start", mixinStandardHelpOptions = true)
-
-public class Start implements Callable<NetworkConfig> {
+public class Start implements Callable<Void> {
+	private Node node;
+	
+	public Start(Node node) {
+		this.node = node;
+	}
 	
 	@Option(names = {"-minp", "--minpeers"}, 
 			description = "The minimum number of peers to connecto to")
@@ -43,7 +48,7 @@ public class Start implements Callable<NetworkConfig> {
 	private boolean mining = false;
 	
 	@Override
-	public NetworkConfig call() throws Exception {
+	public Void call() throws Exception {
 		NetworkConfig config = new NetworkConfig();
 		config.maxPeers = maxPeers;
 		config.minPeers = minPeers;
@@ -51,7 +56,8 @@ public class Start implements Callable<NetworkConfig> {
 		config.seed = seed;
 		config.seedNode = new IPAddress(seedAddress, seedPort);
 		config.mining = mining;
+		node.initializeNetworkService(config);
 		
-		return config;
+		return null;
 	}	
 }

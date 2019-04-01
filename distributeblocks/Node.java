@@ -29,6 +29,13 @@ public class Node {
 	}
 	
 	/*
+	 * Closes all threads and safely kills the node.
+	 */
+	// TODO: implement this
+	public void exit() {
+	}
+	
+	/*
 	 * Returns whether the node has been started or not.
 	 * This is used to block commands that require the node
 	 * to be running first.
