@@ -53,8 +53,8 @@ public class WalletManager {
 		HashMap<String, TransactionOut> funds_HashMap = loadFundsHashMap(path);
 		HashMap<String, TransactionOut> onHold_HashMap = loadOnHoldHashMap(path);
 		
-		if (keys == null || funds_HashMap == null || onHold_HashMap == null)
-			return null;	// If loading any required files failed
+		if (keys == null)
+			return null;
 		
 		return new Wallet(keys, funds_HashMap, onHold_HashMap);
 	}

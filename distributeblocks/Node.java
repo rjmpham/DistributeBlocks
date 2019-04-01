@@ -13,6 +13,7 @@ import picocli.CommandLine;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.LinkedList;
 
@@ -111,9 +112,9 @@ public class Node {
 		}
 
 		try {
-			Transaction transaction = wallet.makeTransaction(WalletManager.loadPublicKey(
-															recipientKeyPath, Crypto.GEN_ALGORITHM), 
-															amount);
+			PublicKey recipientKey = WalletManager.loadPublicKey(System.getProperty("user.dir") + recipientKeyPath,
+																Crypto.GEN_ALGORITHM);
+			Transaction transaction = wallet.makeTransaction(recipientKey, amount);
 			NetworkService.getNetworkManager().broadcastTransaction(transaction);
 			
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
