@@ -8,7 +8,7 @@ import picocli.CommandLine;
 
 import distributeblocks.Node;
 
-
+// TODO: handler to tell the user what commands are available
 // TODO: handler for exiting the program
 // TODO: handler for connecting a wallet to the node
 // TODO: handler for making a transaction
