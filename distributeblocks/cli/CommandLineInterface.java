@@ -8,13 +8,11 @@ import picocli.CommandLine;
 
 import distributeblocks.Node;
 
-// TODO: handler to tell the user what commands are available
-// TODO: handler for exiting the program
-// TODO: handler for connecting a wallet to the node
-// TODO: handler for making a transaction
-// TODO: handler for enabling/ disabling mining
-// TODO: handler for counting funds in the wallet
-
+/*
+ * Interface to parse and process user commands.
+ * This is capable of handing commands received at run time,
+ * as well as which the node is running.
+ */
 public class CommandLineInterface implements Runnable{
 	private static Scanner keyboard = new Scanner(System.in);
 	

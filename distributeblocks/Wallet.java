@@ -16,6 +16,7 @@ import distributeblocks.crypto.*;
  * create new Transactions, and check the total funds
  * available.
  */
+// TODO: a method to save and reload a wallet from disk (including sk/pk, and the two hashmaps)
 public class Wallet {
 	// Coin base keys are used for signing block reward transactions from a static source
 	private static final String COIN_BASE_ID = "COIN_BASE";

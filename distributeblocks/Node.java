@@ -18,7 +18,7 @@ public class Node {
 	public static int HASH_DIFFICULTY = 4;
 	
 	private boolean started = false;
-	// TODO: The node needs a wallet
+	private Wallet wallet;
 	
 	/*
 	 * Starts up the network threads and marks the node as started.
@@ -30,9 +30,54 @@ public class Node {
 	
 	/*
 	 * Closes all threads and safely kills the node.
+	 * This will also save the wallet state for the user.
 	 */
 	// TODO: implement this
 	public void exit() {
+	}
+	
+	/*
+	 * Creates a new wallet with a private key/ public key
+	 * pair. This will also save the key pair to a specified
+	 * file location.
+	 */
+	// TODO: implement this
+	public void createWallet() {
+	}
+	
+	/*
+	 * Loads a wallet with a private key/ public key pair.
+	 */
+	// TODO: implement this
+	public void loadWallet() {
+	}
+	
+	/*
+	 * Counts the funds within the linked wallet.
+	 */
+	// TODO: implement this. remember to check that a wallet is connected.
+	public void countFunds() {
+	}
+	
+	/*
+	 * Creates and broadcasts a new transaction.
+	 */
+	// TODO: implement this. remember to check that the node is started.
+	public void createTransaction() {
+	}
+	
+	/*
+	 * Enables mining within this node.
+	 */
+	// TODO: implement this. Start a thread for mining
+	public void enableMining() {
+	}
+	
+	/*
+	 * Disables mining within this node.
+	 */
+	// TODO: implement this. Kill any running mining threads
+	public void disableMining() {
 	}
 	
 	/*
@@ -42,6 +87,15 @@ public class Node {
 	 */
 	public boolean started() {
 		return started;
+	}
+	
+	/*
+	 * Returns whether the node has a wallet loaded for
+	 * use. This is used to block commands that require
+	 * the node to have a loaded wallet.
+	 */
+	public boolean walletLoaded() {
+		return wallet != null;
 	}
 
 	public static void init(){
