@@ -8,8 +8,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 
-//TODO: handler to tell the user what commands are available
-@Command(description = "",
+@Command(description = "Lists available commands",
 		 name = "help", mixinStandardHelpOptions = true)
 public class HelpHandler implements Callable<Void> {
 	private Node node;
@@ -19,7 +18,15 @@ public class HelpHandler implements Callable<Void> {
 	}
 	
 	@Override
-	public Void call() throws Exception {		
+	public Void call() throws Exception {	
+		System.out.println("Available commands:\n"
+				+ "\t\texit\t\t\tTerminates the node processes\n"
+				+ "\t\thelp\t\t\tLists available commands\n"
+				+ "\t\tmine\t\t\tEnable or disable mining\n"
+				+ "\t\tstart\t\t\tStart network connection\n"
+				+ "\t\ttransaction\tCreate a new transaction\n"
+				+ "\t\twallet\t\t\tCreate, load and access a wallet\n");
+		
 		return null;
 	}	
 }

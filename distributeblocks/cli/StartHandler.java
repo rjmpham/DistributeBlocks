@@ -10,7 +10,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 
-@Command(description = "Starts a node in the Coin^2 network",
+@Command(description = "Start network connection",
 		 name = "start", mixinStandardHelpOptions = true)
 public class StartHandler implements Callable<Void> {
 	private Node node;
