@@ -3,6 +3,7 @@ package distributeblocks;
 import distributeblocks.crypto.Crypto;
 import distributeblocks.cli.CommandLineInterface;
 import distributeblocks.io.ConfigManager;
+import distributeblocks.io.WalletManager;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkActions;
 import distributeblocks.net.NetworkConfig;
@@ -20,6 +21,7 @@ public class Node {
 	private boolean started = false;
 	private boolean mining = false;
 	private Wallet wallet;
+	private String walletPath;
 	
 	/*
 	 * Starts up the network threads and marks the node as started.
@@ -34,7 +36,9 @@ public class Node {
 	 * This will also save the wallet state for the user.
 	 */
 	// TODO: implement this
+	// TODO:  error handling
 	public void exit() {
+		WalletManager.saveWallet(wallet, walletPath);
 	}
 	
 	/*
@@ -42,15 +46,20 @@ public class Node {
 	 * pair. This will also save the key pair to a specified
 	 * file location.
 	 */
-	// TODO: implement this
-	public void createWallet() {
+	// TODO: error handling
+	public void createWallet(String path) {
+		wallet = new Wallet();
+		walletPath = path;
+		WalletManager.saveWallet(wallet, path);
 	}
 	
 	/*
 	 * Loads a wallet with a private key/ public key pair.
 	 */
-	// TODO: implement this
-	public void loadWallet() {
+	// TODO: error handling
+	public void loadWallet(String path) {
+		walletPath = path;
+		wallet = WalletManager.loadWallet(path);
 	}
 	
 	/*

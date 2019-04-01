@@ -29,25 +29,33 @@ public class WalletHandler implements Callable<Void> {
 	}
 	
 	
-	//TODO: handler for creating a new wallet (sk/pk)
 	@Command(description = "Create a new wallet",
 			 name = "create", mixinStandardHelpOptions = true)
 	class NewHandler implements Callable<Void> {
+		
+		@Parameters(index = "0", description = "File path to store wallet information")
+	    private String walletPath;
 
 		@Override
 		public Void call() throws Exception {
+			node.createWallet(walletPath);
+			
 			return null;
 		}
 	}
 	
 	
-	//TODO: handler for connecting a wallet to the node
 	@Command(description = "Load a previously saved wallet",
 			 name = "load", mixinStandardHelpOptions = true)
 	class LoadHandler implements Callable<Void> {
+		
+		@Parameters(index = "0", description = "File path to wallet information")
+	    private String walletPath;
 
 		@Override
 		public Void call() throws Exception {
+			node.loadWallet(walletPath);
+			
 			return null;
 		}
 	}
