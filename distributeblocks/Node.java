@@ -1,7 +1,7 @@
 package distributeblocks;
 
 import distributeblocks.crypto.Crypto;
-import distributeblocks.cli.*;
+import distributeblocks.cli.CommandLineInterface;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkActions;
@@ -13,41 +13,33 @@ import java.lang.reflect.Field;
 import java.util.LinkedList;
 
 public class Node {
-
-
-	private static int minPeers = 3;
-	private static int maxPeers = 10;
-	private static int port = 5832;
-	private static IPAddress seedNode = new IPAddress("localhost", 5831); // TODO: Support multiple seed nodes.
-	private static boolean seed = false;
-	private static boolean mining = false;
-
 	public static String PEER_CONFIG_FILE = "./peer_config.txt";
 	public static String BLOCKCHAIN_FILE = "./blockchain.txt";
 	public static int HASH_DIFFICULTY = 4;
-
-
-	/**
-	 *
-	 *
-	 * @param args
+	
+	private boolean started = false;
+	// TODO: The node needs a wallet
+	
+	/*
+	 * Starts up the network threads and marks the node as started.
 	 */
-	public static void main (String[] args){
-		// Initialize this node
-		Node.init();
-
-		// Read the network config and start network services
-		NetworkConfig config = CommandLine.call(new Start(), args);
+	public void initializeNetworkService(NetworkConfig config) {
 		NetworkService.init(config);
-		
-		// TODO: add imput loop here to call command parser methods like the line above
+		started = true;
+	}
+	
+	/*
+	 * Returns whether the node has been started or not.
+	 * This is used to block commands that require the node
+	 * to be running first.
+	 */
+	public boolean started() {
+		return started;
 	}
 
 	public static void init(){
-
 		new BlockChain(); // Load the chain (generates the file).
 	}
-
 
 	public static Block getGenisisBlock(){
 
@@ -82,5 +74,14 @@ public class Node {
 		}
 	}
 
-
+	public static void main (String[] args){
+		// Initialize this node
+		Node node = new Node();
+		Node.init();
+		
+		// Parse initial args then run the cli
+		CommandLineInterface cli = new CommandLineInterface(node);
+		cli.parseCommand(args);
+		cli.run();
+	}
 }
