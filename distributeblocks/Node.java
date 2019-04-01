@@ -10,7 +10,10 @@ import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
 import picocli.CommandLine;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.LinkedList;
 
 /* TODO: THIS IS A BIG ONE:
@@ -106,10 +109,18 @@ public class Node {
 			System.out.println("Node must be started first!");
 			return;
 		}
-		Transaction transaction = wallet.makeTransaction(WalletManager.loadPublicKey(
-				recipientKeyPath, Crypto.GEN_ALGORITHM), 
-				amount);
-		NetworkService.getNetworkManager().broadcastTransaction(transaction);
+
+		try {
+			Transaction transaction = wallet.makeTransaction(WalletManager.loadPublicKey(
+															recipientKeyPath, Crypto.GEN_ALGORITHM), 
+															amount);
+			NetworkService.getNetworkManager().broadcastTransaction(transaction);
+			
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+			System.out.println("Error: could not load KeyPair");
+		} catch (IOException e) {
+			System.out.println("Error: no KeyPair files found in path " + recipientKeyPath);
+		}
 	}
 	
 	/*
