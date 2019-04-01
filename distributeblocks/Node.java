@@ -1,100 +1,171 @@
 package distributeblocks;
 
 import distributeblocks.crypto.Crypto;
-import distributeblocks.io.ConfigManager;
-import distributeblocks.net.IPAddress;
-import distributeblocks.net.NetworkActions;
+import distributeblocks.cli.CommandLineInterface;
+import distributeblocks.io.WalletManager;
 import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.LinkedList;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 
+/* TODO: THIS IS A BIG ONE:
+ *		We need some way to get other node's public keys and save them to files.
+ *		Without this, we won't be able to send anyone money.
+ */
+
+/* TODO: ALSO A BIG ONE:
+ * 		We need a way for the network manager to call our wallet methods to
+ * 		receive funds and clear out onHold once a block gets to be 6 deep.
+ */
 public class Node {
-
-
-	private static int minPeers = 3;
-	private static int maxPeers = 10;
-	private static int port = 5832;
-	private static IPAddress seedNode = new IPAddress("localhost", 5831); // TODO: Support multiple seed nodes.
-	private static boolean seed = false;
-	private static boolean mining = false;
-
 	public static String PEER_CONFIG_FILE = "./peer_config.txt";
 	public static String BLOCKCHAIN_FILE = "./blockchain.txt";
 	public static int HASH_DIFFICULTY = 4;
-
-
-	/**
-	 *
-	 *
-	 * @param args
+	
+	private boolean started = false;
+	private boolean mining = false;
+	private Wallet wallet;
+	private String walletPath;
+	
+	/*
+	 * Starts up the network threads and marks the node as started.
 	 */
-	public static void main (String[] args){
-
-
-		// TODO proper type checking and crap.
-		for (int i = 0; i < args.length; i ++){
-
-			String a = args[i];
-
-			System.out.println("got arg: " + args[i]);
-			switch (a){
-				case "minp":
-					minPeers = Integer.parseInt(args[i+1]);
-					break;
-				case "maxp":
-					maxPeers = Integer.parseInt(args[i+1]);
-					break;
-				case "port":
-					port = Integer.parseInt(args[i+1]);
-					System.out.println("Got port: " + port);
-					break;
-				case "seedAddr":
-					String seedAddr = args[i+1];
-					int seedPort = Integer.parseInt(args[i+2]);
-					seedNode = new IPAddress(seedAddr, seedPort);
-					break;
-				case "seed":
-					seed = true;
-					break;
-				case "config":
-					PEER_CONFIG_FILE = args[i+1];
-					break;
-				case "chainfile":
-					BLOCKCHAIN_FILE = args[i+1];
-					break;
-				case "mining":
-					String state = args[i+1];
-					if (state.equals("y")){
-						mining = true;
-					} else {
-						mining = false;
-					}
-					break;
-			}
+	public void initializeNetworkService(NetworkConfig config) {
+		NetworkService.init(config);
+		started = true;
+	}
+	
+	/*
+	 * Closes all threads and safely kills the node.
+	 * This will also save the wallet state for the user.
+	 */
+	public void exit() {
+		WalletManager.saveWallet(walletPath, wallet);
+		// TODO: do we need to safely close all other threads?
+		System.exit(0);
+		
+	}
+	
+	/*
+	 * Creates a new wallet with a private key/ public key
+	 * pair. This will also save the key pair to a specified
+	 * file location.
+	 */
+	public void createWallet(String path) {
+		wallet = new Wallet();
+		walletPath = path;
+		WalletManager.saveWallet(path, wallet);
+	}
+	
+	/*
+	 * Loads a wallet with a private key/ public key pair.
+	 */
+	public void loadWallet(String path) {
+		walletPath = path;
+		wallet = WalletManager.loadWallet(path);
+	}
+	
+	/*
+	 * Counts the funds within the linked wallet.
+	 */
+	public void countFunds() {
+		if (! walletLoaded()) {
+			System.out.println("No wallet loaded!");
+			return;
+		}
+			
+		System.out.println(String.format("Available funds: %f", wallet.availableFunds()));
+		System.out.println(String.format("Funds on hold: %f", wallet.fundsOnHold()));
+	}
+	
+	/*
+	 * Rescinds all held funds within the linked wallet.
+	 */
+	public void rescindHeldFunds() {
+		if (!walletLoaded()) {
+			System.out.println("No wallet loaded!");
+			return;
+		} 
+		wallet.rescindHeldFunds();
+	}
+	
+	/*
+	 * Creates and broadcasts a new transaction.
+	 */
+	public void createTransaction(String recipientKeyPath, float amount) {
+		if (!walletLoaded()) {
+			System.out.println("No wallet loaded!");
+			return;
+		}
+		else if (!started) {
+			System.out.println("Node must be started first!");
+			return;
 		}
 
-		Node.init();
-
-
-		NetworkConfig config = new NetworkConfig();
-		config.maxPeers = maxPeers;
-		config.minPeers = minPeers;
-		config.port = port;
-		config.seed = seed;
-		config.seedNode = seedNode;
-		config.mining = mining;
-
-		// TODO: Maybe replace param list with config object.
-		NetworkService.init(config);
+		try {
+			PublicKey recipientKey = WalletManager.loadPublicKey(System.getProperty("user.dir") + recipientKeyPath,
+																Crypto.GEN_ALGORITHM);
+			Transaction transaction = wallet.makeTransaction(recipientKey, amount);
+			NetworkService.getNetworkManager().broadcastTransaction(transaction);
+			
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+			System.out.println("Error: could not load KeyPair");
+		} catch (IOException e) {
+			System.out.println("Error: no KeyPair files found in path " + recipientKeyPath);
+		}
+	}
+	
+	/*
+	 * Enables mining within this node.
+	 */
+	public void enableMining() {
+		if (!started) {
+			System.out.println("Node must be started first!");
+			return;
+		}
+		NetworkService.getNetworkManager().startMining();
+		mining = true;
+	}
+	
+	/*
+	 * Disables mining within this node.
+	 */
+	public void disableMining() {
+		if (!started) {
+			System.out.println("Node must be started first!");
+			return;
+		}
+		if (mining) {
+			NetworkService.getNetworkManager().stopMining();
+			mining = false;
+		}
+	}
+	
+	/*
+	 * Returns whether the node has been started or not.
+	 * This is used to block commands that require the node
+	 * to be running first.
+	 */
+	public boolean started() {
+		return started;
+	}
+	
+	/*
+	 * Returns whether the node has a wallet loaded for
+	 * use. This is used to block commands that require
+	 * the node to have a loaded wallet.
+	 */
+	public boolean walletLoaded() {
+		return wallet != null;
 	}
 
 	public static void init(){
-
 		new BlockChain(); // Load the chain (generates the file).
 	}
-
 
 	public static Block getGenisisBlock(){
 
@@ -129,5 +200,14 @@ public class Node {
 		}
 	}
 
-
+	public static void main (String[] args){
+		// Initialize this node
+		Node node = new Node();
+		Node.init();	// TODO: refactor/ remove this
+		
+		// Parse initial args then run the cli
+		CommandLineInterface cli = new CommandLineInterface(node);
+		cli.parseCommand(args);
+		cli.run();
+	}
 }

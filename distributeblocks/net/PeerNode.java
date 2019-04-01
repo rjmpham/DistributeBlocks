@@ -51,7 +51,7 @@ public class PeerNode {
 		outQueue = new LinkedBlockingQueue<>();
 		executorService = Executors.newCachedThreadPool();
 
-		// Start the listening right away.
+		// StartHandler the listening right away.
 		executorService.execute(new Listener());
 		executorService.execute(new Sender());
 	}
@@ -76,7 +76,7 @@ public class PeerNode {
 				socket = new Socket(address.ip, address.port);
 				System.out.println("Connected to: " + address);
 
-				// Connection success! Start listening
+				// Connection success! StartHandler listening
 				executorService.execute(new Listener());
 				executorService.execute(new Sender());
 
@@ -106,7 +106,7 @@ public class PeerNode {
 				socket = new Socket(address.ip, address.port);
 				System.out.println("Connected to: " + address);
 
-				// Connection success! Start listening
+				// Connection success! StartHandler listening
 				executorService.execute(new Listener());
 				executorService.execute(new Sender());
 

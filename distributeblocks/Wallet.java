@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import distributeblocks.crypto.*;
+import distributeblocks.io.WalletManager;
 
 
 /*
@@ -19,8 +20,8 @@ import distributeblocks.crypto.*;
 public class Wallet {
 	// Coin base keys are used for signing block reward transactions from a static source
 	private static final String COIN_BASE_ID = "COIN_BASE";
-	private static final String COIN_BASE_DIR = System.getProperty("user.dir") + "/coinBase";
-	private static final KeyPair COIN_BASE_KEYS = Crypto.loadKeyPair(COIN_BASE_DIR, Crypto.GEN_ALGORITHM);
+	private static final String COIN_BASE_DIR = "/coinBase";
+	private static final KeyPair COIN_BASE_KEYS = WalletManager.loadKeyPair(COIN_BASE_DIR, Crypto.GEN_ALGORITHM);
 	private static final float BLOCK_REWARD_AMOUNT = 5.0f;
 
 	private PrivateKey privateKey;
@@ -28,10 +29,29 @@ public class Wallet {
 	private HashMap<String, TransactionOut> funds_HashMap = new HashMap<String,TransactionOut>(); 	// Funds in this wallet.
 	private HashMap<String, TransactionOut> onHold_HashMap = new HashMap<String,TransactionOut>(); 	// Spent funds waiting to be removed
 
+	/*
+	 * Constructor to create a new empty wallet
+	 */
 	public Wallet(){
 	  KeyPair pair = Crypto.keyPairGenerator();
 	  privateKey = pair.getPrivate();
 	  publicKey = pair.getPublic();
+	}
+	
+	/*
+	 * Constructor to reload a wallet
+	 */
+	public Wallet(KeyPair keys, 
+					HashMap<String,TransactionOut> funds_HashMap, 
+					HashMap<String,TransactionOut> onHold_HashMap) {
+		this.privateKey = keys.getPrivate();
+		this.publicKey = keys.getPublic();
+		
+		if (funds_HashMap != null)
+			this.funds_HashMap = funds_HashMap;
+		
+		if (onHold_HashMap != null)
+			this.onHold_HashMap = onHold_HashMap;
 	}
 
 	/*
@@ -40,6 +60,18 @@ public class Wallet {
 	public float availableFunds(){
 		float sum = 0;
 		for (Map.Entry<String,TransactionOut> i: funds_HashMap.entrySet()){
+			TransactionOut funds = i.getValue();
+			sum += funds.getExchange();
+		}
+		return sum;
+	}
+	
+	/*
+	 * Returns the total number of funds on hold in this wallet
+	 */
+	public float fundsOnHold() {
+		float sum = 0;
+		for (Map.Entry<String,TransactionOut> i: onHold_HashMap.entrySet()){
 			TransactionOut funds = i.getValue();
 			sum += funds.getExchange();
 		}
@@ -69,7 +101,7 @@ public class Wallet {
 	 */
 	public void clearFundsOnHold(HashMap<String, TransactionOut> verifiedTransactions) {
 		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
-			funds_HashMap.remove(i.getKey());
+			onHold_HashMap.remove(i.getKey());
 		}
 	}
 	
@@ -79,10 +111,22 @@ public class Wallet {
 	 * a transaction is disregarded by the network, and the user would
 	 * like to attempt to use the funds for a new transaction instead.
 	 */
-	public void rescindHeldFunds(String transactionOutId) {
+	public void rescindHeldFund(String transactionOutId) {
 		TransactionOut rescinded = onHold_HashMap.get(transactionOutId);
 		if (rescinded != null)
 			funds_HashMap.put(rescinded.getId(), rescinded);
+	}
+	
+	/*
+	 * Returns all transaction which was spent and on hold back into
+	 * the HashMap of available funds. This method may be called when
+	 * a transaction is disregarded by the network, and the user would
+	 * like to attempt to use the funds for a new transaction instead.
+	 */
+	public void rescindHeldFunds() {
+		for (Map.Entry<String,TransactionOut> i: onHold_HashMap.entrySet()){
+			rescindHeldFund(i.getKey());
+		}
 	}
 
 	/*
@@ -129,14 +173,28 @@ public class Wallet {
 	 */
 	public PrivateKey getPrivateKey(){
 		return privateKey;
-		}
+	}
 	
 	/*
 	 * Returns the public key of this Wallet
 	 */
 	public PublicKey getPublicKey(){
 		return publicKey;
-		}
+	}
+	
+	/*
+	 * Returns the funds hashmap of this wallet
+	 */
+	public HashMap<String, TransactionOut> getFundsHashMap() {
+		return funds_HashMap;
+	}
+	
+	/*
+	 * Returns the onhold hashmap of this wallet
+	 */
+	public HashMap<String, TransactionOut> getOnHoldHashMap() {
+		return onHold_HashMap;
+	}
 	
 	/*
 	 * Makes a new transaction from the COIN_BASE.
