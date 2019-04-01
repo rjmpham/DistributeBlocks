@@ -12,10 +12,10 @@ import picocli.CommandLine.Parameters;
 
 @Command(description = "Starts a node in the Coin^2 network",
 		 name = "start", mixinStandardHelpOptions = true)
-public class Start implements Callable<Void> {
+public class StartHandler implements Callable<Void> {
 	private Node node;
 	
-	public Start(Node node) {
+	public StartHandler(Node node) {
 		this.node = node;
 	}
 	

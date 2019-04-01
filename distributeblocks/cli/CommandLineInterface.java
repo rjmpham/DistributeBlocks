@@ -27,7 +27,7 @@ public class CommandLineInterface implements Runnable{
 		String input;
 		while(true) {
 			input = keyboard.nextLine();
-			// TODO: either handle quotes, or make sure no valid arg as whitespace
+			// TODO: either handle quotes, or make sure no valid arg has whitespace
 			parseCommand(input.split("\\s+"));
 		}
 	}
@@ -41,7 +41,7 @@ public class CommandLineInterface implements Runnable{
 		try {
 			// read the command and instantiate a handler
 			command = args[0];
-			Class classObj = Class.forName(command);
+			Class classObj = Class.forName(qualifyName(command));
 			Constructor constructor = classObj.getConstructor(Node.class);
 			Callable commandObj = (Callable) constructor.newInstance(node);
 			
@@ -58,5 +58,17 @@ public class CommandLineInterface implements Runnable{
 		} catch (IndexOutOfBoundsException e) {
 			System.out.println("No command provided. Use \'help\' command");
 		}
-	}	
+	}
+	
+	/*
+	 * Gets the object name corresponding to a user command.
+	 * This method ensures that there is no naming conflict within
+	 * this package and other packages of the project, since every
+	 * class here has the "Handler" suffix.
+	 */
+	private static String qualifyName(String command) {
+		String first = String.valueOf(command.charAt(0)).toUpperCase();
+		String theRest = command.substring(1);
+		return first + theRest + "Handler";
+	}
 }
