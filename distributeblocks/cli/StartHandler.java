@@ -42,6 +42,14 @@ public class StartHandler implements Callable<Void> {
 	@Option(names = {"-m", "--mining"}, 
 			description = "This node is mining")
 	private boolean mining = false;
+
+	@Option(names = {"-c", "--config"},
+			description = "The full peer config file path. Eg: ./peer_config.txt")
+	private String configFile = "./peer_config.txt";
+
+	@Option(names = {"-b", "--blockfile"},
+			description = "The full peer config file path. Eg: ./blockchain.txt")
+	private String blockFile = "./blockchain.txt";
 	
 	public StartHandler(Node node) {
 		this.node = node;
@@ -56,6 +64,8 @@ public class StartHandler implements Callable<Void> {
 		config.seed = seed;
 		config.seedNode = new IPAddress(seedAddress, seedPort);
 		config.mining = mining;
+		node.PEER_CONFIG_FILE = configFile;
+		node.BLOCKCHAIN_FILE = blockFile;
 		node.initializeNetworkService(config);
 		
 		return null;

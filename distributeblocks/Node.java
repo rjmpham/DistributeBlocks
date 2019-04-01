@@ -164,7 +164,7 @@ public class Node {
 	}
 
 	public static void init(){
-		new BlockChain(); // Load the chain (generates the file).
+		//snew BlockChain(); // Load the chain (generates the file).
 	}
 
 	public static Block getGenisisBlock(){
