@@ -25,7 +25,7 @@ public class TransactionHandler implements Callable<Void> {
 	
 	@Override
 	public Void call() throws Exception {	
-		node.createTransaction(publicKeyPath, amount);
+		node.createTransaction(System.getProperty("user.dir") + publicKeyPath, amount);
 		
 		return null;
 	}	

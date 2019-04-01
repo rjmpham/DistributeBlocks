@@ -21,7 +21,7 @@ public class Wallet {
 	// Coin base keys are used for signing block reward transactions from a static source
 	private static final String COIN_BASE_ID = "COIN_BASE";
 	private static final String COIN_BASE_DIR = System.getProperty("user.dir") + "/coinBase";
-	private static final KeyPair COIN_BASE_KEYS = WalletManager.loadKeyPair(COIN_BASE_DIR, Crypto.GEN_ALGORITHM);
+	private static final KeyPair COIN_BASE_KEYS = null;// = WalletManager.loadKeyPair(COIN_BASE_DIR, Crypto.GEN_ALGORITHM);
 	private static final float BLOCK_REWARD_AMOUNT = 5.0f;
 
 	private PrivateKey privateKey;
@@ -97,7 +97,7 @@ public class Wallet {
 	 */
 	public void clearFundsOnHold(HashMap<String, TransactionOut> verifiedTransactions) {
 		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
-			funds_HashMap.remove(i.getKey());
+			onHold_HashMap.remove(i.getKey());
 		}
 	}
 	

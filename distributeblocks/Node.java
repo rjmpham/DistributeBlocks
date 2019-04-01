@@ -74,46 +74,52 @@ public class Node {
 	 * Counts the funds within the linked wallet.
 	 */
 	public void countFunds() {
-		if (walletLoaded()) {
-			System.out.println(String.format("Available funds: %d", wallet.availableFunds()));
-			System.out.println(String.format("Funds on hold: %d", wallet.fundsOnHold()));
-		} 
-		else {
+		if (! walletLoaded()) {
 			System.out.println("No wallet loaded!");
+			return;
 		}
+			
+		System.out.println(String.format("Available funds: %f", wallet.availableFunds()));
+		System.out.println(String.format("Funds on hold: %f", wallet.fundsOnHold()));
 	}
 	
 	/*
 	 * Rescinds all held funds within the linked wallet.
 	 */
 	public void rescindHeldFunds() {
-		if (walletLoaded()) {
-			wallet.rescindHeldFunds();
-		} 
-		else {
+		if (!walletLoaded()) {
 			System.out.println("No wallet loaded!");
-		}
+			return;
+		} 
+		wallet.rescindHeldFunds();
 	}
 	
 	/*
 	 * Creates and broadcasts a new transaction.
 	 */
 	public void createTransaction(String recipientKeyPath, float amount) {
-		if (walletLoaded()) {
-			Transaction transaction = wallet.makeTransaction(WalletManager.loadPublicKey(
-															recipientKeyPath, Crypto.GEN_ALGORITHM), 
-															amount);
-			NetworkService.getNetworkManager().broadcastTransaction(transaction);
-		} 
-		else {
+		if (!walletLoaded()) {
 			System.out.println("No wallet loaded!");
+			return;
 		}
+		else if (!started) {
+			System.out.println("Node must be started first!");
+			return;
+		}
+		Transaction transaction = wallet.makeTransaction(WalletManager.loadPublicKey(
+				recipientKeyPath, Crypto.GEN_ALGORITHM), 
+				amount);
+		NetworkService.getNetworkManager().broadcastTransaction(transaction);
 	}
 	
 	/*
 	 * Enables mining within this node.
 	 */
 	public void enableMining() {
+		if (!started) {
+			System.out.println("Node must be started first!");
+			return;
+		}
 		NetworkService.getNetworkManager().startMining();
 		mining = true;
 	}
@@ -122,6 +128,10 @@ public class Node {
 	 * Disables mining within this node.
 	 */
 	public void disableMining() {
+		if (!started) {
+			System.out.println("Node must be started first!");
+			return;
+		}
 		if (mining) {
 			NetworkService.getNetworkManager().stopMining();
 			mining = false;
@@ -186,7 +196,7 @@ public class Node {
 	public static void main (String[] args){
 		// Initialize this node
 		Node node = new Node();
-		Node.init();
+		Node.init();	// TODO: refactor/ remove this
 		
 		// Parse initial args then run the cli
 		CommandLineInterface cli = new CommandLineInterface(node);

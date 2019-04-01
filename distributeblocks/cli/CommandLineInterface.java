@@ -2,6 +2,7 @@ package distributeblocks.cli;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
@@ -50,7 +51,7 @@ public class CommandLineInterface implements Runnable{
 			Callable commandHandler = (Callable) constructor.newInstance(node);
 			
 			//call the command parser on the hander
-			CommandLine.call(commandHandler, args);
+			CommandLine.call(commandHandler, Arrays.copyOfRange(args, 1, args.length));
 			
 		// handle reflection exceptions
 		} catch (ClassNotFoundException | SecurityException | IllegalAccessException | 
@@ -73,6 +74,6 @@ public class CommandLineInterface implements Runnable{
 	private static String qualifyName(String command) {
 		String first = String.valueOf(command.charAt(0)).toUpperCase();
 		String theRest = command.substring(1);
-		return first + theRest + "Handler";
+		return "distributeblocks.cli." + first + theRest + "Handler";
 	}
 }

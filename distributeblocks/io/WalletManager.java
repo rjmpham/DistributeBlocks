@@ -8,6 +8,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -57,7 +59,7 @@ public class WalletManager {
 	 * This will be saved into the path as "funds.json".
 	 */
 	public static void saveFundsHashMap(String path, HashMap<String, TransactionOut> funds_HashMap) {
-		saveHashMap(path + "/funds.json", funds_HashMap);
+		saveHashMap(System.getProperty("user.dir") + path + "/funds.json", funds_HashMap);
 	}
 	
 	/*
@@ -65,7 +67,7 @@ public class WalletManager {
 	 * This will be saved into the path as "onHold.json".
 	 */
 	public static void saveOnHoldHashMap(String path, HashMap<String, TransactionOut> onHold_HashMap) {
-		saveHashMap(path + "/onHold.json", onHold_HashMap);
+		saveHashMap(System.getProperty("user.dir") + path + "/onHold.json", onHold_HashMap);
 	}
 	
 	/*
@@ -74,9 +76,12 @@ public class WalletManager {
 	 */
 	private static <K, V> void saveHashMap(String fullPath, HashMap<K, V> map) {
 		try {
+			File file = new File(fullPath);
+			file.getParentFile().mkdirs();
+			
 			// Write the json object to the file
 			Gson gson = new Gson();
-			gson.toJson(map, new FileWriter(fullPath));
+			gson.toJson(map, new FileWriter(file));
 			
 		} catch (JsonIOException | IOException e) {
 			e.printStackTrace();
@@ -89,7 +94,7 @@ public class WalletManager {
 	 * The HashMap is expected to be in the path as "funds.json".
 	 */
 	public static HashMap<String, TransactionOut> loadFundsHashMap(String path) {
-		return loadHashMap(path + "/funds.json");
+		return loadHashMap(System.getProperty("user.dir") + path + "/funds.json");
 	}
 	
 	/*
@@ -97,7 +102,7 @@ public class WalletManager {
 	 * The HashMap is expected to be in the path as "funds.json".
 	 */
 	public static HashMap<String, TransactionOut> loadOnHoldHashMap(String path) {
-		return loadHashMap(path + "/onHold.json");
+		return loadHashMap(System.getProperty("user.dir") + path + "/onHold.json");
 	}
 	
 	/*
@@ -126,20 +131,27 @@ public class WalletManager {
 	 * The keys will be saved into the path as "public.key" and "private.key".
 	 * Code adopted from: https://snipplr.com/view/18368/
 	 */
+	// TODO: split this up like how the loading is split up
 	public static void saveKeyPair(String path, KeyPair keyPair) {
 		PrivateKey privateKey = keyPair.getPrivate();
 		PublicKey publicKey = keyPair.getPublic();
  
 		try {
+			File file = new File(System.getProperty("user.dir") + path + "/public.key");
+			file.getParentFile().mkdirs();
+			
 			// Store Public Key.
 			X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(publicKey.getEncoded());
-			FileOutputStream fos = new FileOutputStream(path + "/public.key");
+			FileOutputStream fos = new FileOutputStream(file);
 			fos.write(x509EncodedKeySpec.getEncoded());
 			fos.close();
 			
+			file = new File(System.getProperty("user.dir") + path + "/private.key");
+			file.getParentFile().mkdirs();
+			
 			// Store Private Key.
 			PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(privateKey.getEncoded());
-			fos = new FileOutputStream(path + "/private.key");
+			fos = new FileOutputStream(file);
 			fos.write(pkcs8EncodedKeySpec.getEncoded());
 			fos.close();
 		} catch (Exception e) {
@@ -152,8 +164,8 @@ public class WalletManager {
 	 * Reads a KeyPair in from a file.
 	 */
 	public static KeyPair loadKeyPair(String path, String algorithm) {
-		PublicKey publicKey = loadPublicKey(path + "/public.key", algorithm);
-		PrivateKey privateKey = loadPrivateKey(path + "/private.key", algorithm);
+		PublicKey publicKey = loadPublicKey(System.getProperty("user.dir") + path + "/public.key", algorithm);
+		PrivateKey privateKey = loadPrivateKey(System.getProperty("user.dir") + path + "/private.key", algorithm);
 		return new KeyPair(publicKey, privateKey);
 	}
 	
