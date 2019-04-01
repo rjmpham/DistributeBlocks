@@ -11,6 +11,7 @@ import java.lang.reflect.Field;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.HashMap;
 
 /* TODO: THIS IS A BIG ONE:
  *		We need some way to get other node's public keys and save them to files.
@@ -172,7 +173,7 @@ public class Node {
 		// TODO: Deal with the damn timestamp!!!!!
 
 		try {
-			Block block = new Block("Genisis", "", 0);
+			Block block = new Block(new HashMap<>(), "", 0);
 
 
 			// TODO: This is a crappy hack to get all the nodes to have the same genesis block. Do something else?
@@ -198,6 +199,10 @@ public class Node {
 			e.printStackTrace();
 			throw new RuntimeException("The genisis block failed to hash, something got messed up.");
 		}
+	}
+
+	public Wallet getWallet() {
+		return wallet;
 	}
 
 	public static void main (String[] args){

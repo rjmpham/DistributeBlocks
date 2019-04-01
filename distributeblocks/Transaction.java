@@ -168,4 +168,8 @@ public class Transaction {
   	public static boolean isValidSource(String id_Transaction_Out) {
   		return true;
   	}
+
+	public String getId_Transaction() {
+		return id_Transaction;
+	}
 }

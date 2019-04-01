@@ -18,7 +18,6 @@ public class MiningFinishedProcessor extends AbstractMessageProcessor<MiningFini
 
         // TODO For now we are just going to mine continuely, but we should wait for transactions to come in or something..
 
-
         ConfigManager configManager = new ConfigManager();
         // Add the newly mined block to our chain
         BlockChain blockChain = new BlockChain();

@@ -19,7 +19,7 @@ public class testDriver
 	public static void main (String[] args)
 	{
 		LinkedList<Block> blockchain = new LinkedList<Block>();
-
+/*
 		//If there are two arguements, stepThrough
 		if(args.length == 1){
 			stepThrough = 1;
@@ -36,9 +36,7 @@ public class testDriver
 		}
 
 
-		/*
-		 * Checking the creating of wallets, their keys and their signatures.
-		 */
+
 
 		wallet_Alice = new Wallet();
 		wallet_Bob = new Wallet();
@@ -67,7 +65,7 @@ public class testDriver
 		}
 
 		System.out.println("\nChecking genesis block");
-		String data = "Hello I am data.";
+		String data = new HashMap<String, TransactionOut>();
 		try
 		{
 		Block genesis = new Block(data, "", 2);
@@ -126,7 +124,7 @@ public class testDriver
 		System.out.println("Block's target number of zeros : " + blockchain.get(1).getTargetNumZeros());
 
 		System.out.println();
-		/*
+
 		if (stepThrough == 1) {
 			System.out.println("\nPress Enter to continue");
 			try {
@@ -140,7 +138,7 @@ public class testDriver
 		System.out.println("\n Testing transaction")
 		//unable to test until genesis block has value
 		Transaction alice_to_bob_5 = new Transaction(wallet_Alice.getPrivateKey, wallet_Alice.getPublicKey, wallet_Bob.gegetPublicKey,);
-		*/
+
 		}
 		catch (FailedToHashException e)
 		{
@@ -148,7 +146,7 @@ public class testDriver
 		}
 
 
-
+*/
 
 	}
 }

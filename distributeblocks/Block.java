@@ -2,8 +2,11 @@
 //NOTE: The data stored in the block must be a serializable object
 package distributeblocks;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.io.Serializable;
+import java.util.HashMap;
+
 import distributeblocks.crypto.*;
 
 
@@ -11,12 +14,12 @@ import distributeblocks.crypto.*;
 public class Block implements Serializable {
 
 	//Variables
-	private String hashBlock;			//Hash of the entire block (not including this field)
-	private String hashData;			//Hash of the data
-	private String hashPrevious;		//Hash of the previous block
-	private int nonce;					//Nonce used in the hash of the block to get the right number of zeros
-	private Object data;				//Data being stored in the block. Should be serializable.
-	private long timestamp;				//timestamp for the block
+	private String hashBlock;								//Hash of the entire block (not including this field)
+	private String hashData;								//Hash of the data
+	private String hashPrevious;							//Hash of the previous block
+	private int nonce;										//Nonce used in the hash of the block to get the right number of zeros
+	private HashMap<String, Transaction> data;			//Data being stored in the block. Should be serializable.
+	private long timestamp;									//timestamp for the block
 
 	private int targetNumZeros;		//How many zeros hashBlock must start with in order to be a mined block
 	private volatile boolean stopMining; // Flag that can be set to terminate a mining operation
@@ -26,7 +29,7 @@ public class Block implements Serializable {
 	public String getHashData() {return hashData;}
 	public String getHashPrevious() {return hashPrevious;}
 	public int getNonce() {return nonce;}
-	public Object getData() {return data;}
+	public HashMap<String, Transaction> getData() {return data;}
 	public long getTimestamp() {return timestamp;}
 	public long getTargetNumZeros() {return targetNumZeros;}
 
@@ -35,7 +38,7 @@ public class Block implements Serializable {
 	 *  This method attempts to mine the current data, by making the first hash which is unlikley
 	 *  to be valid.
 	 */
-	public Block (Object data, String hashPrevious, int targetNumZeros) throws FailedToHashException
+	public Block (HashMap<String, Transaction> data, String hashPrevious, int targetNumZeros) throws FailedToHashException
 	{
 		this.nonce = 0;
 		this.targetNumZeros = targetNumZeros;

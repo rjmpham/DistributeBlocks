@@ -9,6 +9,8 @@ public class BlockProcessor extends AbstractMessageProcessor<BlockMessage> {
 
 		System.out.println("Got block: " + message.blockHeight);
 
+		// TODO: Remove transactions from the pool that were added in this block.
+
 		NetworkService.getNetworkManager().gotBlock(message);
 
 	}

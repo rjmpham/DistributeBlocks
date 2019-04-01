@@ -243,23 +243,6 @@ public class ConfigManager {
 	}
 
 
-	private LinkedList<Block> generateTestChain(){
-
-		LinkedList<Block> blockChain = new LinkedList<>();
-		blockChain.add(Node.getGenisisBlock());
-
-		for (int i = 1; i < 50; i ++){
-
-			try {
-				Block block = new Block("This is data for block " + i, blockChain.get(i -1).getHashBlock(), Node.HASH_DIFFICULTY);
-				blockChain.add(block);
-			} catch (FailedToHashException e) {
-				e.printStackTrace();
-				throw new RuntimeException("Error making test chain");
-			}
-		}
-
-		return blockChain;
-	}
+	
 
 }

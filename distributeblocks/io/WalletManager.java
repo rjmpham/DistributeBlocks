@@ -23,6 +23,7 @@ import com.google.gson.JsonIOException;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 
+import distributeblocks.Transaction;
 import distributeblocks.TransactionOut;
 import distributeblocks.Wallet;
 import distributeblocks.crypto.Crypto;

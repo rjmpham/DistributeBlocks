@@ -1,11 +1,11 @@
 package distributeblocks.mining;
 
-import distributeblocks.Block;
-import distributeblocks.FailedToHashException;
+import distributeblocks.*;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.AbstractMessage;
 import distributeblocks.net.message.MiningFinishedMessage;
 
+import java.util.HashMap;
 import java.util.concurrent.*;
 
 public class Miner {
@@ -24,7 +24,7 @@ public class Miner {
     }
 
 
-    public synchronized void startMining(String data, Block previousBlock, int targetNumZeros){
+    public synchronized void startMining(HashMap<String, Transaction> data, Block previousBlock, int targetNumZeros){
 
 
         if (minerFuture != null && !minerFuture.isDone()){
@@ -76,11 +76,11 @@ public class Miner {
         private volatile boolean stop = false;
         private Block currentBlock;
         private Block previousBlock;
-        private String data;
+        private HashMap<String, Transaction> data;
         private int targetNumZeros;
 
 
-        public BlockMiner(Block previousBlock, String data, int targetNumZeros) {
+        public BlockMiner(Block previousBlock, HashMap<String, Transaction> data, int targetNumZeros) {
             this.previousBlock = previousBlock;
             this.data = data;
             this.targetNumZeros = targetNumZeros;
@@ -99,13 +99,22 @@ public class Miner {
         @Override
         public void run() {
 
+
+            Wallet wallet = NodeService.getNode().getWallet();
+
             while (!stop) {
 
                 try {
 
                     System.out.println("Beginning mining");
 
+                    Transaction reward = wallet.makeBlockReward(wallet.getPublicKey());
+                    reward.transactionEnforcer();
+                   // Transaction rewardOut = new Transaction(wallet.getPrivateKey(), wallet.getPublicKey(), 5.0f, reward.getId_Transaction());
+                    data.put(reward.getId_Transaction(), reward);
+
                     currentBlock = new Block(data, previousBlock.getHashBlock(), targetNumZeros);
+
                     currentBlock.mineBlock();
 
                     if (currentBlock.isBlockMined()) {

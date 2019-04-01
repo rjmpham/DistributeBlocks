@@ -326,6 +326,23 @@ public class NetworkManager implements NetworkActions {
 		return miner;
 	}
 
+
+	/**
+	 * Validates transactions.
+	 *
+	 * Decides if transactions should go in main pool or orphan pool.
+	 * A transaction goes into the orphan pool if it has inputs
+	 * that cannot be found in the chain.
+	 *
+	 * @param transaction
+	 */
+	public void addTransaction(Transaction transaction){
+
+		// TODO Ian figure out the validation crap.
+
+		transanctionPool.put(transaction.getId_Transaction(), transaction);
+	}
+
 	private void connectToPeers() {
 
 		for (PeerNode p : getPeerNodes()) {
@@ -351,7 +368,12 @@ public class NetworkManager implements NetworkActions {
 			// TODO When transaction broadcasts are added, trigger mining in the transaction broadcast processor based on some condition.
 			// At the moment just going to mine in a loop.
 			LinkedList<Block> chain = new BlockChain().getLongestChain();
-			miner.startMining(chain.size() + 1 + "", chain.get(chain.size() -1), Node.HASH_DIFFICULTY);
+
+			// TODO: Validate the entire pool again for no reason.
+			HashMap<String, Transaction> poolCopy = (HashMap<String, Transaction>) transanctionPool.clone();
+			transanctionPool.clear();
+
+			miner.startMining(poolCopy, chain.get(chain.size() -1), Node.HASH_DIFFICULTY);
 		}
 	}
 
@@ -381,6 +403,7 @@ public class NetworkManager implements NetworkActions {
 	@Override
 	public void broadcastTransaction(Transaction transaction) {
 
+		asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
 	}
 
 
