@@ -129,31 +129,49 @@ public class WalletManager {
 	/*
 	 * Saves a KeyPair out to a file.
 	 * The keys will be saved into the path as "public.key" and "private.key".
+	 */
+	public static void saveKeyPair(String path, KeyPair keyPair) {
+		savePublicKey(System.getProperty("user.dir") + path + "/public.key", keyPair.getPublic());
+		savePrivateKey(System.getProperty("user.dir") + path + "/private.key", keyPair.getPrivate());
+	}
+	
+	
+	/*
+	 * Saves a PublicKey out to a file.
 	 * Code adopted from: https://snipplr.com/view/18368/
 	 */
-	// TODO: split this up like how the loading is split up
-	public static void saveKeyPair(String path, KeyPair keyPair) {
-		PrivateKey privateKey = keyPair.getPrivate();
-		PublicKey publicKey = keyPair.getPublic();
- 
+	public static void savePublicKey(String fullPath, PublicKey publicKey) {
 		try {
-			File file = new File(System.getProperty("user.dir") + path + "/public.key");
+			File file = new File(fullPath);
 			file.getParentFile().mkdirs();
 			
-			// Store Public Key.
-			X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(publicKey.getEncoded());
-			FileOutputStream fos = new FileOutputStream(file);
-			fos.write(x509EncodedKeySpec.getEncoded());
+			// Store Public Key
+			X509EncodedKeySpec encodedKeySpec = new X509EncodedKeySpec(publicKey.getEncoded());
+			FileOutputStream fos = new FileOutputStream(fullPath);
+			fos.write(encodedKeySpec.getEncoded());
 			fos.close();
 			
-			file = new File(System.getProperty("user.dir") + path + "/private.key");
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/*
+	 * Saves a PrivateKey out to a file.
+	 * Code adopted from: https://snipplr.com/view/18368/
+	 */
+	public static void savePrivateKey(String fullPath, PrivateKey privateKey) {
+		try {
+			File file = new File(fullPath);
 			file.getParentFile().mkdirs();
 			
-			// Store Private Key.
-			PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(privateKey.getEncoded());
-			fos = new FileOutputStream(file);
-			fos.write(pkcs8EncodedKeySpec.getEncoded());
+			// Store Private Key
+			PKCS8EncodedKeySpec encodedKeySpec = new PKCS8EncodedKeySpec(privateKey.getEncoded());
+			FileOutputStream fos = new FileOutputStream(fullPath);
+			fos.write(encodedKeySpec.getEncoded());
 			fos.close();
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);
@@ -209,7 +227,7 @@ public class WalletManager {
 			
 			// Generate publicKey
 			KeyFactory keyFactory = KeyFactory.getInstance(algorithm);
-			X509EncodedKeySpec privateKeySpec = new X509EncodedKeySpec(encodedPrivateKey);
+			PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encodedPrivateKey);
 			PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
 			return privateKey;
 			
