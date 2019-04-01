@@ -203,6 +203,8 @@ public class Node {
 	public static void main (String[] args){
 		// Initialize this node
 		Node node = new Node();
+		NodeService.init(node);
+
 		Node.init();	// TODO: refactor/ remove this
 		
 		// Parse initial args then run the cli
