@@ -2,20 +2,15 @@ package distributeblocks;
 
 import distributeblocks.crypto.Crypto;
 import distributeblocks.cli.CommandLineInterface;
-import distributeblocks.io.ConfigManager;
 import distributeblocks.io.WalletManager;
-import distributeblocks.net.IPAddress;
-import distributeblocks.net.NetworkActions;
 import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
-import picocli.CommandLine;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.LinkedList;
 
 /* TODO: THIS IS A BIG ONE:
  *		We need some way to get other node's public keys and save them to files.
