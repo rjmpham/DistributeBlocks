@@ -15,10 +15,6 @@ import picocli.CommandLine.Parameters;
 public class StartHandler implements Callable<Void> {
 	private Node node;
 	
-	public StartHandler(Node node) {
-		this.node = node;
-	}
-	
 	@Option(names = {"-minp", "--minpeers"}, 
 			description = "The minimum number of peers to connecto to")
 	private int minPeers = 3;
@@ -46,6 +42,10 @@ public class StartHandler implements Callable<Void> {
 	@Option(names = {"-m", "--mining"}, 
 			description = "This node is mining")
 	private boolean mining = false;
+	
+	public StartHandler(Node node) {
+		this.node = node;
+	}
 	
 	@Override
 	public Void call() throws Exception {

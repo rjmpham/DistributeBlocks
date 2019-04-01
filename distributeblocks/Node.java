@@ -18,6 +18,7 @@ public class Node {
 	public static int HASH_DIFFICULTY = 4;
 	
 	private boolean started = false;
+	private boolean mining = false;
 	private Wallet wallet;
 	
 	/*
@@ -69,15 +70,19 @@ public class Node {
 	/*
 	 * Enables mining within this node.
 	 */
-	// TODO: implement this. Start a thread for mining
 	public void enableMining() {
+		NetworkService.getNetworkManager().startMining();
+		mining = true;
 	}
 	
 	/*
 	 * Disables mining within this node.
 	 */
-	// TODO: implement this. Kill any running mining threads
 	public void disableMining() {
+		if (mining) {
+			NetworkService.getNetworkManager().stopMining();
+			mining = false;
+		}
 	}
 	
 	/*
