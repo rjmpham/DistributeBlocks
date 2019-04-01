@@ -8,11 +8,12 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 
-//TODO: handler for creating a new wallet (sk/pk)
-//TODO: handler for connecting a wallet to the node
-//TODO: handler for counting funds in the wallet
-@Command(description = "",
-		 name = "wallet", mixinStandardHelpOptions = true)
+@Command(description = "Create, load and access a wallet",
+		 name = "wallet", mixinStandardHelpOptions = true,
+		 subcommands = {
+				 WalletHandler.NewHandler.class,
+				 WalletHandler.LoadHandler.class,
+				 WalletHandler.FundsHandler.class})
 public class WalletHandler implements Callable<Void> {
 	private Node node;
 	
@@ -21,7 +22,47 @@ public class WalletHandler implements Callable<Void> {
 	}
 	
 	@Override
-	public Void call() throws Exception {		
+	public Void call() throws Exception {
+		System.out.println("subcommand required");
+		
 		return null;
-	}	
+	}
+	
+	
+	//TODO: handler for creating a new wallet (sk/pk)
+	@Command(description = "Create a new wallet",
+			 name = "create", mixinStandardHelpOptions = true)
+	class NewHandler implements Callable<Void> {
+
+		@Override
+		public Void call() throws Exception {
+			return null;
+		}
+	}
+	
+	
+	//TODO: handler for connecting a wallet to the node
+	@Command(description = "Load a previously saved wallet",
+			 name = "load", mixinStandardHelpOptions = true)
+	class LoadHandler implements Callable<Void> {
+
+		@Override
+		public Void call() throws Exception {
+			return null;
+		}
+	}
+	
+	
+	@Command(description = "Check the funds available",
+			 name = "funds", mixinStandardHelpOptions = true)
+	class FundsHandler	implements Callable<Void> {
+
+		@Override
+		public Void call() throws Exception {
+			node.countFunds();
+			
+			return null;
+		}
+		
+	}
 }

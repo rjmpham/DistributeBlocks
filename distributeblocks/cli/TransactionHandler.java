@@ -8,7 +8,8 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 
-//TODO: handler for making a transaction
+// TODO: handler for making a transaction
+// TODO: handler to move a transaction from onHold to funds. Maybe should be in the WalletHandler?
 @Command(description = "",
 		 name = "transaction", mixinStandardHelpOptions = true)
 public class TransactionHandler implements Callable<Void> {

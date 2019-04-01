@@ -56,8 +56,14 @@ public class Node {
 	/*
 	 * Counts the funds within the linked wallet.
 	 */
-	// TODO: implement this. remember to check that a wallet is connected.
 	public void countFunds() {
+		if (walletLoaded()) {
+			System.out.println(String.format("Available funds: %d", wallet.availableFunds()));
+			System.out.println(String.format("Funds on hold: %d", wallet.fundsOnHold()));
+		} 
+		else {
+			System.out.println("No wallet loaded!");
+		}
 	}
 	
 	/*

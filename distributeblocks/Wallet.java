@@ -16,7 +16,6 @@ import distributeblocks.crypto.*;
  * create new Transactions, and check the total funds
  * available.
  */
-// TODO: a method to save and reload a wallet from disk (including sk/pk, and the two hashmaps)
 public class Wallet {
 	// Coin base keys are used for signing block reward transactions from a static source
 	private static final String COIN_BASE_ID = "COIN_BASE";
@@ -29,10 +28,25 @@ public class Wallet {
 	private HashMap<String, TransactionOut> funds_HashMap = new HashMap<String,TransactionOut>(); 	// Funds in this wallet.
 	private HashMap<String, TransactionOut> onHold_HashMap = new HashMap<String,TransactionOut>(); 	// Spent funds waiting to be removed
 
+	/*
+	 * Constructor to create a new empty wallet
+	 */
 	public Wallet(){
 	  KeyPair pair = Crypto.keyPairGenerator();
 	  privateKey = pair.getPrivate();
 	  publicKey = pair.getPublic();
+	}
+	
+	/*
+	 * Constructor to reload a wallet
+	 */
+	public Wallet(PrivateKey privateKey, PublicKey publicKey, 
+					HashMap<String,TransactionOut> funds_HashMap, 
+					HashMap<String,TransactionOut> onHold_HashMap) {
+		this.privateKey = privateKey;
+		this.publicKey = publicKey;
+		this.funds_HashMap = funds_HashMap;
+		this.onHold_HashMap = onHold_HashMap;
 	}
 
 	/*
@@ -41,6 +55,18 @@ public class Wallet {
 	public float availableFunds(){
 		float sum = 0;
 		for (Map.Entry<String,TransactionOut> i: funds_HashMap.entrySet()){
+			TransactionOut funds = i.getValue();
+			sum += funds.getExchange();
+		}
+		return sum;
+	}
+	
+	/*
+	 * Returns the total number of funds on hold in this wallet
+	 */
+	public float fundsOnHold() {
+		float sum = 0;
+		for (Map.Entry<String,TransactionOut> i: onHold_HashMap.entrySet()){
 			TransactionOut funds = i.getValue();
 			sum += funds.getExchange();
 		}
@@ -130,14 +156,28 @@ public class Wallet {
 	 */
 	public PrivateKey getPrivateKey(){
 		return privateKey;
-		}
+	}
 	
 	/*
 	 * Returns the public key of this Wallet
 	 */
 	public PublicKey getPublicKey(){
 		return publicKey;
-		}
+	}
+	
+	/*
+	 * Returns the funds hashmap of this wallet
+	 */
+	public HashMap<String, TransactionOut> getFundsHashMap() {
+		return funds_HashMap;
+	}
+	
+	/*
+	 * Returns the onhold hashmap of this wallet
+	 */
+	public HashMap<String, TransactionOut> getOnHoldHashMap() {
+		return onHold_HashMap;
+	}
 	
 	/*
 	 * Makes a new transaction from the COIN_BASE.

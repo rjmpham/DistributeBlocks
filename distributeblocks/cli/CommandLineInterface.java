@@ -56,7 +56,7 @@ public class CommandLineInterface implements Runnable{
 		} catch (ClassNotFoundException | SecurityException | IllegalAccessException | 
 				 NoSuchMethodException | IllegalArgumentException | InstantiationException |
 				 InvocationTargetException e) {
-			System.out.println(String.format("Unrecognized command \'{}\'. Use \'help\' command", command));
+			System.out.println(String.format("Unrecognized command \'%s\'. Use \'help\' command", command));
 		
 		// handle any empty command
 		} catch (IndexOutOfBoundsException e) {
