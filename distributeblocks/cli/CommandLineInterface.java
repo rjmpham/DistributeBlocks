@@ -4,10 +4,16 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
+import picocli.CommandLine;
 
 import distributeblocks.Node;
-import distributeblocks.net.NetworkConfig;
-import picocli.CommandLine;
+
+
+// TODO: handler for exiting the program
+// TODO: handler for connecting a wallet to the node
+// TODO: handler for making a transaction
+// TODO: handler for enabling/ disabling mining
+// TODO: handler for counting funds in the wallet
 
 public class CommandLineInterface implements Runnable{
 	private static Scanner keyboard = new Scanner(System.in);
@@ -41,12 +47,12 @@ public class CommandLineInterface implements Runnable{
 		try {
 			// read the command and instantiate a handler
 			command = args[0];
-			Class classObj = Class.forName(qualifyName(command));
-			Constructor constructor = classObj.getConstructor(Node.class);
-			Callable commandObj = (Callable) constructor.newInstance(node);
+			Class handlerClass = Class.forName(qualifyName(command));
+			Constructor constructor = handlerClass.getConstructor(Node.class);
+			Callable commandHandler = (Callable) constructor.newInstance(node);
 			
 			//call the command parser on the hander
-			CommandLine.call(commandObj, args);
+			CommandLine.call(commandHandler, args);
 			
 		// handle reflection exceptions
 		} catch (ClassNotFoundException | SecurityException | IllegalAccessException | 
