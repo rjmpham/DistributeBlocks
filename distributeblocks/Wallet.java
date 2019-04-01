@@ -107,10 +107,22 @@ public class Wallet {
 	 * a transaction is disregarded by the network, and the user would
 	 * like to attempt to use the funds for a new transaction instead.
 	 */
-	public void rescindHeldFunds(String transactionOutId) {
+	public void rescindHeldFund(String transactionOutId) {
 		TransactionOut rescinded = onHold_HashMap.get(transactionOutId);
 		if (rescinded != null)
 			funds_HashMap.put(rescinded.getId(), rescinded);
+	}
+	
+	/*
+	 * Returns all transaction which was spent and on hold back into
+	 * the HashMap of available funds. This method may be called when
+	 * a transaction is disregarded by the network, and the user would
+	 * like to attempt to use the funds for a new transaction instead.
+	 */
+	public void rescindHeldFunds() {
+		for (Map.Entry<String,TransactionOut> i: onHold_HashMap.entrySet()){
+			rescindHeldFund(i.getKey());
+		}
 	}
 
 	/*

@@ -13,7 +13,8 @@ import picocli.CommandLine.Parameters;
 		 subcommands = {
 				 WalletHandler.NewHandler.class,
 				 WalletHandler.LoadHandler.class,
-				 WalletHandler.FundsHandler.class})
+				 WalletHandler.FundsHandler.class,
+				 WalletHandler.RescindHandler.class})
 public class WalletHandler implements Callable<Void> {
 	private Node node;
 	
@@ -63,11 +64,25 @@ public class WalletHandler implements Callable<Void> {
 	
 	@Command(description = "Check the funds available",
 			 name = "funds", mixinStandardHelpOptions = true)
-	class FundsHandler	implements Callable<Void> {
+	class FundsHandler implements Callable<Void> {
 
 		@Override
 		public Void call() throws Exception {
 			node.countFunds();
+			
+			return null;
+		}
+		
+	}
+	
+	// TODO: allow the user to rescind a specific fund
+	@Command(description = "Rescind all held funds",
+			 name = "rescind", mixinStandardHelpOptions = true)
+	class RescindHandler implements Callable<Void> {
+
+		@Override
+		public Void call() throws Exception {
+			node.rescindHeldFunds();
 			
 			return null;
 		}

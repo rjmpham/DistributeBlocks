@@ -35,8 +35,7 @@ public class Node {
 	 * Closes all threads and safely kills the node.
 	 * This will also save the wallet state for the user.
 	 */
-	// TODO: implement this
-	// TODO:  error handling
+	// TODO: implement the rest of this
 	public void exit() {
 		WalletManager.saveWallet(walletPath, wallet);
 	}
@@ -46,7 +45,6 @@ public class Node {
 	 * pair. This will also save the key pair to a specified
 	 * file location.
 	 */
-	// TODO: error handling
 	public void createWallet(String path) {
 		wallet = new Wallet();
 		walletPath = path;
@@ -69,6 +67,18 @@ public class Node {
 		if (walletLoaded()) {
 			System.out.println(String.format("Available funds: %d", wallet.availableFunds()));
 			System.out.println(String.format("Funds on hold: %d", wallet.fundsOnHold()));
+		} 
+		else {
+			System.out.println("No wallet loaded!");
+		}
+	}
+	
+	/*
+	 * Rescinds all held funds within the linked wallet.
+	 */
+	public void rescindHeldFunds() {
+		if (walletLoaded()) {
+			wallet.rescindHeldFunds();
 		} 
 		else {
 			System.out.println("No wallet loaded!");
