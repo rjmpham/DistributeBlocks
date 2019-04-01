@@ -13,6 +13,15 @@ import picocli.CommandLine;
 import java.lang.reflect.Field;
 import java.util.LinkedList;
 
+/* TODO: THIS IS A BIG ONE:
+ *		We need some way to get other node's public keys and save them to files.
+ *		Without this, we won't be able to send anyone money.
+ */
+
+/* TODO: ALSO A BIG ONE:
+ * 		We need a way for the network manager to call our wallet methods to
+ * 		receive funds and clear out onHold once a block gets to be 6 deep.
+ */
 public class Node {
 	public static String PEER_CONFIG_FILE = "./peer_config.txt";
 	public static String BLOCKCHAIN_FILE = "./blockchain.txt";
@@ -54,7 +63,6 @@ public class Node {
 	/*
 	 * Loads a wallet with a private key/ public key pair.
 	 */
-	// TODO: error handling
 	public void loadWallet(String path) {
 		walletPath = path;
 		wallet = WalletManager.loadWallet(path);
@@ -88,8 +96,16 @@ public class Node {
 	/*
 	 * Creates and broadcasts a new transaction.
 	 */
-	// TODO: implement this. remember to check that the node is started.
-	public void createTransaction() {
+	public void createTransaction(String recipientKeyPath, float amount) {
+		if (walletLoaded()) {
+			Transaction transaction = wallet.makeTransaction(WalletManager.loadPublicKey(
+															recipientKeyPath, Crypto.GEN_ALGORITHM), 
+															amount);
+			NetworkService.getNetworkManager().broadcastTransaction(transaction);
+		} 
+		else {
+			System.out.println("No wallet loaded!");
+		}
 	}
 	
 	/*

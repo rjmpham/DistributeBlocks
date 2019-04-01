@@ -150,34 +150,56 @@ public class WalletManager {
  
 	/*
 	 * Reads a KeyPair in from a file.
-	 * Code adopted from: https://snipplr.com/view/18368/
 	 */
 	public static KeyPair loadKeyPair(String path, String algorithm) {
+		PublicKey publicKey = loadPublicKey(path + "/public.key", algorithm);
+		PrivateKey privateKey = loadPrivateKey(path + "/private.key", algorithm);
+		return new KeyPair(publicKey, privateKey);
+	}
+	
+	/*
+	 * Reads a public key in from a file.
+	 * Code adopted from: https://snipplr.com/view/18368/
+	 */
+	public static PublicKey loadPublicKey(String fullPath, String algorithm) {
 		try {
 			// Read Public Key
-			File filePublicKey = new File(path + "/public.key");
-			FileInputStream fis = new FileInputStream(path + "/public.key");
+			File filePublicKey = new File(fullPath);
+			FileInputStream fis = new FileInputStream(fullPath);
 			byte[] encodedPublicKey = new byte[(int) filePublicKey.length()];
 			fis.read(encodedPublicKey);
 			fis.close();
- 
-			// Read Private Key
-			File filePrivateKey = new File(path + "/private.key");
-			fis = new FileInputStream(path + "/private.key");
-			byte[] encodedPrivateKey = new byte[(int) filePrivateKey.length()];
-			fis.read(encodedPrivateKey);
-			fis.close();
-	 
-			// Generate KeyPair
-			KeyFactory keyFactory = KeyFactory.getInstance(algorithm);
+			
 			// Generate publicKey
+			KeyFactory keyFactory = KeyFactory.getInstance(algorithm);
 			X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(encodedPublicKey);
 			PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
-			// Generate privateKey
-			PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encodedPrivateKey);
-			PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
+			return publicKey;
 			
-			return new KeyPair(publicKey, privateKey);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/*
+	 * Reads a private key in from a file.
+	 * Code adopted from: https://snipplr.com/view/18368/
+	 */
+	public static PrivateKey loadPrivateKey(String fullPath, String algorithm) {
+		try {
+			// Read Public Key
+			File privateKeyFile = new File(fullPath);
+			FileInputStream fis = new FileInputStream(fullPath);
+			byte[] encodedPrivateKey = new byte[(int) privateKeyFile.length()];
+			fis.read(encodedPrivateKey);
+			fis.close();
+			
+			// Generate publicKey
+			KeyFactory keyFactory = KeyFactory.getInstance(algorithm);
+			X509EncodedKeySpec privateKeySpec = new X509EncodedKeySpec(encodedPrivateKey);
+			PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
+			return privateKey;
 			
 		} catch (Exception e) {
 			e.printStackTrace();
