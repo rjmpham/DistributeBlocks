@@ -44,9 +44,11 @@ public class Node {
 	 * Closes all threads and safely kills the node.
 	 * This will also save the wallet state for the user.
 	 */
-	// TODO: implement the rest of this
 	public void exit() {
 		WalletManager.saveWallet(walletPath, wallet);
+		// TODO: do we need to safely close all other threads?
+		System.exit(0);
+		
 	}
 	
 	/*
