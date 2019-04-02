@@ -157,6 +157,12 @@ public class Wallet {
 			// Until the requested amount is exceeded
 			if(sum > amount) break;
 		}
+
+		/* Create the transaction, without enforcing it, the transaction enforcer checks that the trasnaction is
+		 * valid, with enough inputs to make the exchange
+		 * TODO: figure out if we should enforce here
+		 *
+		 */
 		Transaction newTransaction = new Transaction(privateKey, publicKey, receiver, amount, transaction_ArrayList);
 
 		// put the funds used to create this transaction on hold
@@ -204,6 +210,12 @@ public class Wallet {
 	public static Transaction makeBlockReward(PublicKey receiver) {
 		// Create a TransactionIn from the COIN_BASE
 		ArrayList<TransactionIn> transaction_ArrayList = new ArrayList<TransactionIn>();
+
+		/*
+		 *  TODO when creating a transactionIn, there isn't a source transactionOut,
+		 *  How is this being handled elsewhere? I suppose we have an if that checks
+		 *  the Id, and if coinbase, ignore the transaction out?
+		 */
 		transaction_ArrayList.add(new TransactionIn(COIN_BASE_ID, BLOCK_REWARD_AMOUNT));
 		// Create a Transaction to the receiver
 		Transaction newTransaction = new Transaction(COIN_BASE_KEYS.getPrivate(), 
