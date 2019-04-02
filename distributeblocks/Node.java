@@ -45,7 +45,9 @@ public class Node {
 	 * This will also save the wallet state for the user.
 	 */
 	public void exit() {
-		WalletManager.saveWallet(walletPath, wallet);
+		if (wallet != null){
+			WalletManager.saveWallet(walletPath, wallet);
+		}
 		// TODO: do we need to safely close all other threads?
 		System.exit(0);
 		
@@ -111,7 +113,13 @@ public class Node {
 			PublicKey recipientKey = WalletManager.loadPublicKey(System.getProperty("user.dir") + recipientKeyPath,
 																Crypto.GEN_ALGORITHM);
 			Transaction transaction = wallet.makeTransaction(recipientKey, amount);
-			NetworkService.getNetworkManager().broadcastTransaction(transaction);
+			if(transaction.transactionEnforcer()){
+				System.out.println("Transaction request has been made");
+				NetworkService.getNetworkManager().broadcastTransaction(transaction);
+			} else{
+				//TODO error messages, one for key, one for amount, one for else
+				System.out.println("Transaction request denied");
+			}
 			
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
 			System.out.println("Error: could not load KeyPair");
