@@ -1,15 +1,10 @@
 package distributeblocks.net.processor;
 
-import distributeblocks.Block;
 import distributeblocks.BlockChain;
-import distributeblocks.Node;
 import distributeblocks.io.ConfigManager;
-import distributeblocks.mining.Miner;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.BlockBroadcastMessage;
 import distributeblocks.net.message.MiningFinishedMessage;
-
-import java.util.LinkedList;
 
 public class MiningFinishedProcessor extends AbstractMessageProcessor<MiningFinishedMessage> {
     @Override
@@ -24,6 +19,7 @@ public class MiningFinishedProcessor extends AbstractMessageProcessor<MiningFini
         blockChain.addBlock(message.block);
         blockChain.save();
 
+        NetworkService.getNetworkManager().clearPendingTransactions();
         NetworkService.getNetworkManager().asyncSendToAllPeers(new BlockBroadcastMessage(message.block)); // Send block to peers.
         NetworkService.getNetworkManager().beginMining();
     }

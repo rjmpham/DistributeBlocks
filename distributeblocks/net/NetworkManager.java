@@ -15,6 +15,7 @@ public class NetworkManager implements NetworkActions {
 
 	private HashMap<String, Transaction> transanctionPool;
 	private HashMap<String, Transaction> orphanedTransactionPool;
+	private HashMap<String, Transaction> pendingTransactionPool; // Transactions that are being put into a block.
 
 	private LinkedBlockingQueue<AbstractMessage> incommingQueue;
 	private LinkedBlockingQueue<ArrayList<BlockHeader>> headerQueue;
@@ -71,6 +72,7 @@ public class NetworkManager implements NetworkActions {
 		blockQueue = new LinkedBlockingQueue<>();
 		transanctionPool = new HashMap<>();
 		orphanedTransactionPool = new HashMap<>();
+		pendingTransactionPool = new HashMap<>();
 	}
 
 
@@ -341,6 +343,24 @@ public class NetworkManager implements NetworkActions {
 		// TODO Ian figure out the validation crap.
 
 		synchronized (transanctionPool) {
+
+			// Only re-broadcast transaction if we have not seen it before.
+			boolean found = false;
+			HashMap<String, Transaction> combinedPool = new HashMap<>();
+			combinedPool.putAll(transanctionPool);
+			combinedPool.putAll(pendingTransactionPool);
+
+			for (String id : combinedPool.keySet()){
+				if (id.equals(transaction.getId_Transaction())){
+					found = true;
+					break;
+				}
+			}
+
+			if (!found){
+				asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
+			}
+
 			transanctionPool.put(transaction.getId_Transaction(), transaction);
 		}
 	}
@@ -376,9 +396,15 @@ public class NetworkManager implements NetworkActions {
 				HashMap<String, Transaction> poolCopy = (HashMap<String, Transaction>) transanctionPool.clone();
 				transanctionPool.clear();
 
-
+				pendingTransactionPool.putAll(poolCopy);
 				miner.startMining(poolCopy, chain.get(chain.size() - 1), Node.HASH_DIFFICULTY);
 			}
+		}
+	}
+
+	public void clearPendingTransactions(){
+	 	synchronized (transanctionPool){
+	 		pendingTransactionPool.clear();
 		}
 	}
 
