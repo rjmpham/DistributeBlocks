@@ -1,5 +1,6 @@
 package distributeblocks;
 
+import java.io.Serializable;
 import java.security.*;
 import distributeblocks.crypto.*;
 
@@ -11,7 +12,7 @@ import distributeblocks.crypto.*;
  * This is one of the required pieces for a
  * full Transaction.
  */
-public class TransactionOut {
+public class TransactionOut implements Serializable {
 
 	private String id; 				// ID of the transaction
 	private PublicKey pk_Receiver; 	// Receiver of the coins

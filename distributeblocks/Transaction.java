@@ -1,5 +1,6 @@
 package distributeblocks;
 
+import java.io.Serializable;
 import java.security.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,7 +22,7 @@ import distributeblocks.crypto.*;
  * Transactions are signed upon creation by the sender
  * (this is different from the tutorial which required 2 separate steps (create then sign))
  */
-public class Transaction {
+public class Transaction implements Serializable {
 	private static final float MIN_TRANSACTION_AMOUNT = 0.1f;
 	
 	private String id_Transaction; //Hash of the contents of the Transaction

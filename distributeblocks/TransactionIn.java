@@ -1,5 +1,7 @@
 package distributeblocks;
 
+import java.io.Serializable;
+
 /*
  * TransactionIn is used to keep track of a
  * previously created transactions whose funds
@@ -8,7 +10,7 @@ package distributeblocks;
  * This is one of the required pieces for a
  * full Transaction.
  */
-public class TransactionIn {
+public class TransactionIn implements Serializable {
 	private String sourceId; 		// ID of the source TransactionOut
 	private TransactionOut funds; 	// Pointer to the source TransactionOut
 	private float exchange;			// Amount of funds being used

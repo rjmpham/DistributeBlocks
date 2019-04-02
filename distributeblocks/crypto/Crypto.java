@@ -102,6 +102,7 @@ public class Crypto{
 		}
 		catch (Exception e)
 		{
+			e.printStackTrace();
 			throw new FailedToHashException(obj,e);
 		}
 	}

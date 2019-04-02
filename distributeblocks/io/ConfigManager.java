@@ -2,6 +2,7 @@ package distributeblocks.io;
 
 import com.google.gson.reflect.TypeToken;
 import distributeblocks.Block;
+import distributeblocks.BlockChain;
 import distributeblocks.FailedToHashException;
 import distributeblocks.Node;
 import distributeblocks.net.IPAddress;
@@ -9,10 +10,7 @@ import distributeblocks.net.PeerNode;
 import com.google.gson.Gson;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.time.Period;
 import java.util.*;
 
@@ -151,18 +149,19 @@ public class ConfigManager {
 
 	public synchronized void saveBlockChain(ArrayList<LinkedList<Block>> blockChain){
 
-		Gson gson = new Gson();
+		//Gson gson = new Gson();
 		File file = new File(Node.BLOCKCHAIN_FILE);
 
-		try (PrintWriter writer = new PrintWriter(file)){
+		try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(Node.BLOCKCHAIN_FILE))){
 
-
-			String json = gson.toJson(blockChain);
-			writer.write(json);
+			//String json = gson.toJson(blockChain);
+			out.writeObject(blockChain);
 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			throw new RuntimeException("Could not save blockchain to file.");
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
 
@@ -194,23 +193,23 @@ public class ConfigManager {
 		}
 
 		String json = "";
-		ArrayList<LinkedList<Block> >blockChain = new ArrayList<>();
+		ArrayList<LinkedList<Block> > blockChain = new ArrayList<>();
 
-		try (Scanner scanner = new Scanner(file)){
+		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(Node.BLOCKCHAIN_FILE))){
 
-			while (scanner.hasNextLine()){
-				// Use  stringbuilder maybe.
-				json += scanner.nextLine();
-			}
-
-			blockChain = gson.fromJson(json, new TypeToken<ArrayList<LinkedList<Block>>>(){}.getType());
+			blockChain = (ArrayList<LinkedList<Block> >) in.readObject();
 			return blockChain;
 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			throw new RuntimeException("could not read the blockchain file.");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
 		}
 
+		return null;
 	}
 
 
