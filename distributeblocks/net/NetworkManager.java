@@ -340,7 +340,9 @@ public class NetworkManager implements NetworkActions {
 
 		// TODO Ian figure out the validation crap.
 
-		transanctionPool.put(transaction.getId_Transaction(), transaction);
+		synchronized (transanctionPool) {
+			transanctionPool.put(transaction.getId_Transaction(), transaction);
+		}
 	}
 
 	private void connectToPeers() {
@@ -365,15 +367,18 @@ public class NetworkManager implements NetworkActions {
 
 			System.out.println("Mining: " + mining);
 
-			// TODO When transaction broadcasts are added, trigger mining in the transaction broadcast processor based on some condition.
+			// TODO When transaction broadcasts are added, trigger mining in the transaction broadcast processor basedstart on some condition.
 			// At the moment just going to mine in a loop.
 			LinkedList<Block> chain = new BlockChain().getLongestChain();
 
-			// TODO: Validate the entire pool again for no reason.
-			HashMap<String, Transaction> poolCopy = (HashMap<String, Transaction>) transanctionPool.clone();
-			transanctionPool.clear();
+			synchronized (transanctionPool) {
+				// TODO: Validate the entire pool again for no reason.
+				HashMap<String, Transaction> poolCopy = (HashMap<String, Transaction>) transanctionPool.clone();
+				transanctionPool.clear();
 
-			miner.startMining(poolCopy, chain.get(chain.size() -1), Node.HASH_DIFFICULTY);
+
+				miner.startMining(poolCopy, chain.get(chain.size() - 1), Node.HASH_DIFFICULTY);
+			}
 		}
 	}
 

@@ -33,7 +33,7 @@ public class StartHandler implements Callable<Void> {
 	
 	@Option(names = {"-sPort", "--seedPort"}, 
 			description = "The IP port of the seed node")
-	private int seedPort = 5832;
+	private int seedPort = 5831;
 
 	@Option(names = {"-s", "--seed"}, 
 			description = "This node is a seed")
