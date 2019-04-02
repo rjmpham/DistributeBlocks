@@ -12,7 +12,7 @@ import distributeblocks.io.WalletManager;
  * Wallet keeps track of all TransactionOut
  * objects which resulted from transactions
  * to its owner.
- * 
+ *
  * The Wallet is able to receive funds from Transactions,
  * create new Transactions, and check the total funds
  * available.
@@ -37,19 +37,19 @@ public class Wallet {
 	  privateKey = pair.getPrivate();
 	  publicKey = pair.getPublic();
 	}
-	
+
 	/*
 	 * Constructor to reload a wallet
 	 */
-	public Wallet(KeyPair keys, 
-					HashMap<String,TransactionOut> funds_HashMap, 
+	public Wallet(KeyPair keys,
+					HashMap<String,TransactionOut> funds_HashMap,
 					HashMap<String,TransactionOut> onHold_HashMap) {
 		this.privateKey = keys.getPrivate();
 		this.publicKey = keys.getPublic();
-		
+
 		if (funds_HashMap != null)
 			this.funds_HashMap = funds_HashMap;
-		
+
 		if (onHold_HashMap != null)
 			this.onHold_HashMap = onHold_HashMap;
 	}
@@ -65,7 +65,7 @@ public class Wallet {
 		}
 		return sum;
 	}
-	
+
 	/*
 	 * Returns the total number of funds on hold in this wallet
 	 */
@@ -77,7 +77,7 @@ public class Wallet {
 		}
 		return sum;
 	}
-	
+
 	/*
 	 * Checks over each transaction in verifiedTransactions and adds any matching
 	 * this wallet's public key to its own funds.
@@ -93,7 +93,7 @@ public class Wallet {
 			}
 		}
 	}
-	
+
 	/*
 	 * Checks over each transaction in verifiedTransaction and removed any matching
 	 * transactions which were on hold in this wallet. This essentially marks the
@@ -104,7 +104,7 @@ public class Wallet {
 			onHold_HashMap.remove(i.getKey());
 		}
 	}
-	
+
 	/*
 	 * Returns a transaction which was spent and on hold back into
 	 * the HashMap of available funds. This method may be called when
@@ -116,7 +116,7 @@ public class Wallet {
 		if (rescinded != null)
 			funds_HashMap.put(rescinded.getId(), rescinded);
 	}
-	
+
 	/*
 	 * Returns all transaction which was spent and on hold back into
 	 * the HashMap of available funds. This method may be called when
@@ -133,7 +133,7 @@ public class Wallet {
 	 * Makes a new transaction from this wallet to send money.
 	 * This will create a new transaction utilizing the funds available.
 	 * Any overage will be sent back to this wallet.
-	 * 
+	 *
 	 * Available funds which were used to create this transaction will be
 	 * put 'on hold' until they are either verified and cleared, or rescinded
 	 * to the wallet.
@@ -153,15 +153,15 @@ public class Wallet {
 			TransactionOut funds = item.getValue();
 			sum += funds.getExchange();
 			transaction_ArrayList.add(new TransactionIn(funds.getId(), funds.getExchange()));
-			
+
 			// Until the requested amount is exceeded
 			if(sum > amount) break;
 		}
 
 		/* Create the transaction, without enforcing it, the transaction enforcer checks that the trasnaction is
-		 * valid, with enough inputs to make the exchange
-		 * TODO: figure out if we should enforce here
-		 *
+		 * valid, with enough inputs to make the exchange.
+		 * The transaction should be enforced when it is called
+		 * elsewhere.
 		 */
 		Transaction newTransaction = new Transaction(privateKey, publicKey, receiver, amount, transaction_ArrayList);
 
@@ -180,32 +180,32 @@ public class Wallet {
 	public PrivateKey getPrivateKey(){
 		return privateKey;
 	}
-	
+
 	/*
 	 * Returns the public key of this Wallet
 	 */
 	public PublicKey getPublicKey(){
 		return publicKey;
 	}
-	
+
 	/*
 	 * Returns the funds hashmap of this wallet
 	 */
 	public HashMap<String, TransactionOut> getFundsHashMap() {
 		return funds_HashMap;
 	}
-	
+
 	/*
 	 * Returns the onhold hashmap of this wallet
 	 */
 	public HashMap<String, TransactionOut> getOnHoldHashMap() {
 		return onHold_HashMap;
 	}
-	
+
 	/*
 	 * Makes a new transaction from the COIN_BASE.
 	 * The block reward transaction can go to any PublicKey, but
-	 * is usually given to the creator of the block (calling node). 
+	 * is usually given to the creator of the block (calling node).
 	 */
 	public static Transaction makeBlockReward(PublicKey receiver) {
 		// Create a TransactionIn from the COIN_BASE
@@ -218,10 +218,10 @@ public class Wallet {
 		 */
 		transaction_ArrayList.add(new TransactionIn(COIN_BASE_ID, BLOCK_REWARD_AMOUNT));
 		// Create a Transaction to the receiver
-		Transaction newTransaction = new Transaction(COIN_BASE_KEYS.getPrivate(), 
-													COIN_BASE_KEYS.getPublic(), 
-													receiver, 
-													BLOCK_REWARD_AMOUNT, 
+		Transaction newTransaction = new Transaction(COIN_BASE_KEYS.getPrivate(),
+													COIN_BASE_KEYS.getPublic(),
+													receiver,
+													BLOCK_REWARD_AMOUNT,
 													transaction_ArrayList);
 		return newTransaction;
 	}
