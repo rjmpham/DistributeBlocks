@@ -12,7 +12,27 @@ import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage; 
 
-public class Console extends Application {
+/*
+ * The Console class is used to open a new window and redirect
+ * standard out and standard error to the window. This may be done
+ * by calling the static Console.launch() method, or by instantiating
+ * a console and calling the console.run() method to start the window
+ * in a new thread. Note that due to the JavaFX architecture, the instantiated
+ * Console will be different than that actually used for the window
+ * (run() calls a static method!).
+ * 
+ * This class also keeps a copy of System.out and System.err in the
+ * public systemOut and systemErr fields. These may be used in case
+ * it is desired for the original console to be used.
+ */
+/* TODO: Is this really a good architecture? preferably we could do
+ * 			console.write(myString); 
+ * 		instead of redirecting ALL standard output.
+ */
+public class Console extends Application implements Runnable{
+	
+	public static PrintStream systemOut = System.out;
+	public static PrintStream systemErr = System.err;
 	
 	private int width = 600;
 	private int height = 300;
@@ -23,15 +43,14 @@ public class Console extends Application {
 		textArea.setPrefHeight(height);  
 		textArea.setPrefWidth(width);
 		
-		ConsoleController consoleController = new ConsoleController(textArea);
-		
-		PrintStream printer = new PrintStream(consoleController, true);
-		
+		// Redirect Standard out to the window output stream
+		TextAreaOutputStream textAreaOutputStream = new TextAreaOutputStream(textArea);
+		PrintStream printer = new PrintStream(textAreaOutputStream, true);
 		System.setOut(printer);
 		System.setErr(printer);
 		
 		//Creating a Group object  
-		Group root = new Group(consoleController.getTextArea());   
+		Group root = new Group(textAreaOutputStream.getTextArea());   
            
 		//Creating a scene object 
 		Scene scene = new Scene(root, width, height);  
@@ -57,7 +76,6 @@ public class Console extends Application {
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -68,39 +86,8 @@ public class Console extends Application {
         launch(args); 
 	}
 	
-	
-	public class ConsoleController extends OutputStream {
-
-		@FXML
-		public TextArea textArea = new TextArea();	// default size
-		
-		public ConsoleController() {}
-		
-		public ConsoleController(TextArea textArea) {
-			this.textArea = textArea;
-		}
-		    	
-        @Override
-        public void write(int b) throws IOException {
-            appendText(String.valueOf((char) b));
-        }
-
-        @Override
-        public void write(byte[] b, int off, int len) throws IOException {
-            appendText(new String(b, off, len));
-        }
-
-        @Override
-        public void write(byte[] b) throws IOException {
-            write(b, 0, b.length);
-        }
-       
-        public void appendText(String str) {
-	        Platform.runLater(() -> textArea.appendText(str));
-	    }
-        
-        public TextArea getTextArea() {
-        	return textArea;
-        }
+	@Override
+	public void run() {
+		Console.launch();
 	}
 }
