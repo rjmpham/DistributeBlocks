@@ -2,6 +2,7 @@ package distributeblocks;
 
 import distributeblocks.crypto.Crypto;
 import distributeblocks.cli.CommandLineInterface;
+import distributeblocks.io.Console;
 import distributeblocks.io.WalletManager;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkConfig;
@@ -218,6 +219,10 @@ public class Node {
 	}
 
 	public static void main (String[] args){
+		// Begin the console for logging
+		Console.start();
+		Console.log("Beginning node processes");
+		
 		// Initialize this node
 		Node node = new Node();
 		NodeService.init(node);
