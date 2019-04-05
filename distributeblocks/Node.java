@@ -214,11 +214,7 @@ public class Node {
 		return wallet;
 	}
 
-	public static void main (String[] args){
-		// Begin the console for logging
-		Console.start();
-		Console.log("Beginning node processes");
-		
+	public static void main (String[] args){		
 		// Initialize this node
 		Node node = new Node();
 		NodeService.init(node);
