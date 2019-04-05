@@ -18,6 +18,8 @@ public class ShakeResponseProcessor extends AbstractMessageProcessor<ShakeRespon
 			// Add it to the node config list silly!
 			ConfigManager configManager = new ConfigManager();
 			configManager.addNodeAndWrite(message.senderNode);
+			NetworkService.getNetworkManager().addNode(message.senderNode);
+
 		} else {
 			//message.senderNode.shutDown(); // Dont shutdown you foo.
 
@@ -26,5 +28,7 @@ public class ShakeResponseProcessor extends AbstractMessageProcessor<ShakeRespon
 				configManager.removeNodeAndWrite(message.senderNode);
 			}
 		}
+
+		NetworkService.getNetworkManager().removeTemporaryNode(message.senderNode);
 	}
 }

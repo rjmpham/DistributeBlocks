@@ -33,6 +33,8 @@ public class ShakeProcessor extends AbstractMessageProcessor<ShakeMessage> {
 			NetworkService.getNetworkManager().addNode(message.senderNode);
 		}
 
+		NetworkService.getNetworkManager().removeTemporaryNode(message.senderNode);
+
 
 		if (NetworkService.getNetworkManager().inSeedMode()){
 

@@ -39,6 +39,7 @@ public class NetworkManager implements NetworkActions {
 	private ExecutorService executorService;
 	private ScheduledExecutorService scheduledExecutorService; // For requesting new peers.
 	private List<PeerNode> peerNodes;
+	private List<PeerNode> temporaryPeerNodes;
 	private ServerSocket serverSocket;
 
 	private Miner miner;
@@ -86,6 +87,7 @@ public class NetworkManager implements NetworkActions {
 		// Grab known peer nodes from file.
 		ConfigManager configManager = new ConfigManager();
 		peerNodes = Collections.synchronizedList(configManager.readPeerNodes());
+		temporaryPeerNodes = Collections.synchronizedList(new ArrayList<>());
 
 		// Begin listening for connections, and start the message processor
 		try {
@@ -130,6 +132,14 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
+	public void addTemporaryNode(PeerNode node) {
+
+		synchronized (temporaryPeerNodes) {
+
+			this.temporaryPeerNodes.add(node);
+		}
+	}
+
 	public IPAddress getLocalAddr() {
 		return localAddr;
 	}
@@ -146,7 +156,32 @@ public class NetworkManager implements NetworkActions {
 			for (int i = 0; i < peerNodes.size(); i++) {
 				if (peerNodes.get(i) == node) { // At least I think this only checks if the reference is the same.
 					peerNodes.get(i).shutDown();
-					peerNodes.remove(i);
+					Object result = temporaryPeerNodes.remove(i);
+
+					if (result == null){
+						System.out.println("Failed to remove peer from pool.");
+					} else {
+						System.out.println("Removed peer from pool.");
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	public void removeTemporaryNode(PeerNode node){
+
+		synchronized (temporaryPeerNodes) {
+			for (int i = 0; i < temporaryPeerNodes.size(); i++) {
+				if (temporaryPeerNodes.get(i) == node) { // At least I think this only checks if the reference is the same.
+					temporaryPeerNodes.get(i).shutDown();
+					Object result = temporaryPeerNodes.remove(i);
+
+					if (result == null){
+						System.out.println("Failed to remove peer from temporary pool.");
+					} else {
+						System.out.println("Removed peer from temporary pool.");
+					}
 					break;
 				}
 			}
@@ -211,14 +246,14 @@ public class NetworkManager implements NetworkActions {
 	public void printConnectedNodes() {
 		System.out.println("Connected Nodes: ");
 
-		ArrayList<PeerNode> nodes = new ArrayList<>();
+	//	ArrayList<PeerNode> nodes = new ArrayList<>();
 
 		for (PeerNode p : getPeerNodes()) {
 
-			if (!nodes.contains(p)) {
+			//if (!nodes.contains(p)) {
 				System.out.println(" - " + p.getListeningAddress());
-				nodes.add(p);
-			}
+			//	nodes.add(p);
+			//}
 		}
 	}
 
@@ -300,7 +335,9 @@ public class NetworkManager implements NetworkActions {
 
 		if (node.connect()) {
 
-			addNode(node); // TODO: This may ahve caused issues with cfg file.
+			//addNode(node); // TODO: This may ahve caused issues with cfg file.
+			addTemporaryNode(node);
+			node.asyncSendMessage(new ShakeMessage("Please be my friend.", port));
 
 			return true;
 		}
@@ -492,7 +529,8 @@ public class NetworkManager implements NetworkActions {
 					System.out.println("Received connection from: " + socket.getInetAddress());
 
 					PeerNode peerNode = new PeerNode(socket);
-					peerNodes.add(peerNode);
+					//peerNodes.add(peerNode);
+					addTemporaryNode(peerNode);
 
 
 					// TODO: Need to do periodic alive checks to these nodes in order to hav a well maintained list.
