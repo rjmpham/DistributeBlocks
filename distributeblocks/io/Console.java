@@ -32,6 +32,10 @@ public class Console {
 	 * Log a string to the console.
 	 */
 	public static synchronized void log(String s) {
-		consoleWindow.log(s);
+		if (consoleWindow != null)
+			consoleWindow.log(s);
+		else
+			return;
+//			System.out.println(s);
 	}
 }

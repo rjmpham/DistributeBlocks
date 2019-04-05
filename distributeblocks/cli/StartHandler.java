@@ -3,6 +3,7 @@ package distributeblocks.cli;
 import java.util.concurrent.Callable;
 
 import distributeblocks.Node;
+import distributeblocks.io.Console;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkConfig;
 import picocli.CommandLine.Command;
@@ -25,7 +26,7 @@ public class StartHandler implements Callable<Void> {
 	
 	@Option(names = {"-p", "--port"}, 
 			description = "The port to open on")
-	private int port = 5832;
+	private int port = 5833;
 	
 	@Option(names = {"-sAddr", "--seedAddress"}, 
 			description = "The IP address of a seed node")
@@ -51,12 +52,21 @@ public class StartHandler implements Callable<Void> {
 			description = "The full peer config file path. Eg: ./blockchain.txt")
 	private String blockFile = "./blockchain.txt";
 	
+	@Option(names = {"--debug"},
+			description = "Enable or disable seperate debugging console")
+	private boolean debug = false;
+	
 	public StartHandler(Node node) {
 		this.node = node;
 	}
 	
 	@Override
 	public Void call() throws Exception {
+		if (debug) {
+			Console.start();
+			Console.log("Beginning node processes");
+		}
+		
 		NetworkConfig config = new NetworkConfig();
 		config.maxPeers = maxPeers;
 		config.minPeers = minPeers;
