@@ -3,8 +3,11 @@ package distributeblocks;
 import distributeblocks.crypto.Crypto;
 import distributeblocks.cli.CommandLineInterface;
 import distributeblocks.io.WalletManager;
+import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.implementations.SingleGraph;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -218,11 +221,34 @@ public class Node {
 		Node node = new Node();
 		NodeService.init(node);
 
-		Node.init();	// TODO: refactor/ remove this
+		if (args.length == 1 && args[0].equals("--monitor")){
+			startMonitor();
+			return;
+		}
 		
 		// Parse initial args then run the cli
 		CommandLineInterface cli = new CommandLineInterface(node);
 		cli.parseCommand(args);
 		cli.run();
+	}
+
+	private static void startMonitor(){
+
+		NetworkConfig config = new NetworkConfig();
+		config.monitor = true;
+		config.maxPeers = Integer.MAX_VALUE;
+		config.port = 7329;
+		config.seedNode = new IPAddress("localhost", 1234);
+
+
+		Graph graph = new SingleGraph("test graph 1");
+		graph.addNode("a");
+		graph.addNode("b");
+		graph.addNode("c");
+		graph.addNode("d");
+
+		graph.addEdge("ac", "a", "c");
+		graph.display();
+
 	}
 }
