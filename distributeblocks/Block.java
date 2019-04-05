@@ -2,6 +2,7 @@
 //NOTE: The data stored in the block must be a serializable object
 package distributeblocks;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.io.Serializable;
@@ -23,6 +24,39 @@ public class Block implements Serializable {
 
 	private int targetNumZeros;		//How many zeros hashBlock must start with in order to be a mined block
 	private volatile boolean stopMining; // Flag that can be set to terminate a mining operation
+
+	public static Block getGenisisBlock(){
+
+		// TODO: Deal with the damn timestamp!!!!!
+
+		try {
+			Block block = new Block(new HashMap<>(), "", 0);
+
+
+			// TODO: This is a crappy hack to get all the nodes to have the same genesis block. Do something else?
+			try {
+				Field timeStamp = Block.class.getDeclaredField("timestamp");
+				timeStamp.setAccessible(true);
+				timeStamp.set(block, 0);
+
+				Field hashBlock = Block.class.getDeclaredField("hashBlock");
+				hashBlock.setAccessible(true);
+				hashBlock.set(block, Crypto.calculateBlockHash(block));
+
+			} catch (NoSuchFieldException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+
+			block.mineBlock();
+
+			return block;
+		} catch (FailedToHashException e) {
+			e.printStackTrace();
+			throw new RuntimeException("The genisis block failed to hash, something got messed up.");
+		}
+	}
 
 	//Getter methods
 	public String getHashBlock() {return hashBlock;}

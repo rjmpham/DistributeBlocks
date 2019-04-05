@@ -1,17 +1,12 @@
 package distributeblocks.io;
 
-import com.google.gson.reflect.TypeToken;
 import distributeblocks.Block;
-import distributeblocks.BlockChain;
-import distributeblocks.FailedToHashException;
 import distributeblocks.Node;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.PeerNode;
 import com.google.gson.Gson;
 
-import javax.swing.*;
 import java.io.*;
-import java.time.Period;
 import java.util.*;
 
 /**
@@ -185,7 +180,7 @@ public class ConfigManager {
 			LinkedList newFork = new LinkedList();
 
 
-			newFork.add(Node.getGenisisBlock());
+			newFork.add(Block.getGenisisBlock());
 			chain.add(newFork);
 			saveBlockChain(chain);
 
