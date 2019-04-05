@@ -6,6 +6,7 @@ import distributeblocks.mining.Miner;
 import distributeblocks.net.message.*;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
@@ -29,6 +30,10 @@ public class NetworkManager implements NetworkActions {
 	private IPAddress seedNodeAddr;
 	private boolean seed;
 	private boolean mining;
+
+	private volatile Socket monitorSocket;
+	private volatile ObjectOutputStream monitorOutput;
+	private Object monitorLock = new Object();
 
 	/**
 	 * Time in seconds between attempts at discovering more peer nodes.
@@ -408,6 +413,43 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
+	public void setMonitorSocket(MonitorNotifierMessage message){
+
+	 	synchronized (monitorLock) {
+			if (monitorSocket == null) {
+
+				try {
+					this.monitorSocket = new Socket(message.monitorAddress.ip, message.monitorAddress.port);
+					this.monitorOutput = new ObjectOutputStream(monitorSocket.getOutputStream());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+	}
+
+
+	public void sendToMonitor(AbstractMessage message){
+
+	 	synchronized (monitorLock) {
+			if (monitorSocket != null) {
+				try {
+					monitorOutput.writeObject(new MonitorDataMessage(message));
+				} catch (IOException e) {
+					try {
+						monitorSocket.close();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					} finally {
+						monitorSocket = null;
+					}
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
 
 	// ============================= NetworkActions =============================
 
@@ -717,4 +759,5 @@ public class NetworkManager implements NetworkActions {
 			}
 		}
 	}
+
 }

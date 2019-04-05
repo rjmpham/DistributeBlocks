@@ -29,6 +29,7 @@ public class Node {
 	public static String PEER_CONFIG_FILE = "./peer_config.txt";
 	public static String BLOCKCHAIN_FILE = "./blockchain.txt";
 	public static int HASH_DIFFICULTY = 4;
+	public static int MONITOR_PORT = 7329;
 	
 	private boolean started = false;
 	private boolean mining = false;
@@ -234,21 +235,8 @@ public class Node {
 
 	private static void startMonitor(){
 
-		NetworkConfig config = new NetworkConfig();
-		config.monitor = true;
-		config.maxPeers = Integer.MAX_VALUE;
-		config.port = 7329;
-		config.seedNode = new IPAddress("localhost", 1234);
 
-
-		Graph graph = new SingleGraph("test graph 1");
-		graph.addNode("a");
-		graph.addNode("b");
-		graph.addNode("c");
-		graph.addNode("d");
-
-		graph.addEdge("ac", "a", "c");
-		graph.display();
+		NetworkMonitor networkMonitor = new NetworkMonitor();
 
 	}
 }
