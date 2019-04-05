@@ -25,7 +25,7 @@ public class Console {
 				e.printStackTrace();
 			}
         // wait until second instantiation (created by  ConsoleWindow.launch())
-        } while(ConsoleWindow.instantiations <= 1);     
+        } while(ConsoleWindow.instantiations <= 1);  
 	}
 	
 	/*
