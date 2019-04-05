@@ -42,6 +42,7 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 					// Dont send them the address if its their own address.
 					if (addr.port > 0 && !addr.equals(message.senderNode.getListeningAddress())) {
 						addresses.add(addr);
+						System.out.println("Adding address for peer info request.");
 					}
 				}
 			}

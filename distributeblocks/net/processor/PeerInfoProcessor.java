@@ -44,5 +44,9 @@ public class PeerInfoProcessor extends AbstractMessageProcessor<PeerInfoMessage>
 			// TODO: Do something about this!
 			System.out.println("Did not get enough peers in peer info :(");
 		}
+
+		NetworkService.getNetworkManager().removeTemporaryNode(message.senderNode);
+		// If the node is only in the tempory pool, then it will be disconnected.
+		// this is what we want for the seed node.
 	}
 }

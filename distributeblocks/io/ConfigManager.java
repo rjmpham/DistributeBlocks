@@ -3,6 +3,7 @@ package distributeblocks.io;
 import distributeblocks.Block;
 import distributeblocks.Node;
 import distributeblocks.net.IPAddress;
+import distributeblocks.net.NetworkService;
 import distributeblocks.net.PeerNode;
 import com.google.gson.Gson;
 
@@ -122,6 +123,11 @@ public class ConfigManager {
 		}
 
 		if (!found){
+
+			if (NetworkService.getNetworkManager().inSeedMode()){
+				node.setAddress(node.getLocalAddress());
+			}
+
 			nodes.add(node);
 			this.writePeerNodes(nodes);
 		}

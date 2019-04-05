@@ -31,15 +31,18 @@ public class ShakeProcessor extends AbstractMessageProcessor<ShakeMessage> {
 
 		if (wantMoreFriends) {
 			NetworkService.getNetworkManager().addNode(message.senderNode);
+			NetworkService.getNetworkManager().removeTemporaryNode(message.senderNode);
 		}
 
-		NetworkService.getNetworkManager().removeTemporaryNode(message.senderNode);
+		//NetworkService.getNetworkManager().removeTemporaryNode(message.senderNode);
+		// Remove the node in the peer info processor.
 
 
 		if (NetworkService.getNetworkManager().inSeedMode()){
 
 			ConfigManager configManager = new ConfigManager();
 			configManager.addNodeAndWrite(message.senderNode);
+			System.out.println("Adding node in seed mode.");
 		}
 	}
 }

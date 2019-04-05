@@ -6,6 +6,8 @@ import distributeblocks.mining.Miner;
 import distributeblocks.net.message.*;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
@@ -92,7 +94,7 @@ public class NetworkManager implements NetworkActions {
 		// Begin listening for connections, and start the message processor
 		try {
 			serverSocket = new ServerSocket(port);
-			localAddr = new IPAddress(serverSocket.getInetAddress().getHostAddress(), serverSocket.getLocalPort());
+			localAddr = new IPAddress(InetAddress.getLocalHost().getHostAddress(), port);
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException("Could not create server socket.");
@@ -155,8 +157,9 @@ public class NetworkManager implements NetworkActions {
 
 			for (int i = 0; i < peerNodes.size(); i++) {
 				if (peerNodes.get(i) == node) { // At least I think this only checks if the reference is the same.
+					System.out.println("Shutdown was called in removeNode()");
 					peerNodes.get(i).shutDown();
-					Object result = temporaryPeerNodes.remove(i);
+					Object result = peerNodes.remove(i);
 
 					if (result == null){
 						System.out.println("Failed to remove peer from pool.");
@@ -174,7 +177,6 @@ public class NetworkManager implements NetworkActions {
 		synchronized (temporaryPeerNodes) {
 			for (int i = 0; i < temporaryPeerNodes.size(); i++) {
 				if (temporaryPeerNodes.get(i) == node) { // At least I think this only checks if the reference is the same.
-					temporaryPeerNodes.get(i).shutDown();
 					Object result = temporaryPeerNodes.remove(i);
 
 					if (result == null){
@@ -337,6 +339,7 @@ public class NetworkManager implements NetworkActions {
 
 			//addNode(node); // TODO: This may ahve caused issues with cfg file.
 			addTemporaryNode(node);
+			//node.setLocalAddress(address); // Since we are connecting to it, it must already be the local address.
 			node.asyncSendMessage(new ShakeMessage("Please be my friend.", port));
 
 			return true;
@@ -410,6 +413,7 @@ public class NetworkManager implements NetworkActions {
 	private void connectToPeers() {
 
 		for (PeerNode p : getPeerNodes()) {
+			//p.setLocalAddress(p.getAddress());
 			p.connect();
 		}
 	}
@@ -569,6 +573,7 @@ public class NetworkManager implements NetworkActions {
 						}
 					} else {
 						PeerNode seed = new PeerNode(seedNodeAddr);
+						//seed.setLocalAddress(seedNodeAddr);
 						seed.connect();
 						seed.asyncSendMessage(new RequestPeersMessage());
 					}
