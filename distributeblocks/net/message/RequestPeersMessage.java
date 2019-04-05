@@ -8,7 +8,7 @@ import distributeblocks.net.processor.RequestPeersProcessor;
 public class RequestPeersMessage extends AbstractMessage {
 
 
-	IPAddress localAddress;
+	public IPAddress localAddress;
 
 	public RequestPeersMessage() {
 		localAddress = NetworkService.getNetworkManager().getLocalAddr();

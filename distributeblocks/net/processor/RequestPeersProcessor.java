@@ -20,6 +20,7 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 		System.out.println("Got a request peers message from: " + message.senderNode.getAddress());
 		NetworkManager networkManager = NetworkService.getNetworkManager();
 		ArrayList<IPAddress> addresses = new ArrayList<>();
+		message.senderNode.setLocalAddress(message.localAddress);
 
 		if (networkManager.inSeedMode()){
 			// TODO: In seed mode we want to make some intelligent descisions on which addresses to send probably?
