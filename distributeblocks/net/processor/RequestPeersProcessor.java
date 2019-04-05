@@ -35,11 +35,15 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 				Random ran = new Random();
 
 				while (nodes.size() > 0 && addresses.size() < adressShareCount) {
-					IPAddress addr = nodes.remove(ran.nextInt(Math.max(nodes.size() - 1, 1))).getListeningAddress();
 
-					// Dont send them the address if its their own address.
-					if (addr.port > 0 && !addr.equals(message.senderNode.getListeningAddress())){
-						addresses.add(addr);
+					PeerNode node =  nodes.remove(ran.nextInt(Math.max(nodes.size() - 1, 1)));
+					if (node.getLocalAddress() != null) {
+						IPAddress addr = node.getListeningAddress();
+
+						// Dont send them the address if its their own address.
+						if (addr.port > 0 && !addr.equals(message.senderNode.getListeningAddress())) {
+							addresses.add(addr);
+						}
 					}
 				}
 			}
