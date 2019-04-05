@@ -17,10 +17,12 @@ import javafx.scene.control.TextArea;
  * can be redirected to a window wrapping the TextArea.
  */
 public class TextAreaOutputStream extends OutputStream {
-	@FXML
-	public TextArea textArea = new TextArea();	// default TextArea
 	
-	public TextAreaOutputStream() {} // use default TextArea
+	@FXML
+	public TextArea textArea;
+	
+	// textArea cannot be instantiated until the Application.launch() method is called
+	public TextAreaOutputStream() {	}
 	
 	public TextAreaOutputStream(TextArea textArea) {
 		this.textArea = textArea;
@@ -41,11 +43,26 @@ public class TextAreaOutputStream extends OutputStream {
         write(b, 0, b.length);
     }
    
+    /*
+     * Puts text into the actual text area. This is called by
+     * each of the overriden write() method.
+     */
     public void appendText(String str) {
         Platform.runLater(() -> textArea.appendText(str));
     }
     
+    public void setTextArea(TextArea textArea) {
+    	this.textArea = textArea;
+    }
+    
     public TextArea getTextArea() {
     	return textArea;
+    }
+    
+    public void setSize(int width, int height) {
+    	if (textArea != null) {
+			textArea.setPrefHeight(height);  
+			textArea.setPrefWidth(width);
+    	}
     }
 }
