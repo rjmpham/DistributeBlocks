@@ -17,6 +17,7 @@ public class ShakeProcessor extends AbstractMessageProcessor<ShakeMessage> {
 
 		System.out.println("Listening port: " + message.listeningPort);
 		message.senderNode.setListenPort(message.listeningPort);
+		message.senderNode.setLocalAddress(message.localAddress);
 
 		boolean wantMoreFriends = NetworkService.getNetworkManager().inSeedMode() ?
 				false : NetworkService.getNetworkManager().needMorePeers();

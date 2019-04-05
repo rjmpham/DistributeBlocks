@@ -16,6 +16,7 @@ public class PeerNode {
 
 
 	private IPAddress address;
+	private IPAddress localAddress;
 	private int listenPort = -1;
 	private ExecutorService executorService;
 	private Socket socket;
@@ -148,7 +149,7 @@ public class PeerNode {
 	}
 
 	public IPAddress getListeningAddress(){
-		IPAddress addr = this.getAddress();
+		IPAddress addr = this.getLocalAddress(); // TODO I changed this to local address, meaning it wont work over the internet.
 		addr.port = this.listenPort;
 		return addr;
 	}
@@ -182,6 +183,13 @@ public class PeerNode {
 		this.listenPort = listenPort;
 	}
 
+	public void setLocalAddress(IPAddress localAddress) {
+		this.localAddress = localAddress;
+	}
+
+	public IPAddress getLocalAddress() {
+		return localAddress;
+	}
 
 	@Override
 	public boolean equals(Object o) {

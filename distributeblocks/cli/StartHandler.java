@@ -29,11 +29,11 @@ public class StartHandler implements Callable<Void> {
 	
 	@Option(names = {"-sAddr", "--seedAddress"}, 
 			description = "The IP address of a seed node")
-	private String seedAddress = "localhost";
+	private String seedAddress = "165.22.129.19";
 	
 	@Option(names = {"-sPort", "--seedPort"}, 
 			description = "The IP port of the seed node")
-	private int seedPort = 5831;
+	private int seedPort = 3271;
 
 	@Option(names = {"-s", "--seed"}, 
 			description = "This node is a seed")

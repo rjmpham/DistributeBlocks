@@ -27,6 +27,7 @@ public class NetworkManager implements NetworkActions {
 	private int maxPeers = Integer.MAX_VALUE;
 	private int port = -1;
 	private IPAddress seedNodeAddr;
+	private IPAddress localAddr;
 	private boolean seed;
 	private boolean mining;
 
@@ -89,6 +90,7 @@ public class NetworkManager implements NetworkActions {
 		// Begin listening for connections, and start the message processor
 		try {
 			serverSocket = new ServerSocket(port);
+			localAddr = new IPAddress(serverSocket.getInetAddress().getHostAddress(), serverSocket.getLocalPort());
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException("Could not create server socket.");
@@ -128,6 +130,9 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
+	public IPAddress getLocalAddr() {
+		return localAddr;
+	}
 
 	/**
 	 * Removes a node by reference.

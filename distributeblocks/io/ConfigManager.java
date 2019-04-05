@@ -25,8 +25,8 @@ public class ConfigManager {
 	public ConfigManager() {
 
 		// Temporary
-		ArrayList<PeerNode> peerNodes = new ArrayList<>();
-		peerNodes.add(new PeerNode(new IPAddress("localhost", 5833)));
+		//ArrayList<PeerNode> peerNodes = new ArrayList<>();
+		//peerNodes.add(new PeerNode(new IPAddress("localhost", 5833)));
 
 		//writePeerNodes(peerNodes);
 	}
