@@ -244,7 +244,7 @@ public class PeerNode {
 				// Socket closed.
 				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			} catch (IOException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
@@ -270,7 +270,7 @@ public class PeerNode {
 			try {
 				stream = new ObjectOutputStream(socket.getOutputStream());
 			} catch (IOException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			}
 

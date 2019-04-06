@@ -2,9 +2,8 @@ package distributeblocks.net.processor;
 
 import distributeblocks.io.ConfigManager;
 import distributeblocks.net.NetworkService;
-import distributeblocks.net.PeerNode;
+import distributeblocks.net.message.RequestPeersMessage;
 import distributeblocks.net.message.ShakeResponseMessage;
-import sun.nio.ch.Net;
 
 public class ShakeResponseProcessor extends AbstractMessageProcessor<ShakeResponseMessage> {
 	@Override
@@ -22,14 +21,11 @@ public class ShakeResponseProcessor extends AbstractMessageProcessor<ShakeRespon
 			NetworkService.getNetworkManager().addNode(message.senderNode);
 			NetworkService.getNetworkManager().removeTemporaryNode(message.senderNode);
 
-		} else {
-			//message.senderNode.shutDown(); // Dont shutdown you foo.
-
-			if (!NetworkService.getNetworkManager().isConnectedToNode(message.senderNode.getListeningAddress())) {
-				ConfigManager configManager = new ConfigManager();
-				configManager.removeNodeAndWrite(message.senderNode);
-			}
 		}
+
+		// If the other node wants to be friends or not, send a peer info request.
+		// The node will get removed from the temporary pool in the PeerInfoProcessor
+		message.senderNode.asyncSendMessage(new RequestPeersMessage());
 
 		if (!message.seedNode) {
 			//NetworkService.getNetworkManager().removeTemporaryNode(message.senderNode);

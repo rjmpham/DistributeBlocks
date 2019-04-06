@@ -203,62 +203,14 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
-	/**
-	 * Remove all nodes with the given address.
-	 *
-	 *
-	 */
-	/*public synchronized void removeNode(IPAddress listeningAddress) {
-
-		ArrayList<Integer> toRemove = new ArrayList<>();
-
-		for (int i = 0; i < peerNodes.size(); i++) {
-
-			if (peerNodes.get(i).getListeningAddress().equals(listeningAddress)) {
-				toRemove.add(i);
-			}
-		}
-
-		for (int rem : toRemove) {
-			peerNodes.remove(rem);
-		}
-	}*/
-
-	public void removeDuplicateNodes() {
-
-		synchronized (peerNodes) {
-			HashMap<IPAddress, Boolean> addresses = new HashMap<>();
-			ArrayList<Integer> toRemove = new ArrayList<>();
-
-			for (int i = peerNodes.size() - 1; i >= 0; i--) {
-				if (addresses.containsKey(peerNodes.get(i).getListeningAddress())) {
-					toRemove.add(i);
-				} else {
-					addresses.put(peerNodes.get(i).getListeningAddress(), true);
-				}
-			}
-
-			for (int i : toRemove) {
-				System.out.println("Removing duplicate node: " + peerNodes.get(i).getListeningAddress());
-				removeNode(i);
-			}
-		}
-	}
 
 	public void printConnectedNodes() {
 		System.out.println("Connected Nodes: ");
-
-	//	ArrayList<PeerNode> nodes = new ArrayList<>();
-
 		for (PeerNode p : getPeerNodes()) {
 
-			//if (!nodes.contains(p)) {
-				System.out.println(" - " + p.getListeningAddress());
-			//	nodes.add(p);
-			//}
+			System.out.println(" - " + p.getListeningAddress());
 		}
 	}
-
 
 	public boolean needMorePeers() {
 		return getPeerNodes().size() < minPeers;
@@ -459,7 +411,7 @@ public class NetworkManager implements NetworkActions {
 
 
 	/**
-	 * Begins mining, but only if mining is set to true.
+	 * Begins mining even if mining is set to false.
 	 */
 	@Override
 	public void startMining(){
@@ -575,7 +527,8 @@ public class NetworkManager implements NetworkActions {
 						PeerNode seed = new PeerNode(seedNodeAddr);
 						//seed.setLocalAddress(seedNodeAddr);
 						seed.connect();
-						seed.asyncSendMessage(new RequestPeersMessage());
+						// The requestPeersMessage was moved into the shake response handler to ensure things happen
+						// in the right order.
 					}
 				} else {
 					//System.out.println("I don't");

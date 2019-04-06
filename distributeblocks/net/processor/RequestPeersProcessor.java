@@ -62,5 +62,6 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 
 		// Send them off woo that was easy.
 		message.senderNode.asyncSendMessage(new PeerInfoMessage(addresses));
+
 	}
 }
