@@ -46,6 +46,9 @@ public class PeerInfoProcessor extends AbstractMessageProcessor<PeerInfoMessage>
 		}
 
 		NetworkService.getNetworkManager().removeTemporaryNode(message.senderNode);
+		if (message.seedNode){
+			message.senderNode.shutDown();
+		}
 		// If the node is only in the tempory pool, then it will be disconnected.
 		// this is what we want for the seed node.
 	}

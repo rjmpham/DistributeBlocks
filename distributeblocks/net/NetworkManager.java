@@ -25,6 +25,9 @@ public class NetworkManager implements NetworkActions {
 	private int minPeers = 0;
 	private int maxPeers = Integer.MAX_VALUE;
 	private int port = -1;
+	private int seedPeerTimeout = 30000; // mililiseconds
+	private int seedCheckoutTimer = 35; // seconds
+	private int aliveNotifierTime = 20; // seconds
 	private IPAddress seedNodeAddr;
 	private IPAddress localAddr;
 	private boolean seed;
@@ -103,12 +106,13 @@ public class NetworkManager implements NetworkActions {
 		if (!seed) {
 			connectToPeers();
 
-
-
 			scheduledExecutorService.schedule(new CheckNeedNodes(), 2, TimeUnit.SECONDS);
 
 			// Now request header info from everyone since we restarted (or started for the first time).
 			beginAquireChainOperation();
+			scheduledExecutorService.schedule(new AliveNotifier(),aliveNotifierTime, TimeUnit.SECONDS);
+		} else {
+			scheduledExecutorService.schedule(new TimeoutChecker(), seedCheckoutTimer, TimeUnit.SECONDS);
 		}
 	}
 
@@ -177,8 +181,9 @@ public class NetworkManager implements NetworkActions {
 			for (int i = 0; i < peerNodes.size(); i++) {
 				if (peerNodes.get(i) == node) { // At least I think this only checks if the reference is the same.
 					System.out.println("Shutdown was called in removeNode()");
-					peerNodes.get(i).shutDown();
-					Object result = peerNodes.remove(i);
+					PeerNode result = peerNodes.remove(i);
+					result.shutDown();
+
 
 					if (result == null){
 						System.out.println("Failed to remove peer from pool.");
@@ -203,7 +208,8 @@ public class NetworkManager implements NetworkActions {
 		synchronized (temporaryPeerNodes) {
 			for (int i = 0; i < temporaryPeerNodes.size(); i++) {
 				if (temporaryPeerNodes.get(i) == node) { // At least I think this only checks if the reference is the same.
-					Object result = temporaryPeerNodes.remove(i);
+					PeerNode result = temporaryPeerNodes.remove(i);
+						// Not to self, do not call shutdown here! They may be moved to the actual node pool.
 
 					if (result == null){
 						System.out.println("Failed to remove peer from temporary pool.");
@@ -214,6 +220,8 @@ public class NetworkManager implements NetworkActions {
 				}
 			}
 		}
+
+		System.out.println("No node to remove from temporary pool.");
 	}
 
 	/**
@@ -416,6 +424,7 @@ public class NetworkManager implements NetworkActions {
 
 		for (PeerNode p : getPeerNodes()) {
 			//p.setLocalAddress(p.getAddress());
+			temporaryPeerNodes.add(p);
 			p.connect();
 		}
 	}
@@ -613,6 +622,7 @@ public class NetworkManager implements NetworkActions {
 					} else {
 						PeerNode seed = new PeerNode(seedNodeAddr);
 						//seed.setLocalAddress(seedNodeAddr);
+						temporaryPeerNodes.add(seed);
 						seed.connect();
 						// The requestPeersMessage was moved into the shake response handler to ensure things happen
 						// in the right order.
@@ -803,6 +813,78 @@ public class NetworkManager implements NetworkActions {
 			for (PeerNode n : nodes) {
 				n.asyncSendMessage(new RequestHeadersMessage());
 			}
+		}
+	}
+
+
+	/**
+	 * Nodes will use this to periodically announce themselves to the seed node.
+	 * If the seed node does not receive an alive notification within some time period,
+	 * (maybe 30 seconds for the purpose of the demo), then the seed node will remove it
+	 * from its list.
+	 */
+	private class AliveNotifier implements Runnable {
+
+		@Override
+		public void run() {
+
+			PeerNode seed = new PeerNode(seedNodeAddr);
+			//seed.setLocalAddress(seedNodeAddr);
+			temporaryPeerNodes.add(seed);
+			seed.connect(); // Automaticaly sends a handshake, which is all we need to update the seeds peer list.
+							// Note that a peer request message will also be sent, oh well.
+
+			System.out.println("Send alive notification.");
+			scheduledExecutorService.schedule(new AliveNotifier(),aliveNotifierTime, TimeUnit.SECONDS);
+		}
+	}
+
+	/**
+	 * Seed nodes will uise this periodicaly to go through its timeouts file, and remove nodes
+	 * who have not contacted this node for some ammount of time.
+	 */
+	private class TimeoutChecker implements Runnable {
+
+		@Override
+		public void run() {
+
+			ConfigManager manager = new ConfigManager();
+
+			ArrayList<PeerNode> nodes = manager.readPeerNodes();
+			ArrayList<PeerNode> newNodes = (ArrayList<PeerNode>) nodes.clone();
+			HashMap<String, Long> timeoutData = manager.readTimeoutFile();
+			Long currentTime = new Date().getTime();
+
+			System.out.println("Running timeout checker.");
+
+			for (PeerNode n : nodes) {
+				boolean found = false;
+
+				for (Map.Entry<String, Long> ent : timeoutData.entrySet()) {
+					if (n.getListeningAddress().toString().equals(ent.getKey())) {
+
+						found = true;
+
+						if (currentTime - ent.getValue() > seedPeerTimeout) {
+							// It has not contacted us for a wile, remove it from our list.
+							System.out.println("Node " + n.getListeningAddress() + " has timed out.");
+							newNodes.remove(n);
+							timeoutData.remove(ent.getKey());
+							break;
+						}
+					}
+				}
+
+				if (!found) {
+					newNodes.remove(n);
+				}
+			}
+
+			manager.writePeerNodes(newNodes);
+			manager.writeTimeoutFile(timeoutData);
+
+			// Feel free to not use seedPeerTimeout.
+			scheduledExecutorService.schedule(new TimeoutChecker(), seedCheckoutTimer, TimeUnit.SECONDS);
 		}
 	}
 }

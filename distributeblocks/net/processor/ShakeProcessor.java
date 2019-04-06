@@ -7,7 +7,8 @@ import distributeblocks.net.PeerNode;
 import distributeblocks.net.message.ShakeMessage;
 import distributeblocks.net.message.ShakeResponseMessage;
 
-import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 
 public class ShakeProcessor extends AbstractMessageProcessor<ShakeMessage> {
 
@@ -43,6 +44,15 @@ public class ShakeProcessor extends AbstractMessageProcessor<ShakeMessage> {
 			ConfigManager configManager = new ConfigManager();
 			configManager.addNodeAndWrite(message.senderNode);
 			System.out.println("Adding node in seed mode.");
+
+			// Also record this connection time in our timeouts file
+			HashMap<String, Long> timeouts = configManager.readTimeoutFile();
+
+			System.out.println(timeouts == null);
+
+			timeouts.put(message.senderNode.getListeningAddress().toString(), new Date().getTime());
+			System.out.println("Writing to timeouts file");
+			configManager.writeTimeoutFile(timeouts);
 		}
 	}
 }
