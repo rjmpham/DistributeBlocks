@@ -6,10 +6,7 @@ import distributeblocks.mining.Miner;
 import distributeblocks.net.message.*;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -94,7 +91,7 @@ public class NetworkManager implements NetworkActions {
 		// Begin listening for connections, and start the message processor
 		try {
 			serverSocket = new ServerSocket(port);
-			localAddr = new IPAddress(InetAddress.getLocalHost().getHostAddress(), port);
+			findLocalAddr();
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException("Could not create server socket.");
@@ -115,6 +112,12 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
+	/**
+	 * Spawns a new thread running code to aquire the chain.
+	 *
+	 * To be called on startup, or when a block is received that references
+	 * a block on the chain that this node does not have.
+	 */
 	public void beginAquireChainOperation(){
 
 		if (this.aquireChain == null){
@@ -123,6 +126,12 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
+
+	/**
+	 * Add node to the main peerNodes list.
+	 *
+	 * @param node
+	 */
 	public void addNode(PeerNode node) {
 		
 		synchronized (peerNodes) {
@@ -134,6 +143,16 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
+
+	/**
+	 * Adds node to temporary node list.
+	 *
+	 * The temporary list is there so that peerRequest messages can be sent
+	 * and received, even if the peer doesnt want to establish permanent relations.
+	 *
+	 *
+	 * @param node
+	 */
 	public void addTemporaryNode(PeerNode node) {
 
 		synchronized (temporaryPeerNodes) {
@@ -172,6 +191,13 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
+	/**
+	 * Removes given node from the temporary pool.
+	 *
+	 * This is done by compareing references.
+	 *
+	 * @param node
+	 */
 	public void removeTemporaryNode(PeerNode node){
 
 		synchronized (temporaryPeerNodes) {
@@ -220,10 +246,15 @@ public class NetworkManager implements NetworkActions {
 		return seed;
 	}
 
+	/**
+	 * Get a copy of peerNodes list.
+	 *
+	 * @return
+	 *   Copy of peerNodes list.
+	 */
 	public List<PeerNode> getPeerNodes() {
 		
 		synchronized (peerNodes){
-			
 			ArrayList<PeerNode> copy = new ArrayList<>(peerNodes);
 			return copy;
 		}
@@ -300,6 +331,13 @@ public class NetworkManager implements NetworkActions {
 		return false;
 	}
 
+	/**
+	 *
+	 *
+	 * @param address
+	 * @return
+	 *   True if the peerNodes list has a peerNode with the given address (listening address).
+	 */
 	public boolean isConnectedToNode(IPAddress address) { //TODO: Would be less confusing to use PeerNode?
 
 
@@ -312,12 +350,19 @@ public class NetworkManager implements NetworkActions {
 		return false;
 	}
 
+	/**
+	 *
+	 * Determine if a given node is a seed node.
+	 *
+	 * @param node
+	 * @return
+	 *   True if the given node has identified itself as a seed node.
+	 */
 	public boolean isSeedNode(PeerNode node) {
 
 		if (node.getListeningAddress().equals(seedNodeAddr)) {
 			return true;
 		}
-
 		return false;
 	}
 
@@ -362,12 +407,54 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
+
+	/**
+	 * Simply connects to all the peers currently loaded into the peer nodes list.
+	 * p.connect() is a blocking call.
+	 */
 	private void connectToPeers() {
 
 		for (PeerNode p : getPeerNodes()) {
 			//p.setLocalAddress(p.getAddress());
 			p.connect();
 		}
+	}
+
+
+	/**
+	 * Goes through the network interfaces, extracts InetAddresses,
+	 * and uses the first one that isnt 127.0.0.1
+	 *
+	 * Sets localAddr.
+	 */
+	private void findLocalAddr(){
+
+		try {
+
+			Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+
+
+			while (interfaces.hasMoreElements()){
+				NetworkInterface ni = interfaces.nextElement();
+				System.out.println(ni.getDisplayName());
+				Enumeration<InetAddress> inetAddresses = ni.getInetAddresses();
+
+				while (inetAddresses.hasMoreElements()){
+					InetAddress addr = inetAddresses.nextElement();
+					String hostAddress = addr.getHostAddress();
+					System.out.println(hostAddress);
+
+					if (!hostAddress.contains("127.0.0.1") && !hostAddress.contains("localhost") && hostAddress.split("\\.").length == 4){
+						localAddr = new IPAddress(hostAddress, port);
+						return;
+					}
+				}
+			}
+
+		} catch (SocketException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 
