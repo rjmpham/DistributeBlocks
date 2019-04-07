@@ -918,7 +918,7 @@ public class NetworkManager implements NetworkActions {
 			HashMap<String, Long> timeoutData = manager.readTimeoutFile();
 			Long currentTime = new Date().getTime();
 
-			System.out.println("Running timeout checker.");
+			//System.out.println("Running timeout checker.");
 
 			for (PeerNode n : nodes) {
 				boolean found = false;
