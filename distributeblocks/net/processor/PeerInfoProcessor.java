@@ -7,6 +7,7 @@ import distributeblocks.net.NetworkService;
 import distributeblocks.net.PeerNode;
 import distributeblocks.net.message.PeerInfoMessage;
 
+import java.util.Date;
 import java.util.Random;
 
 public class PeerInfoProcessor extends AbstractMessageProcessor<PeerInfoMessage> {
@@ -47,9 +48,11 @@ public class PeerInfoProcessor extends AbstractMessageProcessor<PeerInfoMessage>
 
 		NetworkService.getNetworkManager().removeTemporaryNode(message.senderNode);
 
-		if (message.seedNode || !message.friend){
+		if (message.seedNode){
 			System.out.println("SHUTTING DOWN NODE CONNECTION BECAUSE ITS A SEED");
 			message.senderNode.shutDown();
+		} else if (!message.friend){
+			System.out.println("SHUTTING DOWN NODE CONNECTION BECAUSE ITS NOT A FRIEND " + new Date().getTime());
 		}
 		// If the node is only in the tempory pool, then it will be disconnected.
 		// this is what we want for the seed node.

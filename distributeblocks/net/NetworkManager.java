@@ -239,15 +239,29 @@ public class NetworkManager implements NetworkActions {
 
 
 	public void printConnectedNodes() {
-		System.out.println("Connected Nodes: ");
+		System.out.println(" ======================== Connected Nodes: =============================");
 		for (PeerNode p : getPeerNodes()) {
 
 			System.out.println(" - " + p.getListeningAddress());
 		}
 	}
 
+	/**
+	 * Retuns true if this node NEEDS more peers to reach minPeers.
+	 *
+	 * @return
+	 */
 	public boolean needMorePeers() {
 		return getPeerNodes().size() < minPeers;
+	}
+
+	/**
+	 * Returns true if this node has the capacity for more peers.
+	 *
+	 * @return
+	 */
+	public boolean canHaveMorePeers(){
+		return getPeerNodes().size() < maxPeers;
 	}
 
 	public boolean inSeedMode() {
@@ -264,6 +278,19 @@ public class NetworkManager implements NetworkActions {
 		
 		synchronized (peerNodes){
 			ArrayList<PeerNode> copy = new ArrayList<>(peerNodes);
+			return copy;
+		}
+	}
+
+	/**
+	 * Get a copy of the temporaryPeerNodes list.
+	 *
+	 * @return
+	 */
+	public List<PeerNode> getTempPeerNodes() {
+
+		synchronized (temporaryPeerNodes){
+			ArrayList<PeerNode> copy = new ArrayList<>(temporaryPeerNodes);
 			return copy;
 		}
 	}
@@ -354,9 +381,27 @@ public class NetworkManager implements NetworkActions {
 				return true;
 			}
 		}
-
 		return false;
 	}
+
+	/**
+	 *
+	 *
+	 * @param address
+	 * @return
+	 *   True if the peerNodes list has a peerNode with the given address (listening address).
+	 */
+	public boolean isConnectedToTempNode(IPAddress address) { //TODO: Would be less confusing to use PeerNode?
+
+
+		for (PeerNode p : getTempPeerNodes()) {
+			if (p.getListeningAddress().equals(address)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 
 	/**
 	 *

@@ -14,9 +14,10 @@ public class ShakeResponseProcessor extends AbstractMessageProcessor<ShakeRespon
 
 		if (message.letsBeFriends && NetworkService.getNetworkManager().needMorePeers() &&
 				!NetworkService.getNetworkManager().isConnectedToNode(message.senderNode.getListeningAddress()) &&
-				!NetworkService.getNetworkManager().isSeedNode(message.senderNode)){
+				!message.seedNode){
 			// Dont do anything, maintain connection?
 			// Add it to the node config list silly!
+			System.out.println("Adding a new friend: " + message.senderNode.getListeningAddress());
 			ConfigManager configManager = new ConfigManager();
 			configManager.addNodeAndWrite(message.senderNode);
 			NetworkService.getNetworkManager().addNode(message.senderNode);

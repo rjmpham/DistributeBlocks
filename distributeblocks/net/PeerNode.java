@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.*;
 
@@ -162,7 +163,7 @@ public class PeerNode {
 
 	public void shutDown() {
 
-		System.out.println("SHUTDOWN WAS CALLED.");
+		System.out.println("SHUTDOWN WAS CALLED ON NODE: " + getListeningAddress());
 		shutDown = true;
 		executorService.shutdown();
 
@@ -242,8 +243,11 @@ public class PeerNode {
 
 			} catch (EOFException e) {
 				// Socket closed.
-				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
+				System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Got an EOFException.");
+				System.out.println(new Date().getTime());
+				//NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			} catch (IOException e) {
+				System.out.println(new Date().getTime());
 				//e.printStackTrace();
 				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			} catch (ClassNotFoundException e) {
@@ -270,7 +274,7 @@ public class PeerNode {
 			try {
 				stream = new ObjectOutputStream(socket.getOutputStream());
 			} catch (IOException e) {
-				//e.printStackTrace();
+				e.printStackTrace();
 				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			}
 

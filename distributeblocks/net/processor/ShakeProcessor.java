@@ -14,20 +14,21 @@ public class ShakeProcessor extends AbstractMessageProcessor<ShakeMessage> {
 
 
 	public void processMessage(ShakeMessage message) {
-		System.out.println("Got a shake message from " + message.senderNode.getAddress() + ". AbstractMessage: " + message.getShakeMessage());
 
 		System.out.println("Listening port: " + message.listeningPort);
 		message.senderNode.setListenPort(message.listeningPort);
 		message.senderNode.setLocalAddress(message.localAddress);
 
+		System.out.println("Got a shake message from " + message.senderNode.getAddress() + ". AbstractMessage: " + message.getShakeMessage());
+
 		boolean wantMoreFriends = NetworkService.getNetworkManager().inSeedMode() ?
-				false : NetworkService.getNetworkManager().needMorePeers();
+				false : NetworkService.getNetworkManager().canHaveMorePeers();
 
 		if (NetworkService.getNetworkManager().isConnectedToNode(message.senderNode.getListeningAddress())){
 			wantMoreFriends = false;
 		}
 
-		message.senderNode.asyncSendMessage(new ShakeResponseMessage("Hey back at ya ;)",
+		message.senderNode.asyncSendMessage(new ShakeResponseMessage("Hey back at ya ;): WantMoreFriend: " + wantMoreFriends,
 				NetworkService.getNetworkManager().getPort(), wantMoreFriends));
 
 		if (wantMoreFriends) {
