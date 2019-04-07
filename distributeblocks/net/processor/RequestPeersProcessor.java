@@ -15,8 +15,6 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 	@Override
 	public void processMessage(RequestPeersMessage message) {
 
-		// TODO: Disconnect from the node if its a seed node!!!!!!!!!!!!! Actualy maybe seed ndoe should just do the disconnecting.
-
 		System.out.println("Got a request peers message from: " + message.senderNode.getAddress());
 		NetworkManager networkManager = NetworkService.getNetworkManager();
 		ArrayList<IPAddress> addresses = new ArrayList<>();

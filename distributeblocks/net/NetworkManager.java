@@ -28,7 +28,7 @@ public class NetworkManager implements NetworkActions {
 	private int seedPeerTimeout = 30000; // mililiseconds
 	private int seedCheckoutTimer = 35; // seconds
 	private int aliveNotifierTime = 20; // seconds
-	private IPAddress seedNodeAddr;
+
 	private IPAddress localAddr;
 	private boolean seed;
 	private boolean mining;
@@ -59,10 +59,26 @@ public class NetworkManager implements NetworkActions {
 		this.maxPeers = networkConfig.maxPeers;
 		this.minPeers = networkConfig.minPeers;
 		this.port = networkConfig.port;
-		this.seedNodeAddr = networkConfig.seedNode;
 		this.seed = networkConfig.seed;
 		this.mining = networkConfig.mining;
 		this.miner = new Miner();
+
+		ConfigManager configManager = new ConfigManager();
+
+		ArrayList<IPAddress> seedNodes = configManager.readSeedNodes();
+
+		boolean found = false;
+		for (IPAddress addr : seedNodes){
+			if (addr.equals(networkConfig.seedNode)){
+				found = true;
+				break;
+			}
+		}
+
+		if (!found){
+			seedNodes.add(networkConfig.seedNode);
+			configManager.writeSeedNodes(seedNodes);
+		}
 
 		if (seed) {
 			System.out.println("Starting in seed mode.");
@@ -403,22 +419,6 @@ public class NetworkManager implements NetworkActions {
 	}
 
 
-	/**
-	 *
-	 * Determine if a given node is a seed node.
-	 *
-	 * @param node
-	 * @return
-	 *   True if the given node has identified itself as a seed node.
-	 */
-	public boolean isSeedNode(PeerNode node) {
-
-		if (node.getListeningAddress().equals(seedNodeAddr)) {
-			return true;
-		}
-		return false;
-	}
-
 	public Miner getMiner(){
 		return miner;
 	}
@@ -665,10 +665,19 @@ public class NetworkManager implements NetworkActions {
 							p.asyncSendMessage(new RequestPeersMessage());
 						}
 					} else {
-						PeerNode seed = new PeerNode(seedNodeAddr);
-						//seed.setLocalAddress(seedNodeAddr);
-						temporaryPeerNodes.add(seed);
-						seed.connect();
+
+						ArrayList<IPAddress> seedNodes = new ConfigManager().readSeedNodes();
+
+						for (int i = 0; i < seedNodes.size(); i ++){ // Try each seed node in the seed node file, starting with the first one.
+
+							PeerNode seed = new PeerNode(seedNodes.get(i));
+							temporaryPeerNodes.add(seed);
+
+							if (seed.connect()){ // If the connection was successfull don't connect to any more.
+								break;
+							}
+						}
+
 						// The requestPeersMessage was moved into the shake response handler to ensure things happen
 						// in the right order.
 					}
@@ -873,14 +882,23 @@ public class NetworkManager implements NetworkActions {
 		@Override
 		public void run() {
 
-			PeerNode seed = new PeerNode(seedNodeAddr);
-			//seed.setLocalAddress(seedNodeAddr);
-			temporaryPeerNodes.add(seed);
-			seed.connect(); // Automaticaly sends a handshake, which is all we need to update the seeds peer list.
-							// Note that a peer request message will also be sent, oh well.
+			ArrayList<IPAddress> seedNodes = new ConfigManager().readSeedNodes();
 
-			System.out.println("Send alive notification.");
-			scheduledExecutorService.schedule(new AliveNotifier(),aliveNotifierTime, TimeUnit.SECONDS);
+			for (int i = 0; i < seedNodes.size(); i ++) {
+				PeerNode seed = new PeerNode(seedNodes.get(i));
+				//seed.setLocalAddress(seedNodeAddr);
+				temporaryPeerNodes.add(seed);
+
+
+				if (seed.connect()) { // Automaticaly sends a handshake, which is all we need to update the seeds peer list.
+					// Note that a peer request message will also be sent, oh well.
+
+					System.out.println("Send alive notification.");
+					break; // Only send the alive notifcation to one.
+				}
+			}
+
+			scheduledExecutorService.schedule(new AliveNotifier(), aliveNotifierTime, TimeUnit.SECONDS);
 		}
 	}
 

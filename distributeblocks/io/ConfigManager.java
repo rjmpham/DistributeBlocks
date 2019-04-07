@@ -9,7 +9,6 @@ import distributeblocks.net.PeerNode;
 import com.google.gson.Gson;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -22,6 +21,12 @@ public class ConfigManager {
 	private static final Object peerConfigLock = new Object();
 	private static final Object blockChainLock = new Object();
 	private static final Object timeoutLock = new Object();
+	private static final Object seedListLock = new Object();
+
+	public static String PEER_CONFIG_FILE = "./peer_config.txt";
+	public static String BLOCKCHAIN_FILE = "./blockchain.txt";
+	public static String TIMEOUT_FILE = "./timeoutfile.txt";
+	public static String SEED_FILE = "./seedlist.txt";
 
 	public ConfigManager() {
 
@@ -44,7 +49,7 @@ public class ConfigManager {
 		synchronized (peerConfigLock) {
 
 			Gson gson = new Gson();
-			File file = new File(Node.PEER_CONFIG_FILE);
+			File file = new File(PEER_CONFIG_FILE);
 
 			if (!file.exists()) {
 				file = createPeerConfigFile();
@@ -94,7 +99,7 @@ public class ConfigManager {
 			}
 
 			Gson gson = new Gson();
-			File file = new File(Node.PEER_CONFIG_FILE);
+			File file = new File(PEER_CONFIG_FILE);
 
 			if (!file.exists()) {
 				file = createPeerConfigFile();
@@ -170,9 +175,9 @@ public class ConfigManager {
 		synchronized (blockChainLock) {
 
 			//Gson gson = new Gson();
-			File file = new File(Node.BLOCKCHAIN_FILE);
+			File file = new File(BLOCKCHAIN_FILE);
 
-			try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(Node.BLOCKCHAIN_FILE))) {
+			try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(BLOCKCHAIN_FILE))) {
 
 				//String json = gson.toJson(blockChain);
 				out.writeObject(blockChain);
@@ -193,7 +198,7 @@ public class ConfigManager {
 		synchronized (blockChainLock) {
 
 			Gson gson = new Gson();
-			File file = new File(Node.BLOCKCHAIN_FILE);
+			File file = new File(BLOCKCHAIN_FILE);
 
 			if (!file.exists()) {
 				try {
@@ -218,7 +223,7 @@ public class ConfigManager {
 			String json = "";
 			ArrayList<LinkedList<Block>> blockChain = new ArrayList<>();
 
-			try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(Node.BLOCKCHAIN_FILE))) {
+			try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(BLOCKCHAIN_FILE))) {
 
 				blockChain = (ArrayList<LinkedList<Block>>) in.readObject();
 				return blockChain;
@@ -245,7 +250,7 @@ public class ConfigManager {
 	 */
 	private File createPeerConfigFile(){
 
-		File  file = new File(Node.PEER_CONFIG_FILE);
+		File  file = new File(PEER_CONFIG_FILE);
 
 		if (file.exists()){
 			return file;
@@ -277,7 +282,7 @@ public class ConfigManager {
 	private File createTimeoutFile(){
 
 
-		File  file = new File(Node.TIMEOUT_FILE);
+		File  file = new File(TIMEOUT_FILE);
 
 		if (file.exists()){
 			return file;
@@ -302,7 +307,7 @@ public class ConfigManager {
 
 		synchronized (timeoutLock){
 
-			File file = new File(Node.TIMEOUT_FILE);
+			File file = new File(TIMEOUT_FILE);
 
 			if (!file.exists()){
 
@@ -336,7 +341,7 @@ public class ConfigManager {
 
 		synchronized (timeoutLock){
 
-			File file = new File(Node.TIMEOUT_FILE);
+			File file = new File(TIMEOUT_FILE);
 
 			if (!file.exists()){
 
@@ -372,6 +377,79 @@ public class ConfigManager {
 		return null;
 	}
 
+
+	/**
+	 * Writes to the seed nodes list file. The file that has a list of seed nodes.
+	 *
+	 * @return
+	 */
+	public void writeSeedNodes(ArrayList<IPAddress> seedNodes){
+
+		synchronized (seedListLock){
+
+			File file = new File(SEED_FILE);
+
+			if(!file.exists()){
+				try {
+					file.createNewFile();
+				} catch (IOException e) {
+					System.out.println("Could not create the seed list file.");
+					return;
+				}
+			}
+
+			Gson gson = new Gson();
+
+			try (PrintWriter writer = new PrintWriter(file)){
+
+				writer.write(gson.toJson(seedNodes));
+
+			} catch (FileNotFoundException e) {
+				System.out.println("Could not write to seed file.");
+			}
+
+		}
+
+	}
+
+	/**
+	 *
+	 * Read seed nodes from the seed node file.
+	 *
+	 * @return
+	 */
+	public ArrayList<IPAddress> readSeedNodes(){
+
+		synchronized (seedListLock){
+
+			ArrayList<IPAddress> seedNodes = new ArrayList<>();
+			File file = new File(SEED_FILE);
+
+			if(!file.exists()){
+				return new ArrayList<>();
+			}
+
+			Gson gson = new Gson();
+			String json = "";
+
+			try (Scanner scanner = new Scanner(file)){
+
+				while (scanner.hasNextLine()){
+					json += scanner.nextLine();
+				}
+
+				seedNodes = gson.fromJson(json, new TypeToken<ArrayList<IPAddress>>(){}.getType());
+
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+
+
+
+			return  seedNodes;
+		}
+
+	}
 	
 
 }

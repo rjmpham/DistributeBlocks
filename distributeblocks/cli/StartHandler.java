@@ -3,12 +3,12 @@ package distributeblocks.cli;
 import java.util.concurrent.Callable;
 
 import distributeblocks.Node;
+import distributeblocks.io.ConfigManager;
 import distributeblocks.io.Console;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkConfig;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
 
 @Command(description = "Start network connection",
@@ -74,8 +74,8 @@ public class StartHandler implements Callable<Void> {
 		config.seed = seed;
 		config.seedNode = new IPAddress(seedAddress, seedPort);
 		config.mining = mining;
-		node.PEER_CONFIG_FILE = configFile;
-		node.BLOCKCHAIN_FILE = blockFile;
+		ConfigManager.PEER_CONFIG_FILE = configFile;
+		ConfigManager.BLOCKCHAIN_FILE = blockFile;
 		node.initializeNetworkService(config);
 		
 		return null;

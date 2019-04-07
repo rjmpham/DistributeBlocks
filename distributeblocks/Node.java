@@ -24,9 +24,7 @@ import java.util.HashMap;
  * 		receive funds and clear out onHold once a block gets to be 6 deep.
  */
 public class Node {
-	public static String PEER_CONFIG_FILE = "./peer_config.txt";
-	public static String BLOCKCHAIN_FILE = "./blockchain.txt";
-	public static String TIMEOUT_FILE = "./timeoutfile.txt";
+
 	public static int HASH_DIFFICULTY = 4;
 	
 	private boolean started = false;
