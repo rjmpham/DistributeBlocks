@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -27,7 +28,11 @@ public class NetworkManager implements NetworkActions {
 	private int minPeers = 0;
 	private int maxPeers = Integer.MAX_VALUE;
 	private int port = -1;
-	private IPAddress seedNodeAddr;
+	private int seedPeerTimeout = 30000; // mililiseconds
+	private int seedCheckoutTimer = 35; // seconds
+	private int aliveNotifierTime = 20; // seconds
+
+	private IPAddress localAddr;
 	private boolean seed;
 	private boolean mining;
 
@@ -38,11 +43,12 @@ public class NetworkManager implements NetworkActions {
 	/**
 	 * Time in seconds between attempts at discovering more peer nodes.
 	 */
-	private int peerSearchRate = 60;
+	private int peerSearchRate = 10;
 
 	private ExecutorService executorService;
 	private ScheduledExecutorService scheduledExecutorService; // For requesting new peers.
 	private List<PeerNode> peerNodes;
+	private List<PeerNode> temporaryPeerNodes;
 	private ServerSocket serverSocket;
 
 	private Miner miner;
@@ -60,10 +66,26 @@ public class NetworkManager implements NetworkActions {
 		this.maxPeers = networkConfig.maxPeers;
 		this.minPeers = networkConfig.minPeers;
 		this.port = networkConfig.port;
-		this.seedNodeAddr = networkConfig.seedNode;
 		this.seed = networkConfig.seed;
 		this.mining = networkConfig.mining;
 		this.miner = new Miner();
+
+		ConfigManager configManager = new ConfigManager();
+
+		ArrayList<IPAddress> seedNodes = configManager.readSeedNodes();
+
+		boolean found = false;
+		for (IPAddress addr : seedNodes){
+			if (addr.equals(networkConfig.seedNode)){
+				found = true;
+				break;
+			}
+		}
+
+		if (!found){
+			seedNodes.add(networkConfig.seedNode);
+			configManager.writeSeedNodes(seedNodes);
+		}
 
 		if (seed) {
 			System.out.println("Starting in seed mode.");
@@ -90,10 +112,12 @@ public class NetworkManager implements NetworkActions {
 		// Grab known peer nodes from file.
 		ConfigManager configManager = new ConfigManager();
 		peerNodes = Collections.synchronizedList(configManager.readPeerNodes());
+		temporaryPeerNodes = Collections.synchronizedList(new ArrayList<>());
 
 		// Begin listening for connections, and start the message processor
 		try {
 			serverSocket = new ServerSocket(port);
+			findLocalAddr();
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException("Could not create server socket.");
@@ -105,15 +129,22 @@ public class NetworkManager implements NetworkActions {
 		if (!seed) {
 			connectToPeers();
 
-
-
 			scheduledExecutorService.schedule(new CheckNeedNodes(), 2, TimeUnit.SECONDS);
 
 			// Now request header info from everyone since we restarted (or started for the first time).
 			beginAquireChainOperation();
+			scheduledExecutorService.schedule(new AliveNotifier(),aliveNotifierTime, TimeUnit.SECONDS);
+		} else {
+			scheduledExecutorService.schedule(new TimeoutChecker(), seedCheckoutTimer, TimeUnit.SECONDS);
 		}
 	}
 
+	/**
+	 * Spawns a new thread running code to aquire the chain.
+	 *
+	 * To be called on startup, or when a block is received that references
+	 * a block on the chain that this node does not have.
+	 */
 	public void beginAquireChainOperation(){
 
 		if (this.aquireChain == null){
@@ -122,6 +153,12 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
+
+	/**
+	 * Add node to the main peerNodes list.
+	 *
+	 * @param node
+	 */
 	public void addNode(PeerNode node) {
 		
 		synchronized (peerNodes) {
@@ -135,6 +172,27 @@ public class NetworkManager implements NetworkActions {
 
 
 	/**
+	 * Adds node to temporary node list.
+	 *
+	 * The temporary list is there so that peerRequest messages can be sent
+	 * and received, even if the peer doesnt want to establish permanent relations.
+	 *
+	 *
+	 * @param node
+	 */
+	public void addTemporaryNode(PeerNode node) {
+
+		synchronized (temporaryPeerNodes) {
+
+			this.temporaryPeerNodes.add(node);
+		}
+	}
+
+	public IPAddress getLocalAddr() {
+		return localAddr;
+	}
+
+	/**
 	 * Removes a node by reference.
 	 *
 	 * @param node
@@ -145,12 +203,48 @@ public class NetworkManager implements NetworkActions {
 
 			for (int i = 0; i < peerNodes.size(); i++) {
 				if (peerNodes.get(i) == node) { // At least I think this only checks if the reference is the same.
-					peerNodes.get(i).shutDown();
-					peerNodes.remove(i);
+					System.out.println("Shutdown was called in removeNode()");
+					PeerNode result = peerNodes.remove(i);
+					result.shutDown();
+
+
+					if (result == null){
+						System.out.println("Failed to remove peer from pool.");
+					} else {
+						System.out.println("Removed peer from pool.");
+					}
 					break;
 				}
 			}
 		}
+	}
+
+	/**
+	 * Removes given node from the temporary pool.
+	 *
+	 * This is done by compareing references.
+	 *
+	 * @param node
+	 */
+	public void removeTemporaryNode(PeerNode node){
+
+		synchronized (temporaryPeerNodes) {
+			for (int i = 0; i < temporaryPeerNodes.size(); i++) {
+				if (temporaryPeerNodes.get(i) == node) { // At least I think this only checks if the reference is the same.
+					PeerNode result = temporaryPeerNodes.remove(i);
+						// Not to self, do not call shutdown here! They may be moved to the actual node pool.
+
+					if (result == null){
+						System.out.println("Failed to remove peer from temporary pool.");
+					} else {
+						System.out.println("Removed peer from temporary pool.");
+					}
+					break;
+				}
+			}
+		}
+
+		System.out.println("No node to remove from temporary pool.");
 	}
 
 	/**
@@ -166,76 +260,60 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
-	/**
-	 * Remove all nodes with the given address.
-	 *
-	 *
-	 */
-	/*public synchronized void removeNode(IPAddress listeningAddress) {
-
-		ArrayList<Integer> toRemove = new ArrayList<>();
-
-		for (int i = 0; i < peerNodes.size(); i++) {
-
-			if (peerNodes.get(i).getListeningAddress().equals(listeningAddress)) {
-				toRemove.add(i);
-			}
-		}
-
-		for (int rem : toRemove) {
-			peerNodes.remove(rem);
-		}
-	}*/
-
-	public void removeDuplicateNodes() {
-
-		synchronized (peerNodes) {
-			HashMap<IPAddress, Boolean> addresses = new HashMap<>();
-			ArrayList<Integer> toRemove = new ArrayList<>();
-
-			for (int i = peerNodes.size() - 1; i >= 0; i--) {
-				if (addresses.containsKey(peerNodes.get(i).getListeningAddress())) {
-					toRemove.add(i);
-				} else {
-					addresses.put(peerNodes.get(i).getListeningAddress(), true);
-				}
-			}
-
-			for (int i : toRemove) {
-				System.out.println("Removing duplicate node: " + peerNodes.get(i).getListeningAddress());
-				removeNode(i);
-			}
-		}
-	}
 
 	public void printConnectedNodes() {
-		System.out.println("Connected Nodes: ");
-
-		ArrayList<PeerNode> nodes = new ArrayList<>();
-
+		System.out.println(" ======================== Connected Nodes: =============================");
 		for (PeerNode p : getPeerNodes()) {
 
-			if (!nodes.contains(p)) {
-				System.out.println(" - " + p.getListeningAddress());
-				nodes.add(p);
-			}
+			System.out.println(" - " + p.getListeningAddress());
 		}
 	}
 
-
+	/**
+	 * Retuns true if this node NEEDS more peers to reach minPeers.
+	 *
+	 * @return
+	 */
 	public boolean needMorePeers() {
 		return getPeerNodes().size() < minPeers;
+	}
+
+	/**
+	 * Returns true if this node has the capacity for more peers.
+	 *
+	 * @return
+	 */
+	public boolean canHaveMorePeers(){
+		return getPeerNodes().size() < maxPeers;
 	}
 
 	public boolean inSeedMode() {
 		return seed;
 	}
 
+	/**
+	 * Get a copy of peerNodes list.
+	 *
+	 * @return
+	 *   Copy of peerNodes list.
+	 */
 	public List<PeerNode> getPeerNodes() {
 		
 		synchronized (peerNodes){
-			
 			ArrayList<PeerNode> copy = new ArrayList<>(peerNodes);
+			return copy;
+		}
+	}
+
+	/**
+	 * Get a copy of the temporaryPeerNodes list.
+	 *
+	 * @return
+	 */
+	public List<PeerNode> getTempPeerNodes() {
+
+		synchronized (temporaryPeerNodes){
+			ArrayList<PeerNode> copy = new ArrayList<>(temporaryPeerNodes);
 			return copy;
 		}
 	}
@@ -300,7 +378,10 @@ public class NetworkManager implements NetworkActions {
 
 		if (node.connect()) {
 
-			addNode(node); // TODO: This may ahve caused issues with cfg file.
+			//addNode(node); // TODO: This may ahve caused issues with cfg file.
+			addTemporaryNode(node);
+			//node.setLocalAddress(address); // Since we are connecting to it, it must already be the local address.
+			node.asyncSendMessage(new ShakeMessage("Please be my friend.", port));
 
 			return true;
 		}
@@ -308,6 +389,13 @@ public class NetworkManager implements NetworkActions {
 		return false;
 	}
 
+	/**
+	 *
+	 *
+	 * @param address
+	 * @return
+	 *   True if the peerNodes list has a peerNode with the given address (listening address).
+	 */
 	public boolean isConnectedToNode(IPAddress address) { //TODO: Would be less confusing to use PeerNode?
 
 
@@ -316,18 +404,27 @@ public class NetworkManager implements NetworkActions {
 				return true;
 			}
 		}
-
 		return false;
 	}
 
-	public boolean isSeedNode(PeerNode node) {
+	/**
+	 *
+	 *
+	 * @param address
+	 * @return
+	 *   True if the peerNodes list has a peerNode with the given address (listening address).
+	 */
+	public boolean isConnectedToTempNode(IPAddress address) { //TODO: Would be less confusing to use PeerNode?
 
-		if (node.getListeningAddress().equals(seedNodeAddr)) {
-			return true;
+
+		for (PeerNode p : getTempPeerNodes()) {
+			if (p.getListeningAddress().equals(address)) {
+				return true;
+			}
 		}
-
 		return false;
 	}
+
 
 	public Miner getMiner(){
 		return miner;
@@ -370,11 +467,55 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
+
+	/**
+	 * Simply connects to all the peers currently loaded into the peer nodes list.
+	 * p.connect() is a blocking call.
+	 */
 	private void connectToPeers() {
 
 		for (PeerNode p : getPeerNodes()) {
+			//p.setLocalAddress(p.getAddress());
+			temporaryPeerNodes.add(p);
 			p.connect();
 		}
+	}
+
+
+	/**
+	 * Goes through the network interfaces, extracts InetAddresses,
+	 * and uses the first one that isnt 127.0.0.1
+	 *
+	 * Sets localAddr.
+	 */
+	private void findLocalAddr(){
+
+		try {
+
+			Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+
+
+			while (interfaces.hasMoreElements()){
+				NetworkInterface ni = interfaces.nextElement();
+				System.out.println(ni.getDisplayName());
+				Enumeration<InetAddress> inetAddresses = ni.getInetAddresses();
+
+				while (inetAddresses.hasMoreElements()){
+					InetAddress addr = inetAddresses.nextElement();
+					String hostAddress = addr.getHostAddress();
+					System.out.println(hostAddress);
+
+					if (!hostAddress.contains("127.0.0.1") && !hostAddress.contains("localhost") && hostAddress.split("\\.").length == 4){
+						localAddr = new IPAddress(hostAddress, port);
+						return;
+					}
+				}
+			}
+
+		} catch (SocketException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 
@@ -455,7 +596,7 @@ public class NetworkManager implements NetworkActions {
 
 
 	/**
-	 * Begins mining, but only if mining is set to true.
+	 * Begins mining even if mining is set to false.
 	 */
 	@Override
 	public void startMining(){
@@ -529,7 +670,8 @@ public class NetworkManager implements NetworkActions {
 					System.out.println("Received connection from: " + socket.getInetAddress());
 
 					PeerNode peerNode = new PeerNode(socket);
-					peerNodes.add(peerNode);
+					//peerNodes.add(peerNode);
+					addTemporaryNode(peerNode);
 
 
 					// TODO: Need to do periodic alive checks to these nodes in order to hav a well maintained list.
@@ -567,9 +709,21 @@ public class NetworkManager implements NetworkActions {
 							p.asyncSendMessage(new RequestPeersMessage());
 						}
 					} else {
-						PeerNode seed = new PeerNode(seedNodeAddr);
-						seed.connect();
-						seed.asyncSendMessage(new RequestPeersMessage());
+
+						ArrayList<IPAddress> seedNodes = new ConfigManager().readSeedNodes();
+
+						for (int i = 0; i < seedNodes.size(); i ++){ // Try each seed node in the seed node file, starting with the first one.
+
+							PeerNode seed = new PeerNode(seedNodes.get(i));
+							temporaryPeerNodes.add(seed);
+
+							if (seed.connect()){ // If the connection was successfull don't connect to any more.
+								break;
+							}
+						}
+
+						// The requestPeersMessage was moved into the shake response handler to ensure things happen
+						// in the right order.
 					}
 				} else {
 					//System.out.println("I don't");
@@ -588,7 +742,7 @@ public class NetworkManager implements NetworkActions {
 				// Not sure whats going on here.
 			}
 
-			scheduledExecutorService.schedule(new CheckNeedNodes(), 10, TimeUnit.SECONDS);
+			scheduledExecutorService.schedule(new CheckNeedNodes(), peerSearchRate, TimeUnit.SECONDS);
 		}
 	}
 
@@ -760,4 +914,84 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
+	
+	/**
+	 * Nodes will use this to periodically announce themselves to the seed node.
+	 * If the seed node does not receive an alive notification within some time period,
+	 * (maybe 30 seconds for the purpose of the demo), then the seed node will remove it
+	 * from its list.
+	 */
+	private class AliveNotifier implements Runnable {
+
+		@Override
+		public void run() {
+
+			ArrayList<IPAddress> seedNodes = new ConfigManager().readSeedNodes();
+
+			for (int i = 0; i < seedNodes.size(); i ++) {
+				PeerNode seed = new PeerNode(seedNodes.get(i));
+				//seed.setLocalAddress(seedNodeAddr);
+				temporaryPeerNodes.add(seed);
+
+
+				if (seed.connect()) { // Automaticaly sends a handshake, which is all we need to update the seeds peer list.
+					// Note that a peer request message will also be sent, oh well.
+
+					System.out.println("Send alive notification.");
+					break; // Only send the alive notifcation to one.
+				}
+			}
+
+			scheduledExecutorService.schedule(new AliveNotifier(), aliveNotifierTime, TimeUnit.SECONDS);
+		}
+	}
+
+	/**
+	 * Seed nodes will uise this periodicaly to go through its timeouts file, and remove nodes
+	 * who have not contacted this node for some ammount of time.
+	 */
+	private class TimeoutChecker implements Runnable {
+
+		@Override
+		public void run() {
+
+			ConfigManager manager = new ConfigManager();
+
+			ArrayList<PeerNode> nodes = manager.readPeerNodes();
+			ArrayList<PeerNode> newNodes = (ArrayList<PeerNode>) nodes.clone();
+			HashMap<String, Long> timeoutData = manager.readTimeoutFile();
+			Long currentTime = new Date().getTime();
+
+			//System.out.println("Running timeout checker.");
+
+			for (PeerNode n : nodes) {
+				boolean found = false;
+
+				for (Map.Entry<String, Long> ent : timeoutData.entrySet()) {
+					if (n.getListeningAddress().toString().equals(ent.getKey())) {
+
+						found = true;
+
+						if (currentTime - ent.getValue() > seedPeerTimeout) {
+							// It has not contacted us for a wile, remove it from our list.
+							System.out.println("Node " + n.getListeningAddress() + " has timed out.");
+							newNodes.remove(n);
+							timeoutData.remove(ent.getKey());
+							break;
+						}
+					}
+				}
+
+				if (!found) {
+					newNodes.remove(n);
+				}
+			}
+
+			manager.writePeerNodes(newNodes);
+			manager.writeTimeoutFile(timeoutData);
+
+			// Feel free to not use seedPeerTimeout.
+			scheduledExecutorService.schedule(new TimeoutChecker(), seedCheckoutTimer, TimeUnit.SECONDS);
+		}
+	}
 }

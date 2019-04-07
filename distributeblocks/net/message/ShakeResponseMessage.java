@@ -1,5 +1,6 @@
 package distributeblocks.net.message;
 
+import distributeblocks.net.NetworkService;
 import distributeblocks.net.processor.AbstractMessageProcessor;
 import distributeblocks.net.processor.ShakeResponseProcessor;
 
@@ -9,6 +10,7 @@ public class ShakeResponseMessage extends AbstractMessage {
 	public String messsage;
 	public int listeningPort;
 	public boolean letsBeFriends;
+	public boolean seedNode;
 
 	/**
 	 *
@@ -20,6 +22,8 @@ public class ShakeResponseMessage extends AbstractMessage {
 		this.messsage = messsage;
 		this.listeningPort = listeningPort;
 		this.letsBeFriends = letsBeFriends;
+
+		seedNode = NetworkService.getNetworkManager().inSeedMode();
 	}
 
 	@Override

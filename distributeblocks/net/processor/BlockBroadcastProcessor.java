@@ -20,11 +20,19 @@ public class BlockBroadcastProcessor extends AbstractMessageProcessor<BlockBroad
         ConfigManager configManager = new ConfigManager();
         BlockChain blockChain = new BlockChain();
 
-        blockChain.addBlock(message.block);
-        blockChain.save();
-        System.out.println("Added block to the chain!");
 
-        // TODO Here is the spot to stop mining and restart mining
-        NetworkService.getNetworkManager().beginMining();
+        // Check to see if our chain already has this block.
+        if (!blockChain.getAllBlocks().containsKey(message.block.getHashBlock())) {
+
+            blockChain.addBlock(message.block);
+            blockChain.save();
+            System.out.println("Added block to the chain!");
+
+            // TODO Here is the spot to stop mining and restart mining
+            NetworkService.getNetworkManager().beginMining();
+            NetworkService.getNetworkManager().asyncSendToAllPeers(new BlockBroadcastMessage(message.block)); // Propogate on the network.
+        }
+
+        // If we already have it do nothing.
     }
 }

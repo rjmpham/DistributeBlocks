@@ -1,5 +1,7 @@
 package distributeblocks.net.message;
 
+import distributeblocks.net.IPAddress;
+import distributeblocks.net.NetworkService;
 import distributeblocks.net.processor.AbstractMessageProcessor;
 import distributeblocks.net.processor.ShakeProcessor;
 
@@ -8,6 +10,7 @@ public class ShakeMessage extends AbstractMessage {
 
 	public String shakeMessage;
 	public int listeningPort;
+	public IPAddress localAddress;
 
 
 	/**
@@ -19,6 +22,7 @@ public class ShakeMessage extends AbstractMessage {
 	public ShakeMessage(String shakeMessage, int listeningPort) {
 		this.shakeMessage = shakeMessage;
 		this.listeningPort = listeningPort;
+		localAddress = NetworkService.getNetworkManager().getLocalAddr();
 	}
 
 	public String getShakeMessage() {

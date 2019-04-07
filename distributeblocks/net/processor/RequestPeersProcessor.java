@@ -15,11 +15,10 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 	@Override
 	public void processMessage(RequestPeersMessage message) {
 
-		// TODO: Disconnect from the node if its a seed node!!!!!!!!!!!!! Actualy maybe seed ndoe should just do the disconnecting.
-
 		System.out.println("Got a request peers message from: " + message.senderNode.getAddress());
 		NetworkManager networkManager = NetworkService.getNetworkManager();
 		ArrayList<IPAddress> addresses = new ArrayList<>();
+		message.senderNode.setLocalAddress(message.localAddress);
 
 		if (networkManager.inSeedMode()){
 			// TODO: In seed mode we want to make some intelligent descisions on which addresses to send probably?
@@ -34,10 +33,12 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 				Random ran = new Random();
 
 				while (nodes.size() > 0 && addresses.size() < adressShareCount) {
-					IPAddress addr = nodes.remove(ran.nextInt(Math.max(nodes.size() - 1, 1))).getListeningAddress();
+
+					PeerNode node =  nodes.remove(ran.nextInt(Math.max(nodes.size() - 1, 1)));
+					IPAddress addr = node.getListeningAddress();
 
 					// Dont send them the address if its their own address.
-					if (addr.port > 0 && !addr.equals(message.senderNode.getListeningAddress())){
+					if (addr.port > 0 && !addr.equals(message.senderNode.getListeningAddress())) {
 						addresses.add(addr);
 					}
 				}
@@ -57,6 +58,7 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 		}
 
 		// Send them off woo that was easy.
-		message.senderNode.asyncSendMessage(new PeerInfoMessage(addresses));
+		message.senderNode.asyncSendMessage(new PeerInfoMessage(addresses, message.friend));
+
 	}
 }

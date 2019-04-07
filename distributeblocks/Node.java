@@ -27,8 +27,7 @@ import java.util.HashMap;
  * 		receive funds and clear out onHold once a block gets to be 6 deep.
  */
 public class Node {
-	public static String PEER_CONFIG_FILE = "./peer_config.txt";
-	public static String BLOCKCHAIN_FILE = "./blockchain.txt";
+
 	public static int HASH_DIFFICULTY = 4;
 	public static int MONITOR_PORT = 7329;
 	
@@ -181,48 +180,11 @@ public class Node {
 		//snew BlockChain(); // Load the chain (generates the file).
 	}
 
-	public static Block getGenisisBlock(){
-
-		// TODO: Deal with the damn timestamp!!!!!
-
-		try {
-			Block block = new Block(new HashMap<>(), "", 0);
-
-
-			// TODO: This is a crappy hack to get all the nodes to have the same genesis block. Do something else?
-			try {
-				Field timeStamp = Block.class.getDeclaredField("timestamp");
-				timeStamp.setAccessible(true);
-				timeStamp.set(block, 0);
-
-				Field hashBlock = Block.class.getDeclaredField("hashBlock");
-				hashBlock.setAccessible(true);
-				hashBlock.set(block, Crypto.calculateBlockHash(block));
-
-			} catch (NoSuchFieldException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
-
-			block.mineBlock();
-
-			return block;
-		} catch (FailedToHashException e) {
-			e.printStackTrace();
-			throw new RuntimeException("The genisis block failed to hash, something got messed up.");
-		}
-	}
-
 	public Wallet getWallet() {
 		return wallet;
 	}
 
-	public static void main (String[] args){
-		// Begin the console for logging
-		Console.start();
-		Console.log("Beginning node processes");
-		
+	public static void main (String[] args){		
 		// Initialize this node
 		Node node = new Node();
 		NodeService.init(node);

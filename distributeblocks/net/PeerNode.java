@@ -6,7 +6,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.*;
 
@@ -16,6 +18,7 @@ public class PeerNode {
 
 
 	private IPAddress address;
+	private IPAddress localAddress;
 	private int listenPort = -1;
 	private ExecutorService executorService;
 	private Socket socket;
@@ -35,6 +38,8 @@ public class PeerNode {
 	public PeerNode(IPAddress address) {
 		this.address = address;
 		this.listenPort = address.port;
+		this.localAddress = address; // Since this is for outgoing its always going to be the local address.
+		//this.localAddress = address;
 		outQueue = new LinkedBlockingQueue<>();
 		executorService = Executors.newCachedThreadPool();
 	}
@@ -57,6 +62,8 @@ public class PeerNode {
 	}
 
 	/**
+	 * @deprecated Havnt used this method in a wile, its probably brocken.
+	 *
 	 * Connects to the node asynchronously.
 	 * <p>
 	 * Will enque a ConnectionFailed message if the connection is not successfull.
@@ -103,7 +110,8 @@ public class PeerNode {
 		}
 
 			try {
-				socket = new Socket(address.ip, address.port);
+				socket = new Socket();
+				socket.connect(new InetSocketAddress(address.ip, address.port), 3000);
 				System.out.println("Connected to: " + address);
 
 				// Connection success! StartHandler listening
@@ -128,6 +136,8 @@ public class PeerNode {
 	 * @param message
 	 */
 	public void asyncSendMessage(AbstractMessage message) {
+
+		System.out.println("Sending message to peer!");
 
 		try {
 			outQueue.put(message);
@@ -155,6 +165,7 @@ public class PeerNode {
 
 	public void shutDown() {
 
+		System.out.println("SHUTDOWN WAS CALLED ON NODE: " + getListeningAddress());
 		shutDown = true;
 		executorService.shutdown();
 
@@ -182,13 +193,30 @@ public class PeerNode {
 		this.listenPort = listenPort;
 	}
 
+	public void setLocalAddress(IPAddress localAddress) {
+		this.localAddress = localAddress;
+		this.address = localAddress;
+	}
+
+	public void setAddress(IPAddress address) {
+		this.address = address;
+	}
+
+	public IPAddress getLocalAddress() {
+		return localAddress;
+	}
 
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (!(o instanceof PeerNode)) return false;
 		PeerNode peerNode = (PeerNode) o;
-		return getListeningAddress().equals(peerNode.getListeningAddress());
+
+		if (NetworkService.getNetworkManager().inSeedMode()){
+			return getLocalAddress().equals(peerNode.getLocalAddress()) && listenPort == peerNode.getListenPort();
+		} else {
+			return getListeningAddress().equals(peerNode.getListeningAddress());
+		}
 	}
 
 
@@ -217,6 +245,7 @@ public class PeerNode {
 
 			} catch (EOFException e) {
 				// Socket closed.
+				System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Got an EOFException.");
 				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			} catch (IOException e) {
 				//e.printStackTrace();
@@ -245,7 +274,7 @@ public class PeerNode {
 			try {
 				stream = new ObjectOutputStream(socket.getOutputStream());
 			} catch (IOException e) {
-				//e.printStackTrace();
+				e.printStackTrace();
 				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			}
 
