@@ -244,10 +244,8 @@ public class PeerNode {
 			} catch (EOFException e) {
 				// Socket closed.
 				System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Got an EOFException.");
-				System.out.println(new Date().getTime());
-				//NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
+				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			} catch (IOException e) {
-				System.out.println(new Date().getTime());
 				//e.printStackTrace();
 				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			} catch (ClassNotFoundException e) {
