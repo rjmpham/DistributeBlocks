@@ -7,8 +7,6 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-
-// TODO: allow for users to specify who they want the block reward to go to
 @Command(description = "Enable or disable mining",
 		 name = "mine", mixinStandardHelpOptions = true)
 public class MineHandler implements Callable<Void> {

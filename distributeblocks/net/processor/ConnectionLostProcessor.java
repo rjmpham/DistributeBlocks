@@ -9,6 +9,10 @@ public class ConnectionLostProcessor extends AbstractMessageProcessor<Connection
 	public void processMessage(ConnectionLostMessage message) {
 		System.out.println("Lost connection to: " + message.peerNode.getListeningAddress());
 
+<<<<<<< HEAD
+		NetworkService.getNetworkManager().removeNode(message.peerNode);
+		new ConfigManager().removeNodeAndWrite(message.peerNode); // Just going to remove the note from known peers.
+=======
 		// TODO: Need to make sure to grab new peers or try to reastablish.
 		// This isnt needed anymore since the networkManager is checking if it needs new peers periodically
 
@@ -19,5 +23,6 @@ public class ConnectionLostProcessor extends AbstractMessageProcessor<Connection
 			new ConfigManager().removeNodeAndWrite(message.peerNode); // Just going to remove the note from known peers.
 
 		}
+>>>>>>> master
 	}
 }

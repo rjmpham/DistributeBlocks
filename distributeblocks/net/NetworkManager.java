@@ -262,15 +262,27 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
+<<<<<<< HEAD
+
+
+	/* Returns true if the number of peers is less  then the required number of peers.
+	 * Used to tell the NetworkManager to keep searching for peers.
+=======
 	/**
 	 * Retuns true if this node NEEDS more peers to reach minPeers.
 	 *
 	 * @return
+>>>>>>> master
 	 */
 	public boolean needMorePeers() {
 		return getPeerNodes().size() < minPeers;
 	}
 
+<<<<<<< HEAD
+	/* Used to determine if the current node is a seed node. Used for functions that require
+	 * knowledge of this to make decisions.
+	 */
+=======
 	/**
 	 * Returns true if this node has the capacity for more peers.
 	 *
@@ -280,15 +292,22 @@ public class NetworkManager implements NetworkActions {
 		return getPeerNodes().size() < maxPeers;
 	}
 
+>>>>>>> master
 	public boolean inSeedMode() {
 		return seed;
 	}
 
+<<<<<<< HEAD
+
+	/* Returns a copy of all the peers in the system for multiple purposes, like sending the list
+	 * off in a message
+=======
 	/**
 	 * Get a copy of peerNodes list.
 	 *
 	 * @return
 	 *   Copy of peerNodes list.
+>>>>>>> master
 	 */
 	public List<PeerNode> getPeerNodes() {
 		
@@ -298,6 +317,10 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
+<<<<<<< HEAD
+	/* Various getter methods for values in the NetworkManager
+	 */
+=======
 	/**
 	 * Get a copy of the temporaryPeerNodes list.
 	 *
@@ -310,6 +333,7 @@ public class NetworkManager implements NetworkActions {
 			return copy;
 		}
 	}
+>>>>>>> master
 
 	public int getMinPeers() {
 		return minPeers;
@@ -319,9 +343,13 @@ public class NetworkManager implements NetworkActions {
 		return port;
 	}
 
+
+	/* Adds the block ID of a new block to the list of block headers
+	 */
 	public void addBlockHeader(ArrayList<BlockHeader> blockHeader) {
 		headerQueue.add(blockHeader);
 	}
+
 
 	public void gotBlock(BlockMessage blockMessage){
 		blockQueue.add(blockMessage);
@@ -371,10 +399,14 @@ public class NetworkManager implements NetworkActions {
 
 		if (node.connect()) {
 
+<<<<<<< HEAD
+			addNode(node); // TODO: This may have caused issues with cfg file.
+=======
 			//addNode(node); // TODO: This may ahve caused issues with cfg file.
 			addTemporaryNode(node);
 			//node.setLocalAddress(address); // Since we are connecting to it, it must already be the local address.
 			node.asyncSendMessage(new ShakeMessage("Please be my friend.", port));
+>>>>>>> master
 
 			return true;
 		}
@@ -382,6 +414,9 @@ public class NetworkManager implements NetworkActions {
 		return false;
 	}
 
+<<<<<<< HEAD
+	public boolean isConnectedToNode(IPAddress address) {
+=======
 	/**
 	 *
 	 *
@@ -390,6 +425,7 @@ public class NetworkManager implements NetworkActions {
 	 *   True if the peerNodes list has a peerNode with the given address (listening address).
 	 */
 	public boolean isConnectedToNode(IPAddress address) { //TODO: Would be less confusing to use PeerNode?
+>>>>>>> master
 
 
 		for (PeerNode p : getPeerNodes()) {
@@ -441,9 +477,12 @@ public class NetworkManager implements NetworkActions {
 
 			// Only re-broadcast transaction if we have not seen it before.
 			boolean found = false;
+
+			// TODO Steven, explain this in a comment
 			HashMap<String, Transaction> combinedPool = new HashMap<>();
 			combinedPool.putAll(transanctionPool);
 			combinedPool.putAll(pendingTransactionPool);
+
 
 			for (String id : combinedPool.keySet()){
 				if (id.equals(transaction.getId_Transaction())){
@@ -521,17 +560,13 @@ public class NetworkManager implements NetworkActions {
 	 * See startMining()
 	 */
 	 public void beginMining(){
-		// TODO READ THE BELOW TODO
 		if (mining){
 
 			System.out.println("Mining: " + mining);
 
-			// TODO When transaction broadcasts are added, trigger mining in the transaction broadcast processor basedstart on some condition.
-			// At the moment just going to mine in a loop.
 			LinkedList<Block> chain = new BlockChain().getLongestChain();
 
 			synchronized (transanctionPool) {
-				// TODO: Validate the entire pool again for no reason.
 				HashMap<String, Transaction> poolCopy = (HashMap<String, Transaction>) transanctionPool.clone();
 				transanctionPool.clear();
 
@@ -620,17 +655,11 @@ public class NetworkManager implements NetworkActions {
 
 					Socket socket = serverSocket.accept();
 
-					//TODO: In seed mode, should terminate connections after some time limit?
-					// Doesnt really matter for project I guess.
-
 					System.out.println("Received connection from: " + socket.getInetAddress());
 
 					PeerNode peerNode = new PeerNode(socket);
 					//peerNodes.add(peerNode);
 					addTemporaryNode(peerNode);
-
-
-					// TODO: Need to do periodic alive checks to these nodes in order to hav a well maintained list.
 
 				} catch (IOException e) {
 					e.printStackTrace();

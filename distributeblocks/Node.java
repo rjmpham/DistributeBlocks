@@ -117,7 +117,7 @@ public class Node {
 				System.out.println("Transaction request has been made");
 				NetworkService.getNetworkManager().broadcastTransaction(transaction);
 			} else{
-				//TODO error messages, one for key, one for amount, one for else
+				//TODO recind funds back into wallet
 				System.out.println("Transaction request denied");
 			}
 			
@@ -176,6 +176,40 @@ public class Node {
 		//snew BlockChain(); // Load the chain (generates the file).
 	}
 
+<<<<<<< HEAD
+	public static Block getGenisisBlock(){
+
+		// TODO: Deal with the damn timestamp!!!!!
+
+		try {
+			Block block = new Block(new HashMap<>(), "", 0);
+
+			try {
+				Field timeStamp = Block.class.getDeclaredField("timestamp");
+				timeStamp.setAccessible(true);
+				timeStamp.set(block, 0);
+
+				Field hashBlock = Block.class.getDeclaredField("hashBlock");
+				hashBlock.setAccessible(true);
+				hashBlock.set(block, Crypto.calculateBlockHash(block));
+
+			} catch (NoSuchFieldException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+
+			block.mineBlock();
+
+			return block;
+		} catch (FailedToHashException e) {
+			e.printStackTrace();
+			throw new RuntimeException("The genisis block failed to hash, something got messed up.");
+		}
+	}
+
+=======
+>>>>>>> master
 	public Wallet getWallet() {
 		return wallet;
 	}

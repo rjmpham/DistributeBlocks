@@ -42,7 +42,6 @@ public class PeerInfoProcessor extends AbstractMessageProcessor<PeerInfoMessage>
 		}
 
 		if (suceeded < needed){
-			// TODO: Do something about this!
 			System.out.println("Did not get enough peers in peer info :(");
 		}
 
