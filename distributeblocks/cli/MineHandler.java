@@ -20,7 +20,13 @@ public class MineHandler implements Callable<Void> {
 	}
 	
 	@Override
-	public Void call() throws Exception {		
+	public Void call() throws Exception {
+
+		if (! node.walletLoaded()) {
+			System.out.println("No wallet loaded!");
+			return null;
+		}
+
 		if (enable)
 			node.enableMining();
 		else

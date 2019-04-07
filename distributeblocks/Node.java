@@ -24,8 +24,7 @@ import java.util.HashMap;
  * 		receive funds and clear out onHold once a block gets to be 6 deep.
  */
 public class Node {
-	public static String PEER_CONFIG_FILE = "./peer_config.txt";
-	public static String BLOCKCHAIN_FILE = "./blockchain.txt";
+
 	public static int HASH_DIFFICULTY = 4;
 	
 	private boolean started = false;
@@ -177,6 +176,7 @@ public class Node {
 		//snew BlockChain(); // Load the chain (generates the file).
 	}
 
+<<<<<<< HEAD
 	public static Block getGenisisBlock(){
 
 		// TODO: Deal with the damn timestamp!!!!!
@@ -208,6 +208,8 @@ public class Node {
 		}
 	}
 
+=======
+>>>>>>> master
 	public Wallet getWallet() {
 		return wallet;
 	}
