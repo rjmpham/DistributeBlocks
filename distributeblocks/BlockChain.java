@@ -62,12 +62,13 @@ public class BlockChain implements Serializable {
 					if (b.getHashBlock().equals(previous)){
 
 						// We found it, so this is a new fork.
+						System.out.println("===== New fork was created ====");
 						LinkedList newFork = new LinkedList();
 
 						int i = 0;
 						for (Block bl : ls){ // Go through and add every block up to and including previousBlock
 
-							if (i > index){
+							if (i++ > index){
 								break;
 							}
 
