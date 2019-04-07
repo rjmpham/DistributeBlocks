@@ -153,7 +153,7 @@ public class NetworkManager implements NetworkActions {
 	 * @param node
 	 */
 	public void addNode(PeerNode node) {
-		
+
 		synchronized (peerNodes) {
 
 			this.peerNodes.add(node);
@@ -262,70 +262,52 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
-<<<<<<< HEAD
-
-
-	/* Returns true if the number of peers is less  then the required number of peers.
-	 * Used to tell the NetworkManager to keep searching for peers.
-=======
 	/**
-	 * Retuns true if this node NEEDS more peers to reach minPeers.
+	 * Returns true if the number of peers is less  then the required number of peers.
+ 	 * Used to tell the NetworkManager to keep searching for peers.
 	 *
 	 * @return
->>>>>>> master
 	 */
 	public boolean needMorePeers() {
 		return getPeerNodes().size() < minPeers;
 	}
 
-<<<<<<< HEAD
-	/* Used to determine if the current node is a seed node. Used for functions that require
-	 * knowledge of this to make decisions.
-	 */
-=======
 	/**
-	 * Returns true if this node has the capacity for more peers.
+	 * Used to determine if the current node is a seed node. Used for functions that require
+ 	 * knowledge of this to make decisions.
 	 *
 	 * @return
 	 */
+
 	public boolean canHaveMorePeers(){
 		return getPeerNodes().size() < maxPeers;
 	}
 
->>>>>>> master
 	public boolean inSeedMode() {
 		return seed;
 	}
 
-<<<<<<< HEAD
-
-	/* Returns a copy of all the peers in the system for multiple purposes, like sending the list
-	 * off in a message
-=======
 	/**
-	 * Get a copy of peerNodes list.
+	 * Returns a copy of all the peers in the system for multiple purposes, like sending the list
+ 	 * off in a message
 	 *
 	 * @return
 	 *   Copy of peerNodes list.
->>>>>>> master
 	 */
 	public List<PeerNode> getPeerNodes() {
-		
+
 		synchronized (peerNodes){
 			ArrayList<PeerNode> copy = new ArrayList<>(peerNodes);
 			return copy;
 		}
 	}
 
-<<<<<<< HEAD
-	/* Various getter methods for values in the NetworkManager
-	 */
-=======
 	/**
 	 * Get a copy of the temporaryPeerNodes list.
 	 *
 	 * @return
 	 */
+
 	public List<PeerNode> getTempPeerNodes() {
 
 		synchronized (temporaryPeerNodes){
@@ -333,7 +315,6 @@ public class NetworkManager implements NetworkActions {
 			return copy;
 		}
 	}
->>>>>>> master
 
 	public int getMinPeers() {
 		return minPeers;
@@ -399,24 +380,17 @@ public class NetworkManager implements NetworkActions {
 
 		if (node.connect()) {
 
-<<<<<<< HEAD
-			addNode(node); // TODO: This may have caused issues with cfg file.
-=======
+
 			//addNode(node); // TODO: This may ahve caused issues with cfg file.
 			addTemporaryNode(node);
 			//node.setLocalAddress(address); // Since we are connecting to it, it must already be the local address.
 			node.asyncSendMessage(new ShakeMessage("Please be my friend.", port));
->>>>>>> master
-
 			return true;
 		}
 
 		return false;
 	}
 
-<<<<<<< HEAD
-	public boolean isConnectedToNode(IPAddress address) {
-=======
 	/**
 	 *
 	 *
@@ -425,9 +399,6 @@ public class NetworkManager implements NetworkActions {
 	 *   True if the peerNodes list has a peerNode with the given address (listening address).
 	 */
 	public boolean isConnectedToNode(IPAddress address) { //TODO: Would be less confusing to use PeerNode?
->>>>>>> master
-
-
 		for (PeerNode p : getPeerNodes()) {
 			if (p.getListeningAddress().equals(address)) {
 				return true;
@@ -682,7 +653,7 @@ public class NetworkManager implements NetworkActions {
 			try {
 
 				List<PeerNode> nodes = getPeerNodes();
-				
+
 				//System.out.println("Checking if I need more friends.");
 				if (nodes.size() < minPeers) {
 
