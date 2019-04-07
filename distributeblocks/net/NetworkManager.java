@@ -278,6 +278,7 @@ public class NetworkManager implements NetworkActions {
 	 *
 	 * @return
 	 */
+
 	public boolean canHaveMorePeers(){
 		return getPeerNodes().size() < maxPeers;
 	}
@@ -306,6 +307,7 @@ public class NetworkManager implements NetworkActions {
 	 *
 	 * @return
 	 */
+
 	public List<PeerNode> getTempPeerNodes() {
 
 		synchronized (temporaryPeerNodes){
@@ -378,11 +380,11 @@ public class NetworkManager implements NetworkActions {
 
 		if (node.connect()) {
 
+
 			//addNode(node); // TODO: This may ahve caused issues with cfg file.
 			addTemporaryNode(node);
 			//node.setLocalAddress(address); // Since we are connecting to it, it must already be the local address.
 			node.asyncSendMessage(new ShakeMessage("Please be my friend.", port));
-
 			return true;
 		}
 
@@ -397,8 +399,6 @@ public class NetworkManager implements NetworkActions {
 	 *   True if the peerNodes list has a peerNode with the given address (listening address).
 	 */
 	public boolean isConnectedToNode(IPAddress address) { //TODO: Would be less confusing to use PeerNode?
-
-
 		for (PeerNode p : getPeerNodes()) {
 			if (p.getListeningAddress().equals(address)) {
 				return true;

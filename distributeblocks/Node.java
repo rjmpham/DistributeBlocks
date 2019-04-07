@@ -175,7 +175,7 @@ public class Node {
 	public static void init(){
 		//snew BlockChain(); // Load the chain (generates the file).
 	}
-
+  
 	public Wallet getWallet() {
 		return wallet;
 	}
