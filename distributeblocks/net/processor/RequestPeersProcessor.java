@@ -22,14 +22,10 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 		ArrayList<IPAddress> addresses = new ArrayList<>();
 
 		if (networkManager.inSeedMode()){
-			// TODO: In seed mode we want to make some intelligent descisions on which addresses to send probably?
-			// Fuck it, using random number generator!
 			ConfigManager configManager = new ConfigManager();
 			ArrayList<PeerNode> nodes = configManager.readPeerNodes();
 
 			if (nodes.size() > 0) {
-
-				// TODO: Add a configure for the ammount of ndoes that get send back in seed mode?
 				int adressShareCount = Math.min(nodes.size(), 10);
 				Random ran = new Random();
 

@@ -138,7 +138,6 @@ public class Wallet {
 	 * put 'on hold' until they are either verified and cleared, or rescinded
 	 * to the wallet.
 	 */
-	// TODO: allow for a transaction fee
 	public Transaction makeTransaction(PublicKey receiver, float amount){
 		if(availableFunds() < amount){
 			//check funds to see if a transaction is possible
@@ -174,6 +173,28 @@ public class Wallet {
 		return newTransaction;
 	}
 
+
+	/*
+	 * Makes a new transaction from the COIN_BASE.
+	 * The block reward transaction can go to any PublicKey, but
+	 * is usually given to the creator of the block (calling node).
+	 */
+	public static Transaction makeBlockReward(PublicKey receiver) {
+		/* Create a TransactionIn array from the COIN_BASE to be consumed by the block
+		 * reward transaction. This will remain empty.
+		 */
+		ArrayList<TransactionIn> transaction_ArrayList = new ArrayList<TransactionIn>();
+		transaction_ArrayList.add(new TransactionIn(COIN_BASE_ID, BLOCK_REWARD_AMOUNT));
+
+		// Create a block reward Transaction, gives coins to the receiver
+		Transaction newTransaction = new Transaction(COIN_BASE_KEYS.getPrivate(),
+				COIN_BASE_KEYS.getPublic(),
+				receiver,
+				BLOCK_REWARD_AMOUNT,
+				transaction_ArrayList);
+		return newTransaction;
+	}
+
 	/*
 	 * Returns the private key of this Wallet
 	 */
@@ -202,27 +223,4 @@ public class Wallet {
 		return onHold_HashMap;
 	}
 
-	/*
-	 * Makes a new transaction from the COIN_BASE.
-	 * The block reward transaction can go to any PublicKey, but
-	 * is usually given to the creator of the block (calling node).
-	 */
-	public static Transaction makeBlockReward(PublicKey receiver) {
-		// Create a TransactionIn from the COIN_BASE
-		ArrayList<TransactionIn> transaction_ArrayList = new ArrayList<TransactionIn>();
-
-		/*
-		 *  TODO when creating a transactionIn, there isn't a source transactionOut,
-		 *  How is this being handled elsewhere? I suppose we have an if that checks
-		 *  the Id, and if coinbase, ignore the transaction out?
-		 */
-		transaction_ArrayList.add(new TransactionIn(COIN_BASE_ID, BLOCK_REWARD_AMOUNT));
-		// Create a Transaction to the receiver
-		Transaction newTransaction = new Transaction(COIN_BASE_KEYS.getPrivate(),
-													COIN_BASE_KEYS.getPublic(),
-													receiver,
-													BLOCK_REWARD_AMOUNT,
-													transaction_ArrayList);
-		return newTransaction;
-	}
 }

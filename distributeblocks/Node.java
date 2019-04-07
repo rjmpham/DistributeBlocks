@@ -118,7 +118,7 @@ public class Node {
 				System.out.println("Transaction request has been made");
 				NetworkService.getNetworkManager().broadcastTransaction(transaction);
 			} else{
-				//TODO error messages, one for key, one for amount, one for else
+				//TODO recind funds back into wallet
 				System.out.println("Transaction request denied");
 			}
 			
@@ -184,8 +184,6 @@ public class Node {
 		try {
 			Block block = new Block(new HashMap<>(), "", 0);
 
-
-			// TODO: This is a crappy hack to get all the nodes to have the same genesis block. Do something else?
 			try {
 				Field timeStamp = Block.class.getDeclaredField("timestamp");
 				timeStamp.setAccessible(true);

@@ -32,7 +32,6 @@ public class CommandLineInterface implements Runnable{
 		String input;
 		while(true) {
 			input = keyboard.nextLine();
-			// TODO: either handle quotes, or make sure no valid arg has whitespace
 			parseCommand(input.split("\\s+"));
 		}
 	}
