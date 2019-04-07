@@ -36,7 +36,7 @@ public class NetworkManager implements NetworkActions {
 	/**
 	 * Time in seconds between attempts at discovering more peer nodes.
 	 */
-	private int peerSearchRate = 60;
+	private int peerSearchRate = 10;
 
 	private ExecutorService executorService;
 	private ScheduledExecutorService scheduledExecutorService; // For requesting new peers.
@@ -644,7 +644,7 @@ public class NetworkManager implements NetworkActions {
 				// Not sure whats going on here.
 			}
 
-			scheduledExecutorService.schedule(new CheckNeedNodes(), 10, TimeUnit.SECONDS);
+			scheduledExecutorService.schedule(new CheckNeedNodes(), peerSearchRate, TimeUnit.SECONDS);
 		}
 	}
 
