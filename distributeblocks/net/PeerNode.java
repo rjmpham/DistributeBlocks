@@ -6,6 +6,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Date;
 import java.util.Objects;
@@ -109,7 +110,8 @@ public class PeerNode {
 		}
 
 			try {
-				socket = new Socket(address.ip, address.port);
+				socket = new Socket();
+				socket.connect(new InetSocketAddress(address.ip, address.port), 3000);
 				System.out.println("Connected to: " + address);
 
 				// Connection success! StartHandler listening
