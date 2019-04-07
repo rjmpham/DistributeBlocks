@@ -11,6 +11,7 @@ public class ConnectionFailedProcessor extends AbstractMessageProcessor<Connecti
 		System.out.println("Got connection failed message.");
 
 		NetworkService.getNetworkManager().removeNode(message.peerNode);
+		NetworkService.getNetworkManager().removeTemporaryNode(message.peerNode);
 		new ConfigManager().removeNodeAndWrite(message.peerNode); // Just going to remove the note from known peers.
 	}
 }

@@ -24,15 +24,14 @@ import java.util.HashMap;
  * 		receive funds and clear out onHold once a block gets to be 6 deep.
  */
 public class Node {
-	public static String PEER_CONFIG_FILE = "./peer_config.txt";
-	public static String BLOCKCHAIN_FILE = "./blockchain.txt";
+
 	public static int HASH_DIFFICULTY = 4;
-	
+
 	private boolean started = false;
 	private boolean mining = false;
 	private Wallet wallet;
 	private String walletPath;
-	
+
 	/*
 	 * Starts up the network threads and marks the node as started.
 	 */
@@ -40,7 +39,7 @@ public class Node {
 		NetworkService.init(config);
 		started = true;
 	}
-	
+
 	/*
 	 * Closes all threads and safely kills the node.
 	 * This will also save the wallet state for the user.
@@ -51,9 +50,9 @@ public class Node {
 		}
 		// TODO: do we need to safely close all other threads?
 		System.exit(0);
-		
+
 	}
-	
+
 	/*
 	 * Creates a new wallet with a private key/ public key
 	 * pair. This will also save the key pair to a specified
@@ -64,7 +63,7 @@ public class Node {
 		walletPath = path;
 		WalletManager.saveWallet(path, wallet);
 	}
-	
+
 	/*
 	 * Loads a wallet with a private key/ public key pair.
 	 */
@@ -72,7 +71,7 @@ public class Node {
 		walletPath = path;
 		wallet = WalletManager.loadWallet(path);
 	}
-	
+
 	/*
 	 * Counts the funds within the linked wallet.
 	 */
@@ -81,11 +80,11 @@ public class Node {
 			System.out.println("No wallet loaded!");
 			return;
 		}
-			
+
 		System.out.println(String.format("Available funds: %f", wallet.availableFunds()));
 		System.out.println(String.format("Funds on hold: %f", wallet.fundsOnHold()));
 	}
-	
+
 	/*
 	 * Rescinds all held funds within the linked wallet.
 	 */
@@ -93,10 +92,10 @@ public class Node {
 		if (!walletLoaded()) {
 			System.out.println("No wallet loaded!");
 			return;
-		} 
+		}
 		wallet.rescindHeldFunds();
 	}
-	
+
 	/*
 	 * Creates and broadcasts a new transaction.
 	 */
@@ -121,14 +120,14 @@ public class Node {
 				//TODO recind funds back into wallet
 				System.out.println("Transaction request denied");
 			}
-			
+
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
 			System.out.println("Error: could not load KeyPair");
 		} catch (IOException e) {
 			System.out.println("Error: no KeyPair files found in path " + recipientKeyPath);
 		}
 	}
-	
+
 	/*
 	 * Enables mining within this node.
 	 */
@@ -140,7 +139,7 @@ public class Node {
 		NetworkService.getNetworkManager().startMining();
 		mining = true;
 	}
-	
+
 	/*
 	 * Disables mining within this node.
 	 */
@@ -154,7 +153,7 @@ public class Node {
 			mining = false;
 		}
 	}
-	
+
 	/*
 	 * Returns whether the node has been started or not.
 	 * This is used to block commands that require the node
@@ -163,7 +162,7 @@ public class Node {
 	public boolean started() {
 		return started;
 	}
-	
+
 	/*
 	 * Returns whether the node has a wallet loaded for
 	 * use. This is used to block commands that require
@@ -177,48 +176,17 @@ public class Node {
 		//snew BlockChain(); // Load the chain (generates the file).
 	}
 
-	public static Block getGenisisBlock(){
-
-		// TODO: Deal with the damn timestamp!!!!!
-
-		try {
-			Block block = new Block(new HashMap<>(), "", 0);
-
-			try {
-				Field timeStamp = Block.class.getDeclaredField("timestamp");
-				timeStamp.setAccessible(true);
-				timeStamp.set(block, 0);
-
-				Field hashBlock = Block.class.getDeclaredField("hashBlock");
-				hashBlock.setAccessible(true);
-				hashBlock.set(block, Crypto.calculateBlockHash(block));
-
-			} catch (NoSuchFieldException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
-
-			block.mineBlock();
-
-			return block;
-		} catch (FailedToHashException e) {
-			e.printStackTrace();
-			throw new RuntimeException("The genisis block failed to hash, something got messed up.");
-		}
-	}
-
 	public Wallet getWallet() {
 		return wallet;
 	}
 
-	public static void main (String[] args){		
+	public static void main (String[] args){
 		// Initialize this node
 		Node node = new Node();
 		NodeService.init(node);
 
 		Node.init();	// TODO: refactor/ remove this
-		
+
 		// Parse initial args then run the cli
 		CommandLineInterface cli = new CommandLineInterface(node);
 		cli.parseCommand(args);
