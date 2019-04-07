@@ -10,6 +10,7 @@ public class ShakeResponseProcessor extends AbstractMessageProcessor<ShakeRespon
 	public void processMessage(ShakeResponseMessage message) {
 		System.out.println("Got shake response: " + message.messsage);
 		message.senderNode.setListenPort(message.listeningPort);
+		RequestPeersMessage requestPeersMessage;
 
 		if (message.letsBeFriends && NetworkService.getNetworkManager().needMorePeers() &&
 				!NetworkService.getNetworkManager().isConnectedToNode(message.senderNode.getListeningAddress()) &&
@@ -20,12 +21,14 @@ public class ShakeResponseProcessor extends AbstractMessageProcessor<ShakeRespon
 			configManager.addNodeAndWrite(message.senderNode);
 			NetworkService.getNetworkManager().addNode(message.senderNode);
 			NetworkService.getNetworkManager().removeTemporaryNode(message.senderNode);
-
+			requestPeersMessage = new RequestPeersMessage(true);
+		} else {
+			requestPeersMessage = new RequestPeersMessage(false);
 		}
 
 		// If the other node wants to be friends or not, send a peer info request.
 		// The node will get removed from the temporary pool in the PeerInfoProcessor
-		message.senderNode.asyncSendMessage(new RequestPeersMessage());
+		message.senderNode.asyncSendMessage(requestPeersMessage);
 
 		if (!message.seedNode) {
 			//NetworkService.getNetworkManager().removeTemporaryNode(message.senderNode);

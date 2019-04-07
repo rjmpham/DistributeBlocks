@@ -46,7 +46,8 @@ public class PeerInfoProcessor extends AbstractMessageProcessor<PeerInfoMessage>
 		}
 
 		NetworkService.getNetworkManager().removeTemporaryNode(message.senderNode);
-		if (message.seedNode){
+
+		if (message.seedNode || !message.friend){
 			System.out.println("SHUTTING DOWN NODE CONNECTION BECAUSE ITS A SEED");
 			message.senderNode.shutDown();
 		}
