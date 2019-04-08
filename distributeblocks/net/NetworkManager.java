@@ -950,10 +950,12 @@ public class NetworkManager implements NetworkActions {
 							blockChain.addBlock(m.block);
 							
 							Block lastVerified = blockChain.getLastVerifiedBlock();
-							// Update node wallet with the block which is now verified
-							NodeService.getNode().updateWallet(lastVerified);
-							// Update the transaction pools now that a new block is verified
-							updateTransactionPools(lastVerified);
+							if (lastVerified == null) {
+								// Update node wallet with the block which is now verified
+								NodeService.getNode().updateWallet(lastVerified);
+								// Update the transaction pools now that a new block is verified
+								updateTransactionPools(lastVerified);
+							 }
 							break;
 						}
 					}
