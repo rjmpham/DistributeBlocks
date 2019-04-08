@@ -161,8 +161,18 @@ public class Transaction implements Serializable {
   		return total;
   	}
   	
+  	/*
+  	 * Input transactionIn getter
+  	 */
   	public ArrayList<TransactionIn> getInput() {
   		return input;
+  	}
+  	
+  	/*
+  	 * Output TransactionOut getter
+  	 */
+  	public ArrayList<TransactionOut> getOutput() {
+  		return output;
   	}
   	
   	/*

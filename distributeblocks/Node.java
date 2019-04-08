@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.HashMap;
+import java.util.Map;
 
 /* TODO: THIS IS A BIG ONE:
  *		We need some way to get other node's public keys and save them to files.
@@ -93,6 +95,23 @@ public class Node {
 		wallet.rescindHeldFunds();
 	}
 
+	/*
+	 * Updates the node's wallet by clearing out any
+	 * held funds which were waiting to be verified, and
+	 * updating how much money it has from all the transactions
+	 * on the block.
+	 * 
+	 * This method is called whenever a block becomes 6 deep from the head of the chain,
+	 * and all transactions on the block are considered verified. 
+	 */
+	// TODO: call this when a block becomes 6 deep from the head
+	public void updateWallet(Block block) {
+		HashMap<String, Transaction> blockData = block.getData();
+		for (Map.Entry<String,Transaction> i: blockData.entrySet()){
+			wallet.update(i.getValue());
+		}
+	}
+	
 	/*
 	 * Creates and broadcasts a new transaction.
 	 * 

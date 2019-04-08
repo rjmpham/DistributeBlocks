@@ -53,6 +53,33 @@ public class Wallet {
 		if (onHold_HashMap != null)
 			this.onHold_HashMap = onHold_HashMap;
 	}
+	
+	/*
+	 * This method updates the state of the wallet from a verified
+	 * transaction. Every TransactionOut will be checked, and:
+	 * 		- if it was an output that was on hold in this wallet,
+	 * 			it will be cleared out (verified as spent)
+	 * 
+	 * 		- if it belongs to the PK of this wallet, it will be added
+	 * 			as available funds (verified as received)
+	 * 
+	 * This method is called whenever a block becomes 6 deep from the head of the chain,
+	 * and all transactions on the block are considered verified.
+	 */
+	public void update(Transaction transaction) {
+		// Construct a map from ids to TransactionOut
+		HashMap<String, TransactionOut> outputs = new HashMap<String, TransactionOut>();
+		for (TransactionOut o: transaction.getOutput()) {
+			outputs.put(o.getId(), o);
+		}
+		
+		// Clear any held funds that were waiting for verification
+		clearFundsOnHold(outputs);
+		// Clear any funds spent, but rescinded
+		clearFundsRescinded(outputs);
+		// Add any newly received funds
+		receiveFunds(outputs);
+	}
 
 	/*
 	 * Returns the total number of funds this wallet has available.
@@ -83,9 +110,8 @@ public class Wallet {
 	 * this wallet's public key to its own funds.
 	 * 
 	 * This method is called whenever a block becomes 6 deep from the head of the chain,
-	 * and all transactions on the block are considered validated.
+	 * and all transactions on the block are considered verified.
 	 */
-	// TODO: call this method when a block becomes 6 deep from the head of the chain
 	public void receiveFunds(HashMap<String, TransactionOut> verifiedTransactions) {
 		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
 			TransactionOut funds = i.getValue();
@@ -99,19 +125,35 @@ public class Wallet {
 	}
 
 	/*
-	 * Checks over each transaction in verifiedTransaction and removed any matching
+	 * Checks over each transaction in verifiedTransactions and removed any matching
 	 * transactions which were on hold in this wallet. This essentially marks the
 	 * funds as permanently spent by removing them from the wallet completely.
 	 * 
 	 * This method is called whenever a block becomes 6 deep from the head of the chain,
-	 * and all transactions on the block are considered validated.
+	 * and all transactions on the block are considered verified.
 	 */
-	// TODO: call this method when a block becomes 6 deep from the head of the chain
 	public void clearFundsOnHold(HashMap<String, TransactionOut> verifiedTransactions) {
 		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
 			TransactionOut spent = onHold_HashMap.get(i.getKey());
 			if (spent != null) {
 				onHold_HashMap.remove(spent.getId());
+			}
+		}
+	}
+	
+	/*
+	 * Checks over each transaction in verifiedTransactions and removed any matching
+	 * transactions which were erroneously rescinded. This essentially marks the
+	 * funds as permanently spent by removing them from the wallet completely.
+	 * 
+	 * This method is called whenever a block becomes 6 deep from the head of the chain,
+	 * and all transactions on the block are considered verified.
+	 */
+	public void clearFundsRescinded(HashMap<String, TransactionOut> verifiedTransactions) {
+		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
+			TransactionOut spent = funds_HashMap.get(i.getKey());
+			if (spent != null) {
+				funds_HashMap.remove(spent.getId());
 			}
 		}
 	}
@@ -173,7 +215,7 @@ public class Wallet {
 			if(sum > amount) break;
 		}
 
-		/* Create the transaction, without enforcing it, the transaction enforcer checks that the trasnaction is
+		/* Create the transaction, without enforcing it, the transaction enforcer checks that the tramsaction is
 		 * valid, with enough inputs to make the exchange.
 		 * The transaction should be enforced when it is called
 		 * elsewhere.

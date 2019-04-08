@@ -30,7 +30,7 @@ public class TransactionOut implements Serializable {
 	 * Check if a coin belongs to the given key
 	 */
 	public boolean isMine(PublicKey publicKey) {
-		return (publicKey == pk_Receiver);
+		return (publicKey.hashCode() == pk_Receiver.hashCode());
 	}
 	
 	/*
