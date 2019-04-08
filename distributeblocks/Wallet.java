@@ -8,7 +8,7 @@ import distributeblocks.crypto.*;
 import distributeblocks.io.WalletManager;
 
 
-/*
+/**
  * Wallet keeps track of all TransactionOut
  * objects which resulted from transactions
  * to its owner.
@@ -29,7 +29,7 @@ public class Wallet {
 	private HashMap<String, TransactionOut> funds_HashMap = new HashMap<String,TransactionOut>(); 	// Funds in this wallet.
 	private HashMap<String, TransactionOut> onHold_HashMap = new HashMap<String,TransactionOut>(); 	// Spent funds waiting to be removed
 
-	/*
+	/**
 	 * Constructor to create a new empty wallet
 	 */
 	public Wallet(){
@@ -38,8 +38,12 @@ public class Wallet {
 	  publicKey = pair.getPublic();
 	}
 
-	/*
+	/**
 	 * Constructor to reload a wallet
+	 * 
+	 * @param keys				KeyPair of the wallet
+	 * @param funds_HashMap		funds the wallet has
+	 * @param onHold_HashMap	funds the wallet has on hold
 	 */
 	public Wallet(KeyPair keys,
 					HashMap<String,TransactionOut> funds_HashMap,
@@ -54,7 +58,7 @@ public class Wallet {
 			this.onHold_HashMap = onHold_HashMap;
 	}
 	
-	/*
+	/**
 	 * This method updates the state of the wallet from a verified
 	 * transaction. Every TransactionOut will be checked, and:
 	 * 		- if it was an output that was on hold in this wallet,
@@ -64,6 +68,8 @@ public class Wallet {
 	 * 			as available funds (verified as received)
 	 * 
 	 * This method is called whenever a block becomes verified (sufficiently deep).
+	 * 
+	 * @param transaction	The Transaction to process
 	 */
 	public void update(Transaction transaction) {
 		// Construct a map from ids to TransactionOut
@@ -80,8 +86,10 @@ public class Wallet {
 		receiveFunds(outputs);
 	}
 
-	/*
+	/**
 	 * Returns the total number of funds this wallet has available.
+	 * 
+	 * @return total funds available
 	 */
 	public float availableFunds(){
 		float sum = 0;
@@ -92,8 +100,10 @@ public class Wallet {
 		return sum;
 	}
 
-	/*
+	/**
 	 * Returns the total number of funds on hold in this wallet
+	 * 
+	 * @return total funds on hold
 	 */
 	public float fundsOnHold() {
 		float sum = 0;
@@ -104,11 +114,13 @@ public class Wallet {
 		return sum;
 	}
 
-	/*
+	/**
 	 * Checks over each transaction in verifiedTransactions and adds any matching
 	 * this wallet's public key to its own funds.
 	 * 
 	 * This method is called whenever a block becomes verified (sufficiently deep).
+	 * 
+	 * @param verifiedTransactions	HashMap from TransactionOut ids to TransactionOut to process
 	 */
 	public void receiveFunds(HashMap<String, TransactionOut> verifiedTransactions) {
 		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
@@ -122,12 +134,14 @@ public class Wallet {
 		}
 	}
 
-	/*
+	/**
 	 * Checks over each transaction in verifiedTransactions and removed any matching
 	 * transactions which were on hold in this wallet. This essentially marks the
 	 * funds as permanently spent by removing them from the wallet completely.
 	 * 
 	 * This method is called whenever a block becomes verified (sufficiently deep).
+	 * 
+	 * @param verifiedTransactions	HashMap from TransactionOut ids to TransactionOut to process
 	 */
 	public void clearFundsOnHold(HashMap<String, TransactionOut> verifiedTransactions) {
 		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
@@ -138,12 +152,14 @@ public class Wallet {
 		}
 	}
 	
-	/*
+	/**
 	 * Checks over each transaction in verifiedTransactions and removed any matching
 	 * transactions which were erroneously rescinded. This essentially marks the
 	 * funds as permanently spent by removing them from the wallet completely.
 	 * 
 	 * This method is called whenever a block becomes verified (sufficiently deep).
+	 * 
+	 * @param verifiedTransactions	HashMap from TransactionOut ids to TransactionOut to process
 	 */
 	public void clearFundsRescinded(HashMap<String, TransactionOut> verifiedTransactions) {
 		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
@@ -154,7 +170,7 @@ public class Wallet {
 		}
 	}
 
-	/*
+	/**
 	 * Returns all transaction which was spent and on hold back into
 	 * the HashMap of available funds. This method may be called when
 	 * a transaction is disregarded by the network, and the user would
@@ -169,11 +185,13 @@ public class Wallet {
 		}
 	}
 	
-	/*
+	/**
 	 * Returns a transaction which was spent and on hold back into
 	 * the HashMap of available funds. This method may be called when
 	 * a transaction is disregarded by the network, and the user would
 	 * like to attempt to use the funds for a new transaction instead.
+	 * 
+	 * @param transactionOutId		id of specific transaction to rescind
 	 */
 	public void rescindHeldFund(String transactionOutId) {
 		TransactionOut rescinded = onHold_HashMap.get(transactionOutId);
@@ -183,7 +201,7 @@ public class Wallet {
 		}
 	}
 
-	/*
+	/**
 	 * Makes a new transaction from this wallet to send money.
 	 * This will create a new transaction utilizing the funds available.
 	 * Any overage will be sent back to this wallet.
@@ -191,6 +209,11 @@ public class Wallet {
 	 * Available funds which were used to create this transaction will be
 	 * put 'on hold' until they are either verified and cleared, or rescinded
 	 * to the wallet.
+	 * 
+	 * @param receiver		PublicKey of the receiver
+	 * @param amount		how much is being sent
+	 * 
+	 * @return a newly created Transaction
 	 */
 	public Transaction makeTransaction(PublicKey receiver, float amount){
 		if(availableFunds() < amount){
@@ -227,12 +250,14 @@ public class Wallet {
 		return newTransaction;
 	}
 	
-	/*
+	/**
 	 * Takes all of the TransactionOut objects used to make a Transaction out
 	 * of the onHold_hashMap and puts them back into the funds_HashMap. 
 	 * 
 	 * This method is called when a transaction is created but ultimately fails, 
 	 * and should be reversed.
+	 * 
+	 * @param failedTransaction		Transaction to reverse
 	 */
 	public void reverseTransaction(Transaction failedTransaction) {
 		// put the funds used to create the transaction back into the available funds
@@ -241,10 +266,14 @@ public class Wallet {
 		}
 	}
 
-	/*
+	/**
 	 * Makes a new transaction from the COIN_BASE.
 	 * The block reward transaction can go to any PublicKey, but
 	 * is usually given to the creator of the block (calling node).
+	 * 
+	 * @param receiver		PublicKey of the receiver
+	 * 
+	 * @return a block reward Transaction
 	 */
 	public static Transaction makeBlockReward(PublicKey receiver) {
 		/* Create a TransactionIn array from the COIN_BASE to be consumed by the block
@@ -262,32 +291,9 @@ public class Wallet {
 		return newTransaction;
 	}
 
-	/*
-	 * Returns the private key of this Wallet
-	 */
-	public PrivateKey getPrivateKey(){
-		return privateKey;
-	}
-
-	/*
-	 * Returns the public key of this Wallet
-	 */
-	public PublicKey getPublicKey(){
-		return publicKey;
-	}
-
-	/*
-	 * Returns the funds hashmap of this wallet
-	 */
-	public HashMap<String, TransactionOut> getFundsHashMap() {
-		return funds_HashMap;
-	}
-
-	/*
-	 * Returns the onhold hashmap of this wallet
-	 */
-	public HashMap<String, TransactionOut> getOnHoldHashMap() {
-		return onHold_HashMap;
-	}
-
+	// Getter methods
+	public PrivateKey getPrivateKey(){ return privateKey; }
+	public PublicKey getPublicKey(){ return publicKey; }
+	public HashMap<String, TransactionOut> getFundsHashMap() { return funds_HashMap; }
+	public HashMap<String, TransactionOut> getOnHoldHashMap() { return onHold_HashMap; }
 }
