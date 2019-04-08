@@ -2,6 +2,7 @@ package distributeblocks;
 
 import distributeblocks.crypto.Crypto;
 import distributeblocks.cli.CommandLineInterface;
+import distributeblocks.io.Console;
 import distributeblocks.io.WalletManager;
 import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
@@ -51,6 +52,7 @@ public class Node {
 	public void initializeNetworkService(NetworkConfig config) {
 		NetworkService.init(config);
 		started = true;
+		System.out.println("Node successfully started");
 	}
 
 	/**
@@ -58,6 +60,7 @@ public class Node {
 	 * This will also save the wallet state for the user.
 	 */
 	public void exit() {
+		System.out.println("Exiting program");
 		if (wallet != null){
 			WalletManager.saveWallet(walletPath, wallet);
 		}
@@ -74,14 +77,34 @@ public class Node {
 	 * @param path		path to the directory where wallet info will be stored
 	 */
 	public void createWallet(String path) {
+		// ensure that it is safe to save wallet data to the directory
 		File file = new File(path);
+		if(!file.exists())
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				System.out.println("failed to create wallet directory");
+			}
 		if(!file.isDirectory() || file.list().length > 0){
 			System.out.println("Cannot create a wallet in a non-empty directory!");
 			return;
 		}
+		
+		// keep a copy of the current wallet in case creation fails
+		Wallet old = wallet;
 		wallet = new Wallet();
 		walletPath = path;
-		WalletManager.saveWallet(path, wallet);
+		
+		boolean failed = false;
+		try {
+			WalletManager.saveWallet(path, wallet);
+		} catch (IOException e) {
+			System.out.println("Failed to save new wallet, keeping previously wallet (if any)");
+			wallet = old;
+		}
+		if (!failed) {
+			System.out.print("Successfully created wallet");
+		}
 	}
 
 	/**
@@ -90,8 +113,16 @@ public class Node {
 	 * @param path		path to the directory where wallet info is stored
 	 */
 	public void loadWallet(String path) {
-		walletPath = path;
-		wallet = WalletManager.loadWallet(path);
+		// keep a copy of the current wallet in case creation fails
+		Wallet old = wallet;
+		
+		try {
+			wallet = WalletManager.loadWallet(path);
+			walletPath = path;
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
+			System.out.println("Failed to load wallet, keeping previously wallet (if any)");
+			wallet = old;
+		}
 	}
 	
 	/**

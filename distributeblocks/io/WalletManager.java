@@ -40,8 +40,9 @@ public class WalletManager {
 	 * 
 	 * @param path		path to the director where the wallet files will be saved
 	 * @param wallet	the Wallet to save
+	 * @throws IOException 
 	 */
-	public static void saveWallet(String path, Wallet wallet) {
+	public static void saveWallet(String path, Wallet wallet) throws IOException {
 		saveKeyPair(path, new KeyPair(wallet.getPublicKey(), wallet.getPrivateKey()));
 		saveFundsHashMap(path, wallet.getFundsHashMap());
 		saveOnHoldHashMap(path, wallet.getOnHoldHashMap());
@@ -53,8 +54,11 @@ public class WalletManager {
 	 * @param path		path to the directory where the wallet files will be loaded from
 	 *
 	 * @return the loaded Wallet
+	 * @throws IOException 
+	 * @throws InvalidKeySpecException 
+	 * @throws NoSuchAlgorithmException 
 	 */
-	public static Wallet loadWallet(String path) {
+	public static Wallet loadWallet(String path) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
 		KeyPair keys = loadKeyPair(path, Crypto.GEN_ALGORITHM);
 		HashMap<String, TransactionOut> funds_HashMap = loadFundsHashMap(path);
 		HashMap<String, TransactionOut> onHold_HashMap = loadOnHoldHashMap(path);
@@ -120,14 +124,10 @@ public class WalletManager {
 	 * @param path		path to the director where the funds.json file is
 	 * 
 	 * @return the loaded funds_HashMap	
+	 * @throws FileNotFoundException 
 	 */
-	public static HashMap<String, TransactionOut> loadFundsHashMap(String path) {
-		try {
-			return loadHashMap(System.getProperty("user.dir") + path + "/funds.json");
-		} catch (FileNotFoundException e) {
-			Console.log("Error: no funds.json found in path " + path);
-			return null;
-		}
+	public static HashMap<String, TransactionOut> loadFundsHashMap(String path) throws FileNotFoundException {
+		return loadHashMap(System.getProperty("user.dir") + path + "/funds.json");
 	}
 	
 	/**
@@ -137,15 +137,10 @@ public class WalletManager {
 	 * @param path		path to the director where the onHold.json file is
 	 * 
 	 * @return the loaded onHold_HashMap	
+	 * @throws FileNotFoundException 
 	 */
-	public static HashMap<String, TransactionOut> loadOnHoldHashMap(String path) {
-		try {
-			return loadHashMap(System.getProperty("user.dir") + path + "/onHold.json");
-			
-		} catch (FileNotFoundException e) {
-			Console.log("Error: no onHold.json found in path " + path);
-			return null;
-		}
+	public static HashMap<String, TransactionOut> loadOnHoldHashMap(String path) throws FileNotFoundException {
+		return loadHashMap(System.getProperty("user.dir") + path + "/onHold.json");
 	}
 	
 	/**
@@ -175,15 +170,11 @@ public class WalletManager {
 	 * 
 	 * @param path		path to the directory where the keyPair will be saved
 	 * @param keyPair	KeyPair to save
+	 * @throws IOException 
 	 */
-	public static void saveKeyPair(String path, KeyPair keyPair) {
-		try {
-			savePublicKey(System.getProperty("user.dir") + path + "/public.key", keyPair.getPublic());
-			savePrivateKey(System.getProperty("user.dir") + path + "/private.key", keyPair.getPrivate());
-		
-		} catch(IOException e) {
-			Console.log("Error: could not save KeyPair");
-		}
+	public static void saveKeyPair(String path, KeyPair keyPair) throws IOException {
+		savePublicKey(System.getProperty("user.dir") + path + "/public.key", keyPair.getPublic());
+		savePrivateKey(System.getProperty("user.dir") + path + "/private.key", keyPair.getPrivate());
 	}
 	
 	
@@ -232,20 +223,14 @@ public class WalletManager {
 	 * @param algorithm		the algorithm used to create the KeyPair
 	 * 
 	 * @return the loaded KeyPair
+	 * @throws IOException 
+	 * @throws InvalidKeySpecException 
+	 * @throws NoSuchAlgorithmException 
 	 */
-	public static KeyPair loadKeyPair(String path, String algorithm) {
-		try {
-			PublicKey publicKey = loadPublicKey(System.getProperty("user.dir") + path + "/public.key", algorithm);
-			PrivateKey privateKey = loadPrivateKey(System.getProperty("user.dir") + path + "/private.key", algorithm);
-			return new KeyPair(publicKey, privateKey);
-			
-		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-			Console.log("Error: could not load KeyPair");
-			return null;
-		} catch (IOException e) {
-			Console.log("Error: no KeyPair files found in path " + path);
-			return null;
-		}
+	public static KeyPair loadKeyPair(String path, String algorithm) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+		PublicKey publicKey = loadPublicKey(System.getProperty("user.dir") + path + "/public.key", algorithm);
+		PrivateKey privateKey = loadPrivateKey(System.getProperty("user.dir") + path + "/private.key", algorithm);
+		return new KeyPair(publicKey, privateKey);
 	}
 	
 	/**
