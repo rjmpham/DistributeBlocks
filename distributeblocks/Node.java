@@ -13,9 +13,15 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Map;
 
+// TODO: normalize our Console.log() statements. Some of them seem unprofessional 
+// TODO: normalize our documentation across the system. Some of them seem unprofessional
+//			DON'T FORGET: coding style  and consistency IS FOR MARKS
+
 /* TODO: THIS IS A BIG ONE:
  *		We need some way to get other node's public keys and save them to files.
- *		Without this, we won't be able to send anyone money.
+ *		Without this, we won't be able to send anyone money. Even if this is
+ *		just send each other's PKs through some file share, we need to set this
+ *		up for the demo.
  */
 
 /* TODO: ALSO A BIG ONE:
