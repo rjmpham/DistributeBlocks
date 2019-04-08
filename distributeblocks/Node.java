@@ -117,7 +117,7 @@ public class Node {
 				System.out.println("Transaction request has been made");
 				NetworkService.getNetworkManager().broadcastTransaction(transaction);
 			} else{
-				//TODO recind funds back into wallet
+				wallet.reverseTransaction(transaction);
 				System.out.println("Transaction request denied");
 			}
 

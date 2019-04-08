@@ -81,7 +81,11 @@ public class Wallet {
 	/*
 	 * Checks over each transaction in verifiedTransactions and adds any matching
 	 * this wallet's public key to its own funds.
+	 * 
+	 * This method is called whenever a block becomes 6 deep from the head of the chain,
+	 * and all transactions on the block are considered validated.
 	 */
+	// TODO: call this method when a block becomes 6 deep from the head of the chain
 	public void receiveFunds(HashMap<String, TransactionOut> verifiedTransactions) {
 		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
 			TransactionOut funds = i.getValue();
@@ -98,13 +102,35 @@ public class Wallet {
 	 * Checks over each transaction in verifiedTransaction and removed any matching
 	 * transactions which were on hold in this wallet. This essentially marks the
 	 * funds as permanently spent by removing them from the wallet completely.
+	 * 
+	 * This method is called whenever a block becomes 6 deep from the head of the chain,
+	 * and all transactions on the block are considered validated.
 	 */
+	// TODO: call this method when a block becomes 6 deep from the head of the chain
 	public void clearFundsOnHold(HashMap<String, TransactionOut> verifiedTransactions) {
 		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
-			onHold_HashMap.remove(i.getKey());
+			TransactionOut spent = onHold_HashMap.get(i.getKey());
+			if (spent != null) {
+				onHold_HashMap.remove(spent.getId());
+			}
 		}
 	}
 
+	/*
+	 * Returns all transaction which was spent and on hold back into
+	 * the HashMap of available funds. This method may be called when
+	 * a transaction is disregarded by the network, and the user would
+	 * like to attempt to use the funds for a new transaction instead.
+	 * 
+	 * This method is called when the user gives up on previous transactions
+	 * and wishes to re-spend the funds they had tried to spend previously.
+	 */
+	public void rescindHeldFunds() {
+		for (Map.Entry<String,TransactionOut> i: onHold_HashMap.entrySet()){
+			rescindHeldFund(i.getKey());
+		}
+	}
+	
 	/*
 	 * Returns a transaction which was spent and on hold back into
 	 * the HashMap of available funds. This method may be called when
@@ -113,19 +139,9 @@ public class Wallet {
 	 */
 	public void rescindHeldFund(String transactionOutId) {
 		TransactionOut rescinded = onHold_HashMap.get(transactionOutId);
-		if (rescinded != null)
+		if (rescinded != null) {
+			onHold_HashMap.remove(transactionOutId);
 			funds_HashMap.put(rescinded.getId(), rescinded);
-	}
-
-	/*
-	 * Returns all transaction which was spent and on hold back into
-	 * the HashMap of available funds. This method may be called when
-	 * a transaction is disregarded by the network, and the user would
-	 * like to attempt to use the funds for a new transaction instead.
-	 */
-	public void rescindHeldFunds() {
-		for (Map.Entry<String,TransactionOut> i: onHold_HashMap.entrySet()){
-			rescindHeldFund(i.getKey());
 		}
 	}
 
@@ -172,7 +188,20 @@ public class Wallet {
 		}
 		return newTransaction;
 	}
-
+	
+	/*
+	 * Takes all of the TransactionOut objects used to make a Transaction out
+	 * of the onHold_hashMap and puts them back into the funds_HashMap. 
+	 * 
+	 * This method is called when a transaction is created but ultimately fails, 
+	 * and should be reversed.
+	 */
+	public void reverseTransaction(Transaction failedTransaction) {
+		// put the funds used to create the transaction back into the available funds
+		for(TransactionIn i: failedTransaction.getInput()){
+			rescindHeldFund(i.getSourceId());
+		}
+	}
 
 	/*
 	 * Makes a new transaction from the COIN_BASE.

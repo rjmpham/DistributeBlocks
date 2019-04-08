@@ -161,6 +161,10 @@ public class Transaction implements Serializable {
   		return total;
   	}
   	
+  	public ArrayList<TransactionIn> getInput() {
+  		return input;
+  	}
+  	
   	/*
   	 * TODO: IMPLEMENT THIS METHOD
   	 * This method must check against the block to see if a transaction
