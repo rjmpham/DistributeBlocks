@@ -11,6 +11,7 @@ package distributeblocks.io;
 public class Console {
 	
 	private static ConsoleWindow consoleWindow;
+	private static boolean useStdOut = false;
 	
 	public static void start(){ 
 		// start a new thread to run the window application
@@ -29,13 +30,21 @@ public class Console {
 	}
 	
 	/*
+	 * set's whether log statements should go to standard out or not
+	 */
+	public static void redirectToStdOut() {
+		useStdOut = true;
+	}
+	
+	/*
 	 * Log a string to the console.
 	 */
 	public static synchronized void log(String s) {
-		if (consoleWindow != null)
+		if(useStdOut)
+			System.out.println(s);
+		else if (consoleWindow != null)
 			consoleWindow.log(s);
 		else
 			return;
-//			System.out.println(s);
 	}
 }
