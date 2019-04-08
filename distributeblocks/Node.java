@@ -2,17 +2,14 @@ package distributeblocks;
 
 import distributeblocks.crypto.Crypto;
 import distributeblocks.cli.CommandLineInterface;
-import distributeblocks.io.Console;
 import distributeblocks.io.WalletManager;
 import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.HashMap;
 
 /* TODO: THIS IS A BIG ONE:
  *		We need some way to get other node's public keys and save them to files.
@@ -98,6 +95,11 @@ public class Node {
 
 	/*
 	 * Creates and broadcasts a new transaction.
+	 * 
+	 * This method may fail if a wallet has not been loaded, or
+	 * the node has not yet been started (and has no connection to
+	 * the network). If the intended transaction is invalid, the 
+	 * operation will be aborted and used funds returned.
 	 */
 	public void createTransaction(String recipientKeyPath, float amount) {
 		if (!walletLoaded()) {
@@ -171,21 +173,22 @@ public class Node {
 	public boolean walletLoaded() {
 		return wallet != null;
 	}
-
-	public static void init(){
-		//snew BlockChain(); // Load the chain (generates the file).
-	}
   
+	/*
+	 * Getter method for the node's wallet.
+	 */
 	public Wallet getWallet() {
 		return wallet;
 	}
 
+	/*
+	 * Main method to run a node on the system.
+	 * This will start the node as well as the CLI.
+	 */
 	public static void main (String[] args){
 		// Initialize this node
 		Node node = new Node();
 		NodeService.init(node);
-
-		Node.init();	// TODO: refactor/ remove this
 
 		// Parse initial args then run the cli
 		CommandLineInterface cli = new CommandLineInterface(node);
