@@ -22,10 +22,12 @@ import distributeblocks.crypto.*;
  * Transactions are signed upon creation by the sender
  * (this is different from the tutorial which required 2 separate steps (create then sign))
  */
+// TODO: actually get the parent's transaction ID
 public class Transaction implements Serializable {
 	private static final float MIN_TRANSACTION_AMOUNT = 0.1f;
 	
 	private String id_Transaction; //Hash of the contents of the Transaction
+	private String parentId;	// The Id of the parent transaction
 	private PublicKey pk_Sender; // senders address
 	private PublicKey pk_Receiver; // receivers address
 	private float exchange; // the amount to be exchanged
@@ -187,4 +189,5 @@ public class Transaction implements Serializable {
    	public ArrayList<TransactionIn> getInput() { return input; }
    	public ArrayList<TransactionOut> getOutput() { return output; }
 	public String getId_Transaction() { return id_Transaction; }
+	public String getParentId() { return parentId; }
 }

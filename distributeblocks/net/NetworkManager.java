@@ -441,6 +441,7 @@ public class NetworkManager implements NetworkActions {
 	 *
 	 * @param transaction
 	 */
+	// TODO: make the locks more reasonable here. maybe move code into synchronized sub methods
 	public void addTransaction(Transaction transaction){
 
 		// TODO Ian figure out the validation crap.
@@ -449,6 +450,7 @@ public class NetworkManager implements NetworkActions {
 
 			// Only re-broadcast transaction if we have not seen it before.
 			boolean found = false;
+			boolean parentFound = false;
 
 			// TODO Steven, explain this in a comment
 			HashMap<String, Transaction> combinedPool = new HashMap<>();
@@ -457,17 +459,27 @@ public class NetworkManager implements NetworkActions {
 
 
 			for (String id : combinedPool.keySet()){
-				if (id.equals(transaction.getId_Transaction())){
+				if (id.equals(transaction.getId_Transaction()))
 					found = true;
+				if (id.equals(transaction.getParentId()))
+					parentFound = true;
+				if (found && parentFound)
 					break;
-				}
 			}
 
 			if (!found){
+				// if we've never seen this transaction before, send it to peers
 				asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
+				
+				// Put the transaction into the correct pool
+				if (parentFound) {
+					transactionPool.put(transaction.getId_Transaction(), transaction);
+					updateOrphanPool(transaction);
+				}
+				else {
+					orphanedTransactionPool.put(transaction.getId_Transaction(), transaction);
+				}
 			}
-
-			transactionPool.put(transaction.getId_Transaction(), transaction);
 		}
 	}
 	
@@ -521,6 +533,21 @@ public class NetworkManager implements NetworkActions {
 		}
 		// Call recursively on the new potential parents
 		updateOrphanPool(newParents);
+	}
+	
+	/**
+	 * Moves any orphaned transaction whose who are children of the given
+	 * transaction out of the orphaned transaction pool.
+	 * 
+	 * This operation is called whenever a new transaction is received and
+	 * added to the transactionPool.
+	 * 
+	 * @param transaction		the potential parent Transactions
+	 */
+	public void updateOrphanPool(Transaction transaction) {
+		HashMap<String, Transaction> container = new HashMap<String, Transaction>();
+		container.put(transaction.getId_Transaction(), transaction);
+		updateOrphanPool(container);
 	}
 	
 	/**
