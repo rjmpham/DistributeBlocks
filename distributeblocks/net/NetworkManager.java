@@ -382,7 +382,7 @@ public class NetworkManager implements NetworkActions {
 		if (node.connect()) {
 
 
-			//addNode(node); // TODO: This may ahve caused issues with cfg file.
+			//addNode(node); // TODO: This may have caused issues with cfg file.
 			addTemporaryNode(node);
 			//node.setLocalAddress(address); // Since we are connecting to it, it must already be the local address.
 			node.asyncSendMessage(new ShakeMessage("Please be my friend.", port));
@@ -471,10 +471,54 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 	
-	// TODO: implement this method!
+	/**
+	 * Updates the transaction pools to remove any transactions
+	 * that have been verified on a block.
+	 * 
+	 * This method is called whenever a block becomes verified (sufficiently deep).
+	 * 
+	 * @param block	the most recently verified block of the longest chain
+	 */
 	public void updateTransactionPools(Block block) {
+		HashMap<String, Transaction> blockData = block.getData();
+		updateOrphanPool(blockData);
+		updateTransactionPool(blockData);
+	}
+	
+	/**
+	 * Checks over each transaction in the potentialParants and moves
+	 * any orphaned transaction whose parant is discovered over the to
+	 * normal transactionPool. 
+	 * 
+	 * This operation will be called recursively, as any transaction which is
+	 * moved may be the parent of a different transaction.
+	 * 
+	 * This method is called whenever a block becomes verified (sufficiently deep),
+	 * or when a new transaction is received
+	 * 
+	 * @param potentialParants		Hashmap of Transaction ids to Transactions
+	 */
+	// TODO: does this have to be recursive if we properly check if a transaction is an orphan or not when receiving a transaction?
+	// TODO: implement this!
+	// TODO: should this be synchronized?
+	public void updateOrphanPool(HashMap<String, Transaction> potentialParants) {
 		
 	}
+	
+	/**
+	 * Checks over each transaction i the verifiedTransactions and removes
+	 * any matches from the transactionPool, since they have been placed onto a 
+	 * verified block.
+	 * 
+	 * This method is called whenever a block becomes verified (sufficiently deep).
+	 * 
+	 * @param verifiedTransactions 	Hashmap of Transaction ids to Transactions
+	 */
+	// TODO: implement this
+	public void updateTransactionPool(HashMap<String, Transaction> verifiedTransactions) {
+		
+	}
+	
 
 
 	/**
