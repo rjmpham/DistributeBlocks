@@ -6,13 +6,14 @@ import distributeblocks.io.Console;
 import distributeblocks.io.WalletManager;
 import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
-
+import distributeblocks.util.Validator;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
+import distributeblocks.BlockChain;
 
 /* TODO: THIS IS A BIG ONE:
  *		We need some way to get other node's public keys and save them to files.
@@ -29,6 +30,7 @@ public class Node {
 	
 	private boolean started = false;
 	private boolean mining = false;
+	private Validator validator = new Validator();
 	private Wallet wallet;
 	private String walletPath;
 	
