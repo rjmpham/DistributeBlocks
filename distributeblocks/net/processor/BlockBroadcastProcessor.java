@@ -3,6 +3,7 @@ package distributeblocks.net.processor;
 import distributeblocks.Block;
 import distributeblocks.BlockChain;
 import distributeblocks.Node;
+import distributeblocks.NodeService;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.mining.Miner;
 import distributeblocks.net.NetworkService;
@@ -25,9 +26,15 @@ public class BlockBroadcastProcessor extends AbstractMessageProcessor<BlockBroad
         // Check to see if our chain already has this block.
         if (!blockChain.getAllBlocks().containsKey(message.block.getHashBlock())) {
 
-            blockChain.addBlock(message.block);
+            blockChain.addBlock(message.block);            
             blockChain.save();
             Console.log("Added block to the chain!");
+            
+            Block lastVerified = blockChain.getLastVerifiedBlock();
+			// Update node wallet with the block which is now verified
+			NodeService.getNode().updateWallet(lastVerified);
+			// Update the transaction pools now that a new block is verified
+			NetworkService.getNetworkManager().updateTransactionPools(lastVerified);
 
             // TODO Here is the spot to stop mining and restart mining
             NetworkService.getNetworkManager().beginMining();

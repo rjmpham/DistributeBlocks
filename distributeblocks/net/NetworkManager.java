@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 // TODO: make the pending transaction pool clearing intelligent
+// TODO: force agreement on a comment block as the true head in case of a a branch (maybe shortest hash)
 public class NetworkManager implements NetworkActions {
 
 	private HashMap<String, Transaction> transactionPool;
@@ -449,6 +450,7 @@ public class NetworkManager implements NetworkActions {
 	 * - checks if inputs exist
 	 * - checks if its a double spend
 	 */
+	// TODO: merge isUnspent, containsValidTransactionInputs, and existsInChain, then call it here
 	public void addTransaction(Transaction transaction){
 //		BlockChain chain = new BlockChain();
 //		LinkedList<Block> longestChain = chain.getLongestChain();
@@ -464,7 +466,7 @@ public class NetworkManager implements NetworkActions {
 			// Only re-broadcast transaction if we have not seen it before.
 			boolean found = false;
 
-			// TODO: should check over blockchain as well
+			// TODO: should check over blockchain as well to find out if we've seen it there already
 			// Compose a hashmap of the normal transaction pool and pending transactions
 			HashMap<String, Transaction> combinedPool = new HashMap<>();
 			combinedPool.putAll(transactionPool);
@@ -947,7 +949,6 @@ public class NetworkManager implements NetworkActions {
 						if (m.blockHeight == j) {
 							blockChain.addBlock(m.block);
 							
-							// TODO: should these updates take place anywhere else? when adding to a different fork?
 							Block lastVerified = blockChain.getLastVerifiedBlock();
 							// Update node wallet with the block which is now verified
 							NodeService.getNode().updateWallet(lastVerified);
