@@ -31,7 +31,7 @@ public class BlockBroadcastProcessor extends AbstractMessageProcessor<BlockBroad
             Console.log("Added block to the chain!");
             
             Block lastVerified = blockChain.getLastVerifiedBlock();
-            if (lastVerified == null) {
+            if (lastVerified != null) {
 				// Update node wallet with the block which is now verified
 				NodeService.getNode().updateWallet(lastVerified);
 				// Update the transaction pools now that a new block is verified
