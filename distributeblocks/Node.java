@@ -6,6 +6,7 @@ import distributeblocks.io.WalletManager;
 import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -35,6 +36,7 @@ import java.util.Map;
 public class Node {
 
 	public static int HASH_DIFFICULTY = 4;
+	public static String DEFAULT_WALLET_DIR = System.getProperty("user.dir") + "/wallet";
 
 	private boolean started = false;
 	private boolean mining = false;
@@ -72,6 +74,11 @@ public class Node {
 	 * @param path		path to the directory where wallet info will be stored
 	 */
 	public void createWallet(String path) {
+		File file = new File(path);
+		if(!file.isDirectory() || file.list().length > 0){
+			System.out.println("Cannot create a wallet in a non-empty directory!");
+			return;
+		}
 		wallet = new Wallet();
 		walletPath = path;
 		WalletManager.saveWallet(path, wallet);
@@ -85,6 +92,21 @@ public class Node {
 	public void loadWallet(String path) {
 		walletPath = path;
 		wallet = WalletManager.loadWallet(path);
+	}
+	
+	/**
+	 * Loads a default wallet on startup. This will first try
+	 * to load a wallet out of the default dir. If that fails, it
+	 * will try to create a new default wallet. If THAT fails, it
+	 * will warn the user that no wallet has been loaded.
+	 */
+	private void loadDefaultWallet() {
+		loadWallet(DEFAULT_WALLET_DIR);
+		if (wallet == null)
+			createWallet(DEFAULT_WALLET_DIR);
+		if (wallet == null) {
+			System.out.println("Warning: no default wallet loaded!");
+		}
 	}
 
 	/**
@@ -236,6 +258,7 @@ public class Node {
 		// Initialize this node
 		Node node = new Node();
 		NodeService.init(node);
+		node.loadDefaultWallet();
 
 		// Parse initial args then run the cli
 		CommandLineInterface cli = new CommandLineInterface(node);
