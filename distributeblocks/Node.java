@@ -37,7 +37,7 @@ import java.util.Map;
 public class Node {
 
 	public static int HASH_DIFFICULTY = 4;
-	public static String DEFAULT_WALLET_DIR = System.getProperty("user.dir") + "/wallet";
+	public static String DEFAULT_WALLET_DIR = "./wallet/";
 
 	private boolean started = false;
 	private boolean mining = false;
@@ -82,14 +82,11 @@ public class Node {
 	 */
 	public void createWallet(String path) {
 		// ensure that it is safe to save wallet data to the directory
-		File file = new File(path);
-		if(!file.exists())
-			try {
-				file.createNewFile();
-			} catch (IOException e) {
-				System.out.println("failed to create wallet directory");
-			}
-		if(!file.isDirectory() || file.list().length > 0){
+		File file = new File(System.getProperty("user.dir") + path);
+		if(!file.isDirectory()) {
+				file.mkdir();
+		}
+		if(file.list().length != 0){
 			System.out.println("Cannot create a wallet in a non-empty directory!");
 			return;
 		}
@@ -103,11 +100,13 @@ public class Node {
 		try {
 			WalletManager.saveWallet(path, wallet);
 		} catch (IOException e) {
+			System.out.println(e);
 			System.out.println("Failed to save new wallet, keeping previously wallet (if any)");
+			failed = true;
 			wallet = old;
 		}
 		if (!failed) {
-			System.out.print("Successfully created wallet");
+			System.out.println("Successfully created wallet");
 		}
 	}
 

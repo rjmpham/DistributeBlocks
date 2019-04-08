@@ -77,7 +77,7 @@ public class WalletManager {
 	 */
 	public static void saveFundsHashMap(String path, HashMap<String, TransactionOut> funds_HashMap) {
 		try {
-			saveHashMap(System.getProperty("user.dir") + path + "/funds.json", funds_HashMap);
+			saveHashMap(System.getProperty("user.dir") + path + "funds.json", funds_HashMap);
 			
 		} catch (JsonIOException | IOException e) {
 			Console.log("Error: could not save funds_HashMap");
@@ -92,7 +92,7 @@ public class WalletManager {
 	 */
 	public static void saveOnHoldHashMap(String path, HashMap<String, TransactionOut> onHold_HashMap) {
 		try {
-			saveHashMap(System.getProperty("user.dir") + path + "/onHold.json", onHold_HashMap);
+			saveHashMap(System.getProperty("user.dir") + path + "onHold.json", onHold_HashMap);
 		
 		} catch (JsonIOException | IOException e) {
 			Console.log("Error: could not save onHold_HashMap");
@@ -127,7 +127,7 @@ public class WalletManager {
 	 * @throws FileNotFoundException 
 	 */
 	public static HashMap<String, TransactionOut> loadFundsHashMap(String path) throws FileNotFoundException {
-		return loadHashMap(System.getProperty("user.dir") + path + "/funds.json");
+		return loadHashMap(System.getProperty("user.dir") + path + "funds.json");
 	}
 	
 	/**
@@ -140,7 +140,7 @@ public class WalletManager {
 	 * @throws FileNotFoundException 
 	 */
 	public static HashMap<String, TransactionOut> loadOnHoldHashMap(String path) throws FileNotFoundException {
-		return loadHashMap(System.getProperty("user.dir") + path + "/onHold.json");
+		return loadHashMap(System.getProperty("user.dir") + path + "onHold.json");
 	}
 	
 	/**
@@ -173,8 +173,8 @@ public class WalletManager {
 	 * @throws IOException 
 	 */
 	public static void saveKeyPair(String path, KeyPair keyPair) throws IOException {
-		savePublicKey(System.getProperty("user.dir") + path + "/public.key", keyPair.getPublic());
-		savePrivateKey(System.getProperty("user.dir") + path + "/private.key", keyPair.getPrivate());
+		savePublicKey(System.getProperty("user.dir") + path + "public.key", keyPair.getPublic());
+		savePrivateKey(System.getProperty("user.dir") + path + "private.key", keyPair.getPrivate());
 	}
 	
 	
@@ -228,8 +228,8 @@ public class WalletManager {
 	 * @throws NoSuchAlgorithmException 
 	 */
 	public static KeyPair loadKeyPair(String path, String algorithm) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
-		PublicKey publicKey = loadPublicKey(System.getProperty("user.dir") + path + "/public.key", algorithm);
-		PrivateKey privateKey = loadPrivateKey(System.getProperty("user.dir") + path + "/private.key", algorithm);
+		PublicKey publicKey = loadPublicKey(System.getProperty("user.dir") + path + "public.key", algorithm);
+		PrivateKey privateKey = loadPrivateKey(System.getProperty("user.dir") + path + "private.key", algorithm);
 		return new KeyPair(publicKey, privateKey);
 	}
 	
