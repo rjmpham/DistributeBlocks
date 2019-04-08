@@ -220,11 +220,7 @@ public class Node {
 		return wallet != null;
 	}
   
-	/**
-	 * Getter method for the node's wallet.
-	 * 
-	 * @return	the node's wallet
-	 */
+	// Getter methods
 	public Wallet getWallet() {
 		return wallet;
 	}
