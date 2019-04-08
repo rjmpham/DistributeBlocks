@@ -15,7 +15,8 @@ import java.util.Map;
 
 // TODO: normalize our Console.log() statements. Some of them seem unprofessional 
 // TODO: normalize our documentation across the system. Some of them seem unprofessional
-//			DON'T FORGET: coding style  and consistency IS FOR MARKS
+// TODO: normalize the use of whitespace throughout the codebase
+//			DON'T FORGET: coding style and consistency IS FOR MARKS
 
 /* TODO: THIS IS A BIG ONE:
  *		We need some way to get other node's public keys and save them to files.
@@ -24,10 +25,6 @@ import java.util.Map;
  *		up for the demo.
  */
 
-/* TODO: ALSO A BIG ONE:
- * 		We need a way for the network manager to call our wallet methods to
- * 		receive funds and clear out onHold once a block gets to be 6 deep.
- */
 public class Node {
 
 	public static int HASH_DIFFICULTY = 4;
@@ -107,11 +104,13 @@ public class Node {
 	 * updating how much money it has from all the transactions
 	 * on the block.
 	 * 
-	 * This method is called whenever a block becomes 6 deep from the head of the chain,
-	 * and all transactions on the block are considered verified. 
+	 * This method is called whenever a block becomes verified (sufficiently deep).
 	 */
-	// TODO: call this when a block becomes 6 deep from the head
 	public void updateWallet(Block block) {
+		if (block == null)
+			return;
+					
+		// Process all the transactions in the block
 		HashMap<String, Transaction> blockData = block.getData();
 		for (Map.Entry<String,Transaction> i: blockData.entrySet()){
 			wallet.update(i.getValue());

@@ -63,8 +63,7 @@ public class Wallet {
 	 * 		- if it belongs to the PK of this wallet, it will be added
 	 * 			as available funds (verified as received)
 	 * 
-	 * This method is called whenever a block becomes 6 deep from the head of the chain,
-	 * and all transactions on the block are considered verified.
+	 * This method is called whenever a block becomes verified (sufficiently deep).
 	 */
 	public void update(Transaction transaction) {
 		// Construct a map from ids to TransactionOut
@@ -109,8 +108,7 @@ public class Wallet {
 	 * Checks over each transaction in verifiedTransactions and adds any matching
 	 * this wallet's public key to its own funds.
 	 * 
-	 * This method is called whenever a block becomes 6 deep from the head of the chain,
-	 * and all transactions on the block are considered verified.
+	 * This method is called whenever a block becomes verified (sufficiently deep).
 	 */
 	public void receiveFunds(HashMap<String, TransactionOut> verifiedTransactions) {
 		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
@@ -129,8 +127,7 @@ public class Wallet {
 	 * transactions which were on hold in this wallet. This essentially marks the
 	 * funds as permanently spent by removing them from the wallet completely.
 	 * 
-	 * This method is called whenever a block becomes 6 deep from the head of the chain,
-	 * and all transactions on the block are considered verified.
+	 * This method is called whenever a block becomes verified (sufficiently deep).
 	 */
 	public void clearFundsOnHold(HashMap<String, TransactionOut> verifiedTransactions) {
 		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
@@ -146,8 +143,7 @@ public class Wallet {
 	 * transactions which were erroneously rescinded. This essentially marks the
 	 * funds as permanently spent by removing them from the wallet completely.
 	 * 
-	 * This method is called whenever a block becomes 6 deep from the head of the chain,
-	 * and all transactions on the block are considered verified.
+	 * This method is called whenever a block becomes verified (sufficiently deep).
 	 */
 	public void clearFundsRescinded(HashMap<String, TransactionOut> verifiedTransactions) {
 		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){

@@ -8,10 +8,11 @@ import distributeblocks.io.Console;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 public class BlockChain implements Serializable {
-
+	private static final int VERIFIED_DEPTH = 6;	// depth from the head we consider a block to be verified
 
 	private ArrayList<LinkedList<Block>> blockChain;
 	private HashMap<String, Block> allBlocks; // To make looking up blocks much faster.
@@ -119,9 +120,31 @@ public class BlockChain implements Serializable {
 	public HashMap<String, Block> getAllBlocks(){
 		return allBlocks;
 	}
+	
+	/**
+	 * Gets the block which is at the verified depth from the tail in
+	 * the longest chain. The transactions on the returned block
+	 * are considered to be verified because they are deep enough
+	 * in the chain that it is extremely likely a competing branch
+	 * will catch up.
+	 * 
+	 * @return		Last verified block (null if longest chain is too short)
+	 */
+	public Block getLastVerifiedBlock() {
+		LinkedList<Block> highest = getLongestChain();
+		Block block = null;
+		
+		try {
+			block = highest.get(highest.size() - VERIFIED_DEPTH);
+		}
+		catch(IndexOutOfBoundsException e) {
+			Console.log("Longest chain is shorter than the verified depth");
+		}
+		return block;
+	}
 
 	/**
-	 * Loads blocklchain from file.
+	 * Loads blockchain from file.
 	 */
 	public synchronized void load(){
 

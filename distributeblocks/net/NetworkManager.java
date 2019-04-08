@@ -342,7 +342,7 @@ public class NetworkManager implements NetworkActions {
 	}
 
 	/**
-	 * Add a incomming message to a processing queue.
+	 * Add a incoming message to a processing queue.
 	 * <p>
 	 * This does not block.
 	 *
@@ -469,6 +469,11 @@ public class NetworkManager implements NetworkActions {
 
 			transanctionPool.put(transaction.getId_Transaction(), transaction);
 		}
+	}
+	
+	// TODO: implement this method!
+	public void updateTransactionPools(Block block) {
+		
 	}
 
 
@@ -705,7 +710,9 @@ public class NetworkManager implements NetworkActions {
 
 
 	/**
-	 * Aquires the chain woo.
+	 * Acquires the chain.
+	 * Run on startup, or when a block is received that
+	 * references a block we do not have.
 	 */
 	private class AquireChain implements Runnable {
 
@@ -750,12 +757,10 @@ public class NetworkManager implements NetworkActions {
 		@Override
 		public void run() {
 
-
+			// Ask for info about the blocks in the chain
 			requestHeaders();
 
 			try {
-
-
 				Thread.sleep(5000);
 
 				// Waiting a bit to get the responses.
@@ -769,8 +774,7 @@ public class NetworkManager implements NetworkActions {
 						break;
 					}
 				}
-
-
+				
 				// Now that we got some headers, lets see what the highest block is.
 				ArrayList<BlockHeader> highestHeaders = new ArrayList<>(); // A little janky.
 
@@ -780,7 +784,6 @@ public class NetworkManager implements NetworkActions {
 						highestHeaders = headers;
 					}
 				}
-
 
 				BlockChain blockChain = new BlockChain();
 
@@ -810,7 +813,7 @@ public class NetworkManager implements NetworkActions {
 					synchronized (recievedBlocks) {
 
 						if (i > rightBound || i >= highestHeaders.size() - 1) {
-						//	Thread.sleep(100); // Wait for responses.
+							//	Thread.sleep(100); // Wait for responses.
 
 							//if (requestTimes.get(leftBound) + 3000 <  System.currentTimeMillis()) { // Only make another request every 3 seconds
 							// Request lowest block again.
@@ -818,8 +821,7 @@ public class NetworkManager implements NetworkActions {
 							requestTimes.put(i, System.currentTimeMillis());
 							//}
 						} else {
-
-
+							
 							//if (requestTimes.get(i) + 3000 <  System.currentTimeMillis()) { // Only make another request every 3 seconds
 							nodes.get(nodes.size() == 1 ? 0 : rand.nextInt(nodes.size() - 1)).asyncSendMessage(new RequestBlockMessage(highestHeaders.get(i).blockHash, i));
 							requestTimes.put(i, System.currentTimeMillis());
@@ -834,17 +836,22 @@ public class NetworkManager implements NetworkActions {
 					}
 
 				}
-
 				Console.log("AQUIRED THE BLOCKCHAIN!");
 
-				// Process blocks into a chain and save wooo!
-
+				// Process blocks into a chain and save them
 				for (int j = 0; j < highestHeaders.size(); j ++) {
 
 					for (BlockMessage m : blockQueue) {
 
 						if (m.blockHeight == j) {
 							blockChain.addBlock(m.block);
+							
+							// TODO: should these updates take place anywhere else? when adding to a different fork?
+							Block lastVerified = blockChain.getLastVerifiedBlock();
+							// Update node wallet with the block which is now verified
+							NodeService.getNode().updateWallet(lastVerified);
+							// Update the transaction pools now that a new block is verified
+							updateTransactionPools(lastVerified);
 							break;
 						}
 					}
@@ -852,7 +859,7 @@ public class NetworkManager implements NetworkActions {
 
 				blockChain.save();
 
-				beginMining();
+				beginMining();		// TODO: is it necessary to begin mining here, or was this just for testing?
 				aquireChain = null;
 
 			} catch (InterruptedException e) {
