@@ -13,11 +13,16 @@ import java.io.Serializable;
 public class TransactionIn implements Serializable {
 	private String sourceId; 		// ID of the source TransactionOut
 	private TransactionOut funds; 	// Pointer to the source TransactionOut
+	private String parentId; 		// The id of the transaction this output was created in
 	private float exchange;			// Amount of funds being used
 
 	public TransactionIn(String sourceId, float exchange) {
 		this.sourceId = sourceId;
 		this.exchange = exchange;
+	}
+	
+	public void setParentId(String parentId) {
+		this.parentId = parentId;
 	}
 	
 	/*
@@ -32,5 +37,9 @@ public class TransactionIn implements Serializable {
 	 */
 	public String getSourceId() {
 		return sourceId;
+	}
+	
+	public String getParentId() {
+		return parentId;
 	}
 }

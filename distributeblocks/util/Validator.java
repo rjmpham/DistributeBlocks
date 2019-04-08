@@ -12,6 +12,7 @@ import distributeblocks.io.WalletManager;
 public class Validator
 {
 	// Coin base keys are used for signing block reward transactions from a static source
+	// TODO: move these to a standard location and grab them from there. same changes to wallet
 	private static final String COIN_BASE_ID = "COIN_BASE";
 	private static final String COIN_BASE_DIR = "/coinBase";
 	private static final KeyPair COIN_BASE_KEYS = WalletManager.loadKeyPair(COIN_BASE_DIR, Crypto.GEN_ALGORITHM);
@@ -47,7 +48,7 @@ public class Validator
 		
 		//Get all the transaction input id's for the transaction
 		ArrayList<String> inputs = new ArrayList<String>();
-		transaction.getTransactionInputs().forEach(i -> inputs.add(i.getSourceId()));
+		transaction.getTransactionInputs().forEach(i -> inputs.add(i.getParentId()));
 		
 		//Loop through each block until every transaction input is found
 		for(int i = blockchain.size() - 1; i >= 0; i--)
@@ -60,7 +61,7 @@ public class Validator
 			{
 				//Get the transaction inputs for the transaction we're comparing to that already exists in the blockchain
 				ArrayList<String> existingInputs = new ArrayList<String>();
-				blockTransactions.get(id).getTransactionInputs().forEach(z -> existingInputs.add(z.getSourceId()));
+				blockTransactions.get(id).getTransactionInputs().forEach(z -> existingInputs.add(z.getParentId()));
 				
 				//Loop through every transaction INPUT id that has not yet been found
 				for(int n = 0; n < inputs.size(); i++)
@@ -105,7 +106,7 @@ public class Validator
 		
 		//Get all the transaction input id's for the transaction
 		ArrayList<String> inputs = new ArrayList<String>();
-		transaction.getTransactionInputs().forEach(i -> inputs.add(i.getSourceId()));
+		transaction.getTransactionInputs().forEach(i -> inputs.add(i.getParentId()));
 		
 		//Compare number of inputs found to number of actual inputs
 		if(foundTransactionInputs.size() == inputs.size()){
@@ -129,7 +130,7 @@ public class Validator
 		
 		//Get all the transaction input id's for the transaction
 		ArrayList<String> inputs = new ArrayList<String>();
-		transaction.getTransactionInputs().forEach(i -> inputs.add(i.getSourceId()));
+		transaction.getTransactionInputs().forEach(i -> inputs.add(i.getParentId()));
 		
 		//Loop through each block until every transaction input is found
 		for(int i = blockchain.size() - 1; i >= 0; i--)

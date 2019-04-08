@@ -19,6 +19,7 @@ import distributeblocks.io.WalletManager;
  */
 public class Wallet {
 	// Coin base keys are used for signing block reward transactions from a static source
+	// TODO: move these to a standard location and grab them from there. same changes to validator
 	private static final String COIN_BASE_ID = "COIN_BASE";
 	private static final String COIN_BASE_DIR = "/coinBase";
 	private static final KeyPair COIN_BASE_KEYS = WalletManager.loadKeyPair(COIN_BASE_DIR, Crypto.GEN_ALGORITHM);
@@ -167,6 +168,7 @@ public class Wallet {
 
 		// put the funds used to create this transaction on hold
 		for(TransactionIn i: transaction_ArrayList){
+			i.setParentId(newTransaction.getTransactionId());
 			TransactionOut spent = funds_HashMap.get(i.getSourceId());
 			funds_HashMap.remove(i.getSourceId());
 			onHold_HashMap.put(spent.getId(), spent);
@@ -216,7 +218,8 @@ public class Wallet {
 		 *  How is this being handled elsewhere? I suppose we have an if that checks
 		 *  the Id, and if coinbase, ignore the transaction out?
 		 */
-		transaction_ArrayList.add(new TransactionIn(COIN_BASE_ID, BLOCK_REWARD_AMOUNT));
+		TransactionIn reward = new TransactionIn(COIN_BASE_ID, BLOCK_REWARD_AMOUNT);
+		reward.setParentId("blockReward");
 		// Create a Transaction to the receiver
 		Transaction newTransaction = new Transaction(COIN_BASE_KEYS.getPrivate(),
 													COIN_BASE_KEYS.getPublic(),

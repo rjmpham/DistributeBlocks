@@ -446,7 +446,7 @@ public class NetworkManager implements NetworkActions {
 			combinedPool.putAll(pendingTransactionPool);
 
 			for (String id : combinedPool.keySet()){
-				if (id.equals(transaction.getId_Transaction())){
+				if (id.equals(transaction.getTransactionId())){
 					found = true;
 					break;
 				}
@@ -456,7 +456,7 @@ public class NetworkManager implements NetworkActions {
 				asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
 			}
 
-			transanctionPool.put(transaction.getId_Transaction(), transaction);
+			transanctionPool.put(transaction.getTransactionId(), transaction);
 		}
 	}
 
