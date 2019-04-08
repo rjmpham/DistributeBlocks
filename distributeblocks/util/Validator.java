@@ -29,6 +29,12 @@ public class Validator
 		if(transaction.getPublicKeySender().equals(COIN_BASE_KEYS.getPublic()) && transaction.getExchange() == BLOCK_REWARD_AMOUNT){
 			return true;
 		}
+		
+		if(!containsValidTransactionInputs(transaction, blockchain))
+		{
+			return false; 
+		}
+		
 		if(!isUnspent(transaction, blockchain))
 		{
 			return false;
@@ -89,9 +95,9 @@ public class Validator
 				}
 			}
 		}
-		//if we somehow reach here then the transaction was not even found
+		//if we somehow reach here then the transaction was not even found but none were double spent
 		System.out.println("One or more transaction inputs were not found");
-		return false;
+		return true;
 	}
 	
 	/*
