@@ -62,7 +62,11 @@ public class Node {
 	public void exit() {
 		System.out.println("Exiting program");
 		if (wallet != null){
-			WalletManager.saveWallet(walletPath, wallet);
+			try {
+				WalletManager.saveWallet(walletPath, wallet);
+			} catch (IOException e) {
+				System.out.println("Failed to save wallet");
+			}
 		}
 		// TODO: do we need to safely close all other threads?
 		System.exit(0);

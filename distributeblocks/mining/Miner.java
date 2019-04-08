@@ -109,7 +109,13 @@ public class Miner {
 
                     Console.log("Beginning mining");
 
-                    Transaction reward = wallet.makeBlockReward(wallet.getPublicKey());
+                    Transaction reward;
+                    try {
+                    	reward = wallet.makeBlockReward(wallet.getPublicKey());
+                    } catch (NullPointerException e) {
+                    	Console.log("Terminating mining");
+                    	return;
+                    }
                     reward.transactionEnforcer();
                    // Transaction rewardOut = new Transaction(wallet.getPrivateKey(), wallet.getPublicKey(), 5.0f, reward.getId_Transaction());
                     data.put(reward.getId_Transaction(), reward);

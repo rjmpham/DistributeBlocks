@@ -1,10 +1,13 @@
 package distributeblocks;
 
+import java.io.IOException;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import distributeblocks.crypto.*;
+import distributeblocks.io.Console;
 import distributeblocks.io.WalletManager;
 
 
@@ -21,7 +24,7 @@ public class Wallet {
 	// Coin base keys are used for signing block reward transactions from a static source
 	private static final String COIN_BASE_ID = "COIN_BASE";
 	private static final String COIN_BASE_DIR = "/coinBase";
-	private static final KeyPair COIN_BASE_KEYS = WalletManager.loadKeyPair(COIN_BASE_DIR, Crypto.GEN_ALGORITHM);
+	private static final KeyPair COIN_BASE_KEYS = loadCoinBase();
 	private static final float BLOCK_REWARD_AMOUNT = 5.0f;
 
 	private PrivateKey privateKey;
@@ -276,6 +279,10 @@ public class Wallet {
 	 * @return a block reward Transaction
 	 */
 	public static Transaction makeBlockReward(PublicKey receiver) {
+		if (COIN_BASE_KEYS == null) {
+			Console.log("CoinBase has not been loaded! Cannot create block reward!");
+			throw new NullPointerException();
+		}
 		/* Create a TransactionIn array from the COIN_BASE to be consumed by the block
 		 * reward transaction. This will remain empty.
 		 */
@@ -289,6 +296,15 @@ public class Wallet {
 				BLOCK_REWARD_AMOUNT,
 				transaction_ArrayList);
 		return newTransaction;
+	}
+	
+	public static KeyPair loadCoinBase() {
+		try {
+			return WalletManager.loadKeyPair(COIN_BASE_DIR, Crypto.GEN_ALGORITHM);
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
+			Console.log("Warning: failed to load CoinBase keys. No block rewards can be made!");
+			return null;
+		}
 	}
 
 	// Getter methods
