@@ -25,6 +25,12 @@ import java.util.Map;
  *		up for the demo.
  */
 
+/**
+ *  Represents an agent within the P2P network. This class houses a wallet,
+ *  and may run all the thread necessary to perform network actions.
+ *  
+ *	Run the main method to start up a node and interact with the network.
+ */
 public class Node {
 
 	public static int HASH_DIFFICULTY = 4;
@@ -34,15 +40,17 @@ public class Node {
 	private Wallet wallet;
 	private String walletPath;
 
-	/*
+	/**
 	 * Starts up the network threads and marks the node as started.
+	 * 
+	 * @param config	data container of network configuration
 	 */
 	public void initializeNetworkService(NetworkConfig config) {
 		NetworkService.init(config);
 		started = true;
 	}
 
-	/*
+	/**
 	 * Closes all threads and safely kills the node.
 	 * This will also save the wallet state for the user.
 	 */
@@ -55,10 +63,12 @@ public class Node {
 
 	}
 
-	/*
+	/**
 	 * Creates a new wallet with a private key/ public key
 	 * pair. This will also save the key pair to a specified
 	 * file location.
+	 * 
+	 * @param path		path to the directory where wallet info will be stored
 	 */
 	public void createWallet(String path) {
 		wallet = new Wallet();
@@ -66,16 +76,19 @@ public class Node {
 		WalletManager.saveWallet(path, wallet);
 	}
 
-	/*
+	/**
 	 * Loads a wallet with a private key/ public key pair.
+	 * 
+	 * @param path		path to the directory where wallet info is stored
 	 */
 	public void loadWallet(String path) {
 		walletPath = path;
 		wallet = WalletManager.loadWallet(path);
 	}
 
-	/*
+	/**
 	 * Counts the funds within the linked wallet.
+	 * Prints to stdout.
 	 */
 	public void countFunds() {
 		if (! walletLoaded()) {
@@ -87,7 +100,7 @@ public class Node {
 		System.out.println(String.format("Funds on hold: %f", wallet.fundsOnHold()));
 	}
 
-	/*
+	/**
 	 * Rescinds all held funds within the linked wallet.
 	 */
 	public void rescindHeldFunds() {
@@ -98,13 +111,15 @@ public class Node {
 		wallet.rescindHeldFunds();
 	}
 
-	/*
+	/**
 	 * Updates the node's wallet by clearing out any
 	 * held funds which were waiting to be verified, and
 	 * updating how much money it has from all the transactions
 	 * on the block.
 	 * 
 	 * This method is called whenever a block becomes verified (sufficiently deep).
+	 * 
+	 * @param block	the most recently verified block of the longest chain
 	 */
 	public void updateWallet(Block block) {
 		if (block == null)
@@ -117,14 +132,17 @@ public class Node {
 		}
 	}
 	
-	/*
+	/**
 	 * Creates and broadcasts a new transaction.
 	 * 
 	 * This method may fail if a wallet has not been loaded, or
 	 * the node has not yet been started (and has no connection to
 	 * the network). If the intended transaction is invalid, the 
 	 * operation will be aborted and used funds returned.
+	 * 
+	 * @param recipientKeyPath	path to a directory where a users PK (public.key) is stored	
 	 */
+	// TODO: wouldn't it make more sense to get the path to the file itself?
 	public void createTransaction(String recipientKeyPath, float amount) {
 		if (!walletLoaded()) {
 			System.out.println("No wallet loaded!");
@@ -154,7 +172,7 @@ public class Node {
 		}
 	}
 
-	/*
+	/**
 	 * Enables mining within this node.
 	 */
 	public void enableMining() {
@@ -166,7 +184,7 @@ public class Node {
 		mining = true;
 	}
 
-	/*
+	/**
 	 * Disables mining within this node.
 	 */
 	public void disableMining() {
@@ -180,34 +198,42 @@ public class Node {
 		}
 	}
 
-	/*
+	/**
 	 * Returns whether the node has been started or not.
 	 * This is used to block commands that require the node
 	 * to be running first.
+	 * 
+	 * @return	boolean indicated whether the node is on the network
 	 */
 	public boolean started() {
 		return started;
 	}
 
-	/*
+	/**
 	 * Returns whether the node has a wallet loaded for
 	 * use. This is used to block commands that require
 	 * the node to have a loaded wallet.
+	 * 
+	 * @return	boolean indicated whether a wallet is loaded 
 	 */
 	public boolean walletLoaded() {
 		return wallet != null;
 	}
   
-	/*
+	/**
 	 * Getter method for the node's wallet.
+	 * 
+	 * @return	the node's wallet
 	 */
 	public Wallet getWallet() {
 		return wallet;
 	}
 
-	/*
+	/**
 	 * Main method to run a node on the system.
 	 * This will start the node as well as the CLI.
+	 * 
+	 * @param args		command line args
 	 */
 	public static void main (String[] args){
 		// Initialize this node
