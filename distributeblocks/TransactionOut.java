@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.security.*;
 import distributeblocks.crypto.*;
 
-/*
+/**
  * TransactionOut is used to keep track of a
  * specific exchange of funds to some 
  * receiving party.
@@ -26,25 +26,19 @@ public class TransactionOut implements Serializable {
 		this.id = Crypto.calculateObjectHash(Crypto.keyToString(pk_Target)+Float.toString(amount)+ id_Input);
 	}
 
-	/*
+	/**
 	 * Check if a coin belongs to the given key
+	 * 
+	 * @param publicKey 	the PublicKey to check against
+	 * 
+	 * @return boolean indicating if this TransactionOut is to the publicKey
 	 */
 	public boolean isMine(PublicKey publicKey) {
 		return (publicKey.hashCode() == pk_Receiver.hashCode());
 	}
 	
-	/*
-	 * Returns the exchange value of this transaction
-	 */
-	public float getExchange() {
-		return exchange;
-	}
-	
-	/*
-	 * Returns the id of this TransactionOut
-	 */
-	public String getId() {
-		return id;
-	}
+	// Getter methods
+	public float getExchange() { return exchange; }
+	public String getId() { return id; }
 
 }
