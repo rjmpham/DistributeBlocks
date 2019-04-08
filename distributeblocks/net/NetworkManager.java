@@ -4,6 +4,7 @@ import distributeblocks.*;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.mining.Miner;
 import distributeblocks.net.message.*;
+import distributeblocks.util.Validator;
 import distributeblocks.io.Console;
 
 import java.io.IOException;
@@ -11,6 +12,7 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+// TODO: make the pending transaction pool clearing intelligent
 public class NetworkManager implements NetworkActions {
 
 	private HashMap<String, Transaction> transactionPool;
@@ -442,43 +444,52 @@ public class NetworkManager implements NetworkActions {
 	 * @param transaction
 	 */
 	// TODO: make the locks more reasonable here. maybe move code into synchronized sub methods
+	
+	/*
+	 * - checks if inputs exist
+	 * - checks if its a double spend
+	 */
 	public void addTransaction(Transaction transaction){
+//		BlockChain chain = new BlockChain();
+//		LinkedList<Block> longestChain = chain.getLongestChain();
 
 		// TODO Ian figure out the validation crap.
+//		if (!Validator.isUnspent(transaction, longestChain)) {
+//			Console.log("Transaction was a double spend! aborting");
+//			return;
+//		}
 
 		synchronized (transactionPool) {
 
 			// Only re-broadcast transaction if we have not seen it before.
 			boolean found = false;
-			boolean parentFound = false;
 
-			// TODO Steven, explain this in a comment
+			// TODO: should check over blockchain as well
+			// Compose a hashmap of the normal transaction pool and pending transactions
 			HashMap<String, Transaction> combinedPool = new HashMap<>();
 			combinedPool.putAll(transactionPool);
 			combinedPool.putAll(pendingTransactionPool);
 
-
+			// Check if we have seen this transaction before
 			for (String id : combinedPool.keySet()){
-				if (id.equals(transaction.getId_Transaction()))
+				if (id.equals(transaction.getId_Transaction())) {
 					found = true;
-				if (id.equals(transaction.getParentId()))
-					parentFound = true;
-				if (found && parentFound)
 					break;
+				}
 			}
 
 			if (!found){
 				// if we've never seen this transaction before, send it to peers
 				asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
 				
-				// Put the transaction into the correct pool
-				if (parentFound) {
+//				// Put the transaction into the correct pool
+//				if (Validator.containsValidTransactionInputs(transaction, longestChain)) {
 					transactionPool.put(transaction.getId_Transaction(), transaction);
-					updateOrphanPool(transaction);
-				}
-				else {
-					orphanedTransactionPool.put(transaction.getId_Transaction(), transaction);
-				}
+//					updateOrphanPool(transaction);
+//				}
+//				else {
+//					orphanedTransactionPool.put(transaction.getId_Transaction(), transaction);
+//				}
 			}
 		}
 	}
@@ -491,7 +502,6 @@ public class NetworkManager implements NetworkActions {
 	 * 
 	 * @param block	the most recently verified block of the longest chain
 	 */
-	// TODO: what about the pending transaction pool?
 	public void updateTransactionPools(Block block) {
 		HashMap<String, Transaction> blockData = block.getData();
 		updateOrphanPool(blockData);
@@ -523,7 +533,7 @@ public class NetworkManager implements NetworkActions {
 		
 		// Process the parants, and keep track of any moved Transactions in newParants
 		for (Map.Entry<String,Transaction> i: potentialParants.entrySet()){
-			if(orphanedTransactionPool.containsKey(i.getKey())) {
+			if(orphanedTransactionPool.containsKey(i.getKey())) { //TODO: shouldnt this be the parents id we check against?
 				transaction = orphanedTransactionPool.get(i.getKey());
 				orphanedTransactionPool.remove(i.getKey());
 				

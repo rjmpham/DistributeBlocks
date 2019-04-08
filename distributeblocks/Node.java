@@ -13,6 +13,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Map;
 
+// TODO: add a confirmation of success print for CLI commands
 // TODO: normalize our Console.log() statements. Some of them seem unprofessional 
 // TODO: normalize our documentation across the system. Some of them seem unprofessional
 // TODO: normalize the use of whitespace throughout the codebase
