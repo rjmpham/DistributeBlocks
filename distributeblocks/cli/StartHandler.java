@@ -62,12 +62,14 @@ public class StartHandler implements Callable<Void> {
 	
 	@Override
 	public Void call() throws Exception {
-		// Set location for debugging logs first
-		if (debugOptions.console)
-			Console.start();
-		else if (debugOptions.stdout)
-			Console.redirectToStdOut();
-		Console.log("Beginning node processes");
+		if (debugOptions != null) {
+			// Set location for debugging logs first
+			if (debugOptions.console)
+				Console.start();
+			else if (debugOptions.stdout)
+				Console.redirectToStdOut();
+			Console.log("Beginning node processes");
+		}
 		
 		// Create config and start network processes
 		NetworkConfig config = new NetworkConfig();

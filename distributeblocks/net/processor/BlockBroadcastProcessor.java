@@ -7,13 +7,14 @@ import distributeblocks.io.ConfigManager;
 import distributeblocks.mining.Miner;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.BlockBroadcastMessage;
+import distributeblocks.io.Console;
 
 import java.util.LinkedList;
 
 public class BlockBroadcastProcessor extends AbstractMessageProcessor<BlockBroadcastMessage> {
     @Override
     public void processMessage(BlockBroadcastMessage message) {
-        System.out.println("Got a block broadcast.");
+        Console.log("Got a block broadcast.");
 
 
         // TODO verify the block is actualy legit!
@@ -26,7 +27,7 @@ public class BlockBroadcastProcessor extends AbstractMessageProcessor<BlockBroad
 
             blockChain.addBlock(message.block);
             blockChain.save();
-            System.out.println("Added block to the chain!");
+            Console.log("Added block to the chain!");
 
             // TODO Here is the spot to stop mining and restart mining
             NetworkService.getNetworkManager().beginMining();

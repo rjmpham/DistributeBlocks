@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 
 import distributeblocks.crypto.*;
+import distributeblocks.io.Console;
 
 
 
@@ -99,7 +100,7 @@ public class Block implements Serializable {
 		}
 
 		// For testing.
-		System.out.println("Block Mined!!! : " + hashBlock);
+		Console.log("Block Mined!!! : " + hashBlock);
 	}
 
 	public boolean isBlockMined(){

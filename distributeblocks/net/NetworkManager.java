@@ -4,6 +4,7 @@ import distributeblocks.*;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.mining.Miner;
 import distributeblocks.net.message.*;
+import distributeblocks.io.Console;
 
 import java.io.IOException;
 import java.net.*;
@@ -81,7 +82,7 @@ public class NetworkManager implements NetworkActions {
 		}
 
 		if (seed) {
-			System.out.println("Starting in seed mode.");
+			Console.log("Starting in seed mode.");
 		}
 
 		// May want seperate services to make shutdowns easier?
@@ -196,15 +197,15 @@ public class NetworkManager implements NetworkActions {
 
 			for (int i = 0; i < peerNodes.size(); i++) {
 				if (peerNodes.get(i) == node) { // At least I think this only checks if the reference is the same.
-					System.out.println("Shutdown was called in removeNode()");
+					Console.log("Shutdown was called in removeNode()");
 					PeerNode result = peerNodes.remove(i);
 					result.shutDown();
 
 
 					if (result == null){
-						System.out.println("Failed to remove peer from pool.");
+						Console.log("Failed to remove peer from pool.");
 					} else {
-						System.out.println("Removed peer from pool.");
+						Console.log("Removed peer from pool.");
 					}
 					break;
 				}
@@ -228,16 +229,16 @@ public class NetworkManager implements NetworkActions {
 						// Not to self, do not call shutdown here! They may be moved to the actual node pool.
 
 					if (result == null){
-						System.out.println("Failed to remove peer from temporary pool.");
+						Console.log("Failed to remove peer from temporary pool.");
 					} else {
-						System.out.println("Removed peer from temporary pool.");
+						Console.log("Removed peer from temporary pool.");
 					}
 					break;
 				}
 			}
 		}
 
-		System.out.println("No node to remove from temporary pool.");
+		Console.log("No node to remove from temporary pool.");
 	}
 
 	/**
@@ -255,10 +256,10 @@ public class NetworkManager implements NetworkActions {
 
 
 	public void printConnectedNodes() {
-		System.out.println(" ======================== Connected Nodes: =============================");
+		Console.log(" ======================== Connected Nodes: =============================");
 		for (PeerNode p : getPeerNodes()) {
 
-			System.out.println(" - " + p.getListeningAddress());
+			Console.log(" - " + p.getListeningAddress());
 		}
 	}
 
@@ -500,13 +501,13 @@ public class NetworkManager implements NetworkActions {
 
 			while (interfaces.hasMoreElements()){
 				NetworkInterface ni = interfaces.nextElement();
-				System.out.println(ni.getDisplayName());
+				Console.log(ni.getDisplayName());
 				Enumeration<InetAddress> inetAddresses = ni.getInetAddresses();
 
 				while (inetAddresses.hasMoreElements()){
 					InetAddress addr = inetAddresses.nextElement();
 					String hostAddress = addr.getHostAddress();
-					System.out.println(hostAddress);
+					Console.log(hostAddress);
 
 					if (!hostAddress.contains("127.0.0.1") && !hostAddress.contains("localhost") && hostAddress.split("\\.").length == 4){
 						localAddr = new IPAddress(hostAddress, port);
@@ -533,7 +534,7 @@ public class NetworkManager implements NetworkActions {
 	 public void beginMining(){
 		if (mining){
 
-			System.out.println("Mining: " + mining);
+			Console.log("Mining: " + mining);
 
 			LinkedList<Block> chain = new BlockChain().getLongestChain();
 
@@ -622,11 +623,11 @@ public class NetworkManager implements NetworkActions {
 
 				try {
 
-					System.out.println("Listening for connections!");
+					Console.log("Listening for connections!");
 
 					Socket socket = serverSocket.accept();
 
-					System.out.println("Received connection from: " + socket.getInetAddress());
+					Console.log("Received connection from: " + socket.getInetAddress());
 
 					PeerNode peerNode = new PeerNode(socket);
 					//peerNodes.add(peerNode);
@@ -654,11 +655,11 @@ public class NetworkManager implements NetworkActions {
 
 				List<PeerNode> nodes = getPeerNodes();
 
-				//System.out.println("Checking if I need more friends.");
+				//Console.log("Checking if I need more friends.");
 				if (nodes.size() < minPeers) {
 
-					//System.out.println("I do");
-					System.out.println("Getting more peers.");
+					//Console.log("I do");
+					Console.log("Getting more peers.");
 
 					if (nodes.size() > 0) {
 						for (PeerNode p : nodes) {
@@ -682,7 +683,7 @@ public class NetworkManager implements NetworkActions {
 						// in the right order.
 					}
 				} else {
-					//System.out.println("I don't");
+					//Console.log("I don't");
 				}
 
 
@@ -741,7 +742,7 @@ public class NetworkManager implements NetworkActions {
 				leftBound = Math.min(highestBlock - 1, min + 1); // So it doesnt try to grab n + 1 blocks.
 				rightBound = min + 10;
 
-				System.out.println("Got new left bound: " + leftBound);
+				Console.log("Got new left bound: " + leftBound);
 			}
 		}
 
@@ -761,7 +762,7 @@ public class NetworkManager implements NetworkActions {
 				while (true) {
 
 					if (headerQueue.isEmpty()) {
-						System.out.println("Waiting for header info ...");
+						Console.log("Waiting for header info ...");
 						Thread.sleep(5000);
 						requestHeaders();
 					} else {
@@ -784,14 +785,14 @@ public class NetworkManager implements NetworkActions {
 				BlockChain blockChain = new BlockChain();
 
 				if (highestHeaders.size() <= blockChain.getLongestChain().size()){
-					System.out.println("Already have the highest chain");
-					System.out.println(blockChain.getLongestChain().size());
-					System.out.println(highestHeaders.size());
+					Console.log("Already have the highest chain");
+					Console.log(blockChain.getLongestChain().size());
+					Console.log(highestHeaders.size());
 					beginMining();
 					return;
 				}
 
-				System.out.println("Aquireing blockchain with height: " + highestHeaders.size());
+				Console.log("Aquireing blockchain with height: " + highestHeaders.size());
 
 				// Now that we have identified the longest list of blockHeaders, request them all.
 				Random rand = new Random();
@@ -834,7 +835,7 @@ public class NetworkManager implements NetworkActions {
 
 				}
 
-				System.out.println("AQUIRED THE BLOCKCHAIN!");
+				Console.log("AQUIRED THE BLOCKCHAIN!");
 
 				// Process blocks into a chain and save wooo!
 
@@ -862,7 +863,7 @@ public class NetworkManager implements NetworkActions {
 
 		private void requestHeaders(){
 
-			System.out.println("Requesting headers.");
+			Console.log("Requesting headers.");
 			List<PeerNode> nodes  = getPeerNodes();
 			for (PeerNode n : nodes) {
 				n.asyncSendMessage(new RequestHeadersMessage());
@@ -893,7 +894,7 @@ public class NetworkManager implements NetworkActions {
 				if (seed.connect()) { // Automaticaly sends a handshake, which is all we need to update the seeds peer list.
 					// Note that a peer request message will also be sent, oh well.
 
-					System.out.println("Send alive notification.");
+					Console.log("Send alive notification.");
 					break; // Only send the alive notifcation to one.
 				}
 			}
@@ -918,7 +919,7 @@ public class NetworkManager implements NetworkActions {
 			HashMap<String, Long> timeoutData = manager.readTimeoutFile();
 			Long currentTime = new Date().getTime();
 
-			System.out.println("Running timeout checker.");
+			Console.log("Running timeout checker.");
 
 			for (PeerNode n : nodes) {
 				boolean found = false;
@@ -930,7 +931,7 @@ public class NetworkManager implements NetworkActions {
 
 						if (currentTime - ent.getValue() > seedPeerTimeout) {
 							// It has not contacted us for a wile, remove it from our list.
-							System.out.println("Node " + n.getListeningAddress() + " has timed out.");
+							Console.log("Node " + n.getListeningAddress() + " has timed out.");
 							newNodes.remove(n);
 							timeoutData.remove(ent.getKey());
 							break;

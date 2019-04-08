@@ -7,7 +7,6 @@ package distributeblocks.io;
  * 
  * The Console should be started with start(), and then used by calling log(). 
  */
-// TODO: Should this class only ever be used statically, or would it be better to instantiate?
 public class Console {
 	
 	private static ConsoleWindow consoleWindow;
@@ -47,4 +46,43 @@ public class Console {
 		else
 			return;
 	}
+	
+	// overrided log methods for primitive
+	public static void log(byte b) {
+		log(String.valueOf(b));
+	}
+	
+	public static void log(short s) {
+		log(String.valueOf(s));
+	}
+	
+	public static void log(int i) {
+		log(String.valueOf(i));
+	}
+	
+	public static void log(long l) {
+		log(String.valueOf(l));
+	}
+	
+	public static void log(float f) {
+		log(String.valueOf(f));
+	}
+	
+	public static void log(double d) {
+		log(String.valueOf(d));
+	}
+	
+	public static void log(char c) {
+		log(String.valueOf(c));
+	}
+	
+	public static void log(boolean b) {
+		log(String.valueOf(b));
+	}
+	
+	// catch-all for logging objects
+	public static void log(Object o) {
+		log(o.toString());
+	}
+	
 }

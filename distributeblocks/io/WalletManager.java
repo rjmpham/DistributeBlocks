@@ -67,7 +67,7 @@ public class WalletManager {
 			saveHashMap(System.getProperty("user.dir") + path + "/funds.json", funds_HashMap);
 			
 		} catch (JsonIOException | IOException e) {
-			System.out.println("Error: could not save funds_HashMap");
+			Console.log("Error: could not save funds_HashMap");
 		}
 	}
 	
@@ -80,7 +80,7 @@ public class WalletManager {
 			saveHashMap(System.getProperty("user.dir") + path + "/onHold.json", onHold_HashMap);
 		
 		} catch (JsonIOException | IOException e) {
-			System.out.println("Error: could not save onHold_HashMap");
+			Console.log("Error: could not save onHold_HashMap");
 		}
 	}
 	
@@ -105,7 +105,7 @@ public class WalletManager {
 		try {
 			return loadHashMap(System.getProperty("user.dir") + path + "/funds.json");
 		} catch (FileNotFoundException e) {
-			System.out.println("Error: no funds.json found in path " + path);
+			Console.log("Error: no funds.json found in path " + path);
 			return null;
 		}
 	}
@@ -119,7 +119,7 @@ public class WalletManager {
 			return loadHashMap(System.getProperty("user.dir") + path + "/onHold.json");
 			
 		} catch (FileNotFoundException e) {
-			System.out.println("Error: no onHold.json found in path " + path);
+			Console.log("Error: no onHold.json found in path " + path);
 			return null;
 		}
 	}
@@ -149,7 +149,7 @@ public class WalletManager {
 			savePrivateKey(System.getProperty("user.dir") + path + "/private.key", keyPair.getPrivate());
 		
 		} catch(IOException e) {
-			System.out.println("Error: could not save KeyPair");
+			Console.log("Error: could not save KeyPair");
 		}
 	}
 	
@@ -194,10 +194,10 @@ public class WalletManager {
 			return new KeyPair(publicKey, privateKey);
 			
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-			System.out.println("Error: could not load KeyPair");
+			Console.log("Error: could not load KeyPair");
 			return null;
 		} catch (IOException e) {
-			System.out.println("Error: no KeyPair files found in path " + path);
+			Console.log("Error: no KeyPair files found in path " + path);
 			return null;
 		}
 	}

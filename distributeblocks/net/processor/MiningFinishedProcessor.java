@@ -5,11 +5,12 @@ import distributeblocks.io.ConfigManager;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.BlockBroadcastMessage;
 import distributeblocks.net.message.MiningFinishedMessage;
+import distributeblocks.io.Console;
 
 public class MiningFinishedProcessor extends AbstractMessageProcessor<MiningFinishedMessage> {
     @Override
     public void processMessage(MiningFinishedMessage message) {
-        System.out.println("Got Finished mining. message");
+        Console.log("Got Finished mining message.");
 
         ConfigManager configManager = new ConfigManager();
         // Add the newly mined block to our chain

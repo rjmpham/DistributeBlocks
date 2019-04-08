@@ -3,6 +3,7 @@ package distributeblocks;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.MissingBlockMessage;
+import distributeblocks.io.Console;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class BlockChain implements Serializable {
 	public void addBlock(Block block){
 
 		if (block == null){
-			System.out.println("GOT NULL BLOCK!");
+			Console.log("GOT NULL BLOCK!");
 		}
 
 		// Check to see if we already have the block.
@@ -62,7 +63,7 @@ public class BlockChain implements Serializable {
 					if (b.getHashBlock().equals(previous)){
 
 						// We found it, so this is a new fork.
-						System.out.println("===== New fork was created ====");
+						Console.log("===== New fork was created ====");
 						LinkedList newFork = new LinkedList();
 
 						int i = 0;

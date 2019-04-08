@@ -1,6 +1,7 @@
 package distributeblocks.net;
 
 import distributeblocks.net.message.*;
+import distributeblocks.io.Console;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -81,7 +82,7 @@ public class PeerNode {
 
 			try {
 				socket = new Socket(address.ip, address.port);
-				System.out.println("Connected to: " + address);
+				Console.log("Connected to: " + address);
 
 				// Connection success! StartHandler listening
 				executorService.execute(new Listener());
@@ -112,7 +113,7 @@ public class PeerNode {
 			try {
 				socket = new Socket();
 				socket.connect(new InetSocketAddress(address.ip, address.port), 3000);
-				System.out.println("Connected to: " + address);
+				Console.log("Connected to: " + address);
 
 				// Connection success! StartHandler listening
 				executorService.execute(new Listener());
@@ -121,7 +122,7 @@ public class PeerNode {
 				asyncSendMessage(new ShakeMessage("Hey there ;)", NetworkService.getNetworkManager().getPort()));
 
 			} catch (IOException e) {
-				System.out.println("Failed to connect to " + address);
+				Console.log("Failed to connect to " + address);
 				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionFailedMessage(this));
 				return false;
 			}
@@ -137,7 +138,7 @@ public class PeerNode {
 	 */
 	public void asyncSendMessage(AbstractMessage message) {
 
-		System.out.println("Sending message to peer!");
+		Console.log("Sending message to peer!");
 
 		try {
 			outQueue.put(message);
@@ -165,7 +166,7 @@ public class PeerNode {
 
 	public void shutDown() {
 
-		System.out.println("SHUTDOWN WAS CALLED ON NODE: " + getListeningAddress());
+		Console.log("SHUTDOWN WAS CALLED ON NODE: " + getListeningAddress());
 		shutDown = true;
 		executorService.shutdown();
 
@@ -245,7 +246,7 @@ public class PeerNode {
 
 			} catch (EOFException e) {
 				// Socket closed.
-				System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Got an EOFException.");
+				Console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Got an EOFException.");
 				NetworkService.getNetworkManager().asyncEnqueue(new ConnectionLostMessage(PeerNode.this));
 			} catch (IOException e) {
 				//e.printStackTrace();
