@@ -13,7 +13,7 @@ import java.util.concurrent.*;
 
 public class NetworkManager implements NetworkActions {
 
-	private HashMap<String, Transaction> transanctionPool;
+	private HashMap<String, Transaction> transactionPool;
 	private HashMap<String, Transaction> orphanedTransactionPool;
 	private HashMap<String, Transaction> pendingTransactionPool; // Transactions that are being put into a block.
 
@@ -91,7 +91,7 @@ public class NetworkManager implements NetworkActions {
 		incommingQueue = new LinkedBlockingQueue<>();
 		headerQueue = new LinkedBlockingQueue<>();
 		blockQueue = new LinkedBlockingQueue<>();
-		transanctionPool = new HashMap<>();
+		transactionPool = new HashMap<>();
 		orphanedTransactionPool = new HashMap<>();
 		pendingTransactionPool = new HashMap<>();
 	}
@@ -445,14 +445,14 @@ public class NetworkManager implements NetworkActions {
 
 		// TODO Ian figure out the validation crap.
 
-		synchronized (transanctionPool) {
+		synchronized (transactionPool) {
 
 			// Only re-broadcast transaction if we have not seen it before.
 			boolean found = false;
 
 			// TODO Steven, explain this in a comment
 			HashMap<String, Transaction> combinedPool = new HashMap<>();
-			combinedPool.putAll(transanctionPool);
+			combinedPool.putAll(transactionPool);
 			combinedPool.putAll(pendingTransactionPool);
 
 
@@ -467,7 +467,7 @@ public class NetworkManager implements NetworkActions {
 				asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
 			}
 
-			transanctionPool.put(transaction.getId_Transaction(), transaction);
+			transactionPool.put(transaction.getId_Transaction(), transaction);
 		}
 	}
 	
@@ -479,6 +479,7 @@ public class NetworkManager implements NetworkActions {
 	 * 
 	 * @param block	the most recently verified block of the longest chain
 	 */
+	// TODO: what about the pending transaction pool?
 	public void updateTransactionPools(Block block) {
 		HashMap<String, Transaction> blockData = block.getData();
 		updateOrphanPool(blockData);
@@ -499,10 +500,27 @@ public class NetworkManager implements NetworkActions {
 	 * @param potentialParants		Hashmap of Transaction ids to Transactions
 	 */
 	// TODO: does this have to be recursive if we properly check if a transaction is an orphan or not when receiving a transaction?
-	// TODO: implement this!
-	// TODO: should this be synchronized?
+	// TODO: should this be synchronized? it is called whenever a transaction is received
 	public void updateOrphanPool(HashMap<String, Transaction> potentialParants) {
+		// Recursive basecase
+		if (potentialParants.isEmpty())
+			return;
 		
+		Transaction transaction;
+		HashMap<String, Transaction> newParents = new HashMap<String, Transaction>();
+		
+		// Process the parants, and keep track of any moved Transactions in newParants
+		for (Map.Entry<String,Transaction> i: potentialParants.entrySet()){
+			if(orphanedTransactionPool.containsKey(i.getKey())) {
+				transaction = orphanedTransactionPool.get(i.getKey());
+				orphanedTransactionPool.remove(i.getKey());
+				
+				transactionPool.put(i.getKey(), i.getValue());
+				newParents.put(i.getKey(), i.getValue());
+			}
+		}
+		// Call recursively on the new potential parents
+		updateOrphanPool(newParents);
 	}
 	
 	/**
@@ -514,9 +532,11 @@ public class NetworkManager implements NetworkActions {
 	 * 
 	 * @param verifiedTransactions 	Hashmap of Transaction ids to Transactions
 	 */
-	// TODO: implement this
 	public void updateTransactionPool(HashMap<String, Transaction> verifiedTransactions) {
-		
+		for (Map.Entry<String,Transaction> i: verifiedTransactions.entrySet()){
+			if(transactionPool.containsKey(i.getKey()))
+				transactionPool.remove(i.getKey());
+		}
 	}
 	
 
@@ -587,9 +607,9 @@ public class NetworkManager implements NetworkActions {
 
 			LinkedList<Block> chain = new BlockChain().getLongestChain();
 
-			synchronized (transanctionPool) {
-				HashMap<String, Transaction> poolCopy = (HashMap<String, Transaction>) transanctionPool.clone();
-				transanctionPool.clear();
+			synchronized (transactionPool) {
+				HashMap<String, Transaction> poolCopy = (HashMap<String, Transaction>) transactionPool.clone();
+				transactionPool.clear();
 
 				pendingTransactionPool.putAll(poolCopy);
 				miner.startMining(poolCopy, chain.get(chain.size() - 1), Node.HASH_DIFFICULTY);
@@ -598,7 +618,7 @@ public class NetworkManager implements NetworkActions {
 	}
 
 	public void clearPendingTransactions(){
-	 	synchronized (transanctionPool){
+	 	synchronized (transactionPool){
 	 		pendingTransactionPool.clear();
 		}
 	}
