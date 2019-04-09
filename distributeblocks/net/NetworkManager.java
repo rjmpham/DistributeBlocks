@@ -469,7 +469,7 @@ public class NetworkManager implements NetworkActions {
 
 			// Check if we have seen this transaction before
 			for (String id : combinedPool.keySet()){
-				if (id.equals(transaction.getId_Transaction())) {
+				if (id.equals(transaction.getTransactionId())){
 					found = true;
 					break;
 				}

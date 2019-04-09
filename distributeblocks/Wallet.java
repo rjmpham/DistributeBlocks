@@ -23,6 +23,7 @@ import distributeblocks.io.WalletManager;
  */
 public class Wallet {
 	// Coin base keys are used for signing block reward transactions from a static source
+	// TODO: move these to a standard location and grab them from there. same changes to validator
 	private static final String COIN_BASE_ID = "COIN_BASE";
 	private static final String COIN_BASE_DIR = "./coinBase/";
 	public static final KeyPair COIN_BASE_KEYS = loadCoinBase();
@@ -254,6 +255,7 @@ public class Wallet {
 
 		// put the funds used to create this transaction on hold
 		for(TransactionIn i: transaction_ArrayList){
+			i.setParentId(newTransaction.getTransactionId());
 			TransactionOut spent = funds_HashMap.get(i.getSourceId());
 			funds_HashMap.remove(i.getSourceId());
 			onHold_HashMap.put(spent.getId(), spent);
@@ -291,11 +293,11 @@ public class Wallet {
 			Console.log("CoinBase has not been loaded! Cannot create block reward!");
 			throw new NullPointerException();
 		}
-		/* Create a TransactionIn array from the COIN_BASE to be consumed by the block
-		 * reward transaction. This will remain empty.
-		 */
+
+    // TransactionIn comes from the CoinBase with the "blockReward" Id
+		TransactionIn reward = new TransactionIn(COIN_BASE_ID, BLOCK_REWARD_AMOUNT);
+		reward.setParentId("blockReward");
 		ArrayList<TransactionIn> transaction_ArrayList = new ArrayList<TransactionIn>();
-		transaction_ArrayList.add(new TransactionIn(COIN_BASE_ID, BLOCK_REWARD_AMOUNT));
 
 		// Create a block reward Transaction, gives coins to the receiver
 		Transaction newTransaction = new Transaction(COIN_BASE_KEYS.getPrivate(),

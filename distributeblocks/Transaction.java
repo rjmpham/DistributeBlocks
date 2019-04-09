@@ -25,7 +25,7 @@ import distributeblocks.crypto.*;
 public class Transaction implements Serializable {
 	private static final float MIN_TRANSACTION_AMOUNT = 0.1f;
 	
-	private String id_Transaction; //Hash of the contents of the Transaction
+	private String transactionId; //Hash of the contents of the Transaction
 	private PublicKey pk_Sender; // senders address
 	private PublicKey pk_Receiver; // receivers address
 	private float exchange; // the amount to be exchanged
@@ -53,7 +53,7 @@ public class Transaction implements Serializable {
 		this.input = variables;
 		this.timestamp = new Date().getTime();
 		try {
-			this.id_Transaction = calculateHash();
+			this.transactionId = calculateHash();
 		} catch (FailedToHashException e) {
 			e.printStackTrace();
 		}
@@ -85,7 +85,7 @@ public class Transaction implements Serializable {
    	* @param privateKey		The PrivateKey used to sign the transaction
    	*/
 	public void generateSignature(PrivateKey privateKey) {
-	  this.signature = Crypto.signMessage(privateKey, this.id_Transaction);
+	  this.signature = Crypto.signMessage(privateKey, this.transactionId);
 	  return;
   }
   
@@ -96,8 +96,8 @@ public class Transaction implements Serializable {
 	 * @return true if the signature matches the public key of the sender
 	 */
 	public boolean verifySignature() {
-	  return Crypto.verifySignature(this.pk_Sender, this.id_Transaction, this.signature);
-	}
+	  return Crypto.verifySignature(this.pk_Sender, this.transactionId, this.signature);
+  }
   
 	/**
    	* Method to handle the transaction. This will verify that
@@ -127,9 +127,9 @@ public class Transaction implements Serializable {
   		try {
   		//generate transaction output:
   		float remaining = getInputExchange() - exchange;
-  		output.add(new TransactionOut(this.pk_Receiver, exchange, id_Transaction));		// Send exchange to receiver
+  		output.add(new TransactionOut(this.pk_Receiver, exchange, transactionId));		// Send exchange to receiver
   		if (remaining != 0.0f)
-  			output.add(new TransactionOut(this.pk_Sender, remaining, id_Transaction)); 	// Send the left over 'change' back to sender
+  			output.add(new TransactionOut(this.pk_Sender, remaining, transactionId)); 	// Send the left over 'change' back to sender
 
   		return true;
   		
@@ -192,6 +192,6 @@ public class Transaction implements Serializable {
   	public byte[] getSignature() { return this.signature; }
    	public ArrayList<TransactionIn> getInput() { return input; }
    	public ArrayList<TransactionOut> getOutput() { return output; }
-	  public String getId_Transaction() { return id_Transaction; }
+	  public String getTransactionId() { return transactionId; }
     public PublicKey getPublicKeySender(){ return pk_Sender; }
 }

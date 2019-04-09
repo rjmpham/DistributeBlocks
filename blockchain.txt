@@ -1,1 +1,0 @@
-[[{"hashBlock":"3ogZywrjCYBFOhqKt6qrOkyvQhPpHDSFe9yhDutmeR8\u003d","hashData":"Gre3c8aGJtdAOgHb4WlbLFjpw6eEBU9+d+zxFHR8sAk\u003d","hashPrevious":"","nonce":0,"data":{},"timestamp":0,"targetNumZeros":0,"stopMining":false}]]

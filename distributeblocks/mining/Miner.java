@@ -118,7 +118,7 @@ public class Miner {
                     }
                     reward.transactionEnforcer();
                    // Transaction rewardOut = new Transaction(wallet.getPrivateKey(), wallet.getPublicKey(), 5.0f, reward.getId_Transaction());
-                    data.put(reward.getId_Transaction(), reward);
+                    data.put(reward.getTransactionId(), reward);
 
                     currentBlock = new Block(data, previousBlock.getHashBlock(), targetNumZeros);
 
