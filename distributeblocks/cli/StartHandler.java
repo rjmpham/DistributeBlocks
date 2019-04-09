@@ -7,6 +7,7 @@ import distributeblocks.io.ConfigManager;
 import distributeblocks.io.Console;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkConfig;
+import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -28,6 +29,7 @@ public class StartHandler implements Callable<Void> {
 			description = "The port to open on")
 	private int port = 5833;
 	
+	// TODO: replace this with a read of the first line in the seed file
 	@Option(names = {"-sAddr", "--seedAddress"}, 
 			description = "The IP address of a seed node")
 	private String seedAddress = "165.22.129.19";
@@ -52,9 +54,8 @@ public class StartHandler implements Callable<Void> {
 			description = "The full peer config file path. Eg: ./blockchain.txt")
 	private String blockFile = "./blockchain.txt";
 	
-	@Option(names = {"--debug"},
-			description = "Enable or disable seperate debugging console")
-	private boolean debug = false;
+	@ArgGroup(exclusive = true)
+    private DebugOptions debugOptions;
 	
 	public StartHandler(Node node) {
 		this.node = node;
@@ -62,11 +63,20 @@ public class StartHandler implements Callable<Void> {
 	
 	@Override
 	public Void call() throws Exception {
-		if (debug) {
-			Console.start();
+		if (debugOptions != null) {
+			// Set location for debugging logs first
+			if (debugOptions.console)
+				Console.start();
+			else if (debugOptions.stdout)
+				Console.redirectToStdOut();
 			Console.log("Beginning node processes");
 		}
 		
+		// the seed port is this nodes port if this node is a seed
+		if(seed)
+			seedPort = port;
+		
+		// Create config and start network processes
 		NetworkConfig config = new NetworkConfig();
 		config.maxPeers = maxPeers;
 		config.minPeers = minPeers;
@@ -79,5 +89,15 @@ public class StartHandler implements Callable<Void> {
 		node.initializeNetworkService(config);
 		
 		return null;
-	}	
+	}
+
+    static class DebugOptions {
+    	@Option(names = {"--console"}, required = true,
+    			description = "opens a seperate debugging console for system logs")
+    	protected boolean console = false;
+    	
+    	@Option(names = {"--stdout"}, required = true,
+    			description = "directs system logs to stdout")
+    	protected boolean stdout = false;
+    }
 }

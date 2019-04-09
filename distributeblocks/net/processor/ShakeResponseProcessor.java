@@ -4,11 +4,12 @@ import distributeblocks.io.ConfigManager;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.RequestPeersMessage;
 import distributeblocks.net.message.ShakeResponseMessage;
+import distributeblocks.io.Console;
 
 public class ShakeResponseProcessor extends AbstractMessageProcessor<ShakeResponseMessage> {
 	@Override
 	public void processMessage(ShakeResponseMessage message) {
-		System.out.println("Got shake response: " + message.messsage);
+		Console.log("Got shake response: " + message.messsage);
 		message.senderNode.setListenPort(message.listeningPort);
 		RequestPeersMessage requestPeersMessage;
 
@@ -17,7 +18,7 @@ public class ShakeResponseProcessor extends AbstractMessageProcessor<ShakeRespon
 				!message.seedNode){
 			// Dont do anything, maintain connection?
 			// Add it to the node config list silly!
-			System.out.println("Adding a new friend: " + message.senderNode.getListeningAddress());
+			Console.log("Adding a new friend: " + message.senderNode.getListeningAddress());
 			ConfigManager configManager = new ConfigManager();
 			configManager.addNodeAndWrite(message.senderNode);
 			NetworkService.getNetworkManager().addNode(message.senderNode);

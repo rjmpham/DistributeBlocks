@@ -7,7 +7,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
 
-/*
+/**
  * This class outputs all parameters of the write() method
  * to a JavaFX TextArea object. If the no-args constructor is called
  * A default TextArea will be created, which can be accessed with
@@ -43,26 +43,39 @@ public class TextAreaOutputStream extends OutputStream {
         write(b, 0, b.length);
     }
    
-    /*
+    /**
      * Puts text into the actual text area. This is called by
      * each of the overriden write() method.
+     * 
+     * @param s		String to log
      */
-    public void appendText(String str) {
-        Platform.runLater(() -> textArea.appendText(str));
+    public void appendText(String s) {
+    	if(textArea != null)
+    		Platform.runLater(() -> textArea.appendText(s));
     }
     
+    /**
+     * Set's the text area to log too
+     * 
+     * @param textArea
+     */
     public void setTextArea(TextArea textArea) {
     	this.textArea = textArea;
     }
     
-    public TextArea getTextArea() {
-    	return textArea;
-    }
-    
+    /**
+     * Set's the size of the local textArea
+     * 
+     * @param width		width of textArea
+     * @param height	height of textArea
+     */
     public void setSize(int width, int height) {
     	if (textArea != null) {
 			textArea.setPrefHeight(height);  
 			textArea.setPrefWidth(width);
     	}
     }
+    
+    // Getter methods
+    public TextArea getTextArea() { return textArea; }
 }

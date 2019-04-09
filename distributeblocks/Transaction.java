@@ -7,7 +7,7 @@ import java.util.Date;
 import distributeblocks.util.Validator;
 import distributeblocks.crypto.*;
 
-/* 
+/**
  * Transaction Class for the contents of blocks in the chain.
  * Transactions can be expanded to have more features but
  * currently only enforce the exchange of our currency.
@@ -35,9 +35,16 @@ public class Transaction implements Serializable {
 	private long timestamp; //timestamp for the block
 	//private static int count_Transactions = 0; // estimates number of transactions created.
 
-	/*
+	/**
+   	* Constructor for a new transactionl
    	* Generating transactions requires the public keys of both
    	* the sender and receiver as well as the amount.
+   	* 
+   	* @param senderPrivateKey	PrivateKey of the sender
+   	* @param send				PublicKey of the sender
+   	* @param receive			PublicKey of the receiver
+   	* @param amount				Amount to send
+   	* @param variables			Inputs being used
    	*/
 	public Transaction(PrivateKey senderPrivateKey, PublicKey send, PublicKey recieve , float amount,  ArrayList<TransactionIn> variables) {
 		this.pk_Sender = send;
@@ -53,10 +60,12 @@ public class Transaction implements Serializable {
 		generateSignature(senderPrivateKey);
 	}
 
-	/*
+	/**
    	* Calculate id_Transaction
    	* This hash is based on the public keys of the sender and receiver,
-   	* the amount to be sent, and the timestamp of the transaction
+   	* the amount to be sent, and the timestamp of the transaction.
+   	* 
+   	* @return the hash of the transaction
    	*/
 	private String calculateHash() throws FailedToHashException{
     //count_Transactions++; //method to prevent identical hashes
@@ -68,39 +77,34 @@ public class Transaction implements Serializable {
       );
   }
 
-	/*
-   	* Input: The private key used to sign a transaction
-   	* Details: Signs the hash/id of the transaction
+	/**
+	* Signs the hash/id of the transaction
    	* (which is a hash of the public keys for the sender/receiver, the amount sent, and the number of transactions in existence)
-   	* Output: Sets the signature field of this transaction class
+   	* Sets the signature field of this transaction class.
+   	* 
+   	* @param privateKey		The PrivateKey used to sign the transaction
    	*/
 	public void generateSignature(PrivateKey privateKey) {
 	  this.signature = Crypto.signMessage(privateKey, this.transactionId);
 	  return;
   }
   
-	/*
-	 * A method to return this transaction's signature
-	 */
-	public byte[] getSignature() {
-	  return this.signature;
-  }
-  
-	/*
-	 * Details: Verifies that the signature of this transaction is correct by seeing if the
+	/**
+	 * Verifies that the signature of this transaction is correct by seeing if the
 	 * signature and hash/id of this transaction correspond to the public key of the sender
-	 * Output: Returns true if the signature matches the public key of the sender
+	 * 
+	 * @return true if the signature matches the public key of the sender
 	 */
 	public boolean verifySignature() {
 	  return Crypto.verifySignature(this.pk_Sender, this.transactionId, this.signature);
   }
   
-	/*
+	/**
    	* Method to handle the transaction. This will verify that
    	* the transaction is valid, and create the appropriate
    	* outputs if so.
    	* 
-   	* Returns true if the transaction is created, false otherwise
+   	* @return true if the transaction is created, false otherwise
    	*/
 	public boolean transactionEnforcer() {
   		if(verifySignature() == false) {
@@ -134,15 +138,16 @@ public class Transaction implements Serializable {
   			return false;
   		}
 	}
-
+  
 	public ArrayList<TransactionIn> getTransactionInputs() {
 		return this.input;
 	}
-	
-	
-  	/*
+
+  	/**
   	 * Returns sum of exchange values being used
   	 * to create this transaction.
+  	 * 
+  	 * @return sum of exchange values being used
   	 */
   	public float getInputExchange() {
   		float total = 0;
@@ -156,9 +161,11 @@ public class Transaction implements Serializable {
   		return this.exchange;
   	}
 
-  	/*
+  	/**
   	 * Returns sum of exchange values being
   	 * sent as a result of this transaction.
+  	 * 
+  	 * @return sum of exchange values being sent
   	 */
   	public float getOutputExchange() {
   		float total = 0;
@@ -167,12 +174,24 @@ public class Transaction implements Serializable {
   		}
   		return total;
   	}
+  	
+  	/**
+  	 * This method must check against the block to see if a transaction
+  	 * with the given id exists. If so, return true, else, return false.
+  	 * 
+  	 * @param id_Transaction_Out	id of the TransactionOut to check
+  	 * 
+  	 * @return whether or not the TransactionOut is valid for use
+  	 */
+  	// BIG TODO: IMPLEMENT THIS METHOD
+  	public static boolean isValidSource(String id_Transaction_Out) {
+  		return true;
+  	}
 
-	public String getTransactionId() {
-		return transactionId;
-	}
-	
-	public PublicKey getPublicKeySender(){
-		return pk_Sender;
-	}
+  	// Getter methods
+  	public byte[] getSignature() { return this.signature; }
+   	public ArrayList<TransactionIn> getInput() { return input; }
+   	public ArrayList<TransactionOut> getOutput() { return output; }
+	  public String getTransactionId() { return transactionId; }
+    public PublicKey getPublicKeySender(){ return pk_Sender; }
 }

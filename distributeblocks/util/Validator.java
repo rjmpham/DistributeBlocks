@@ -192,7 +192,7 @@ public class Validator
 	public static boolean isValidBlockchain(LinkedList<Block> blockchain) throws FailedToHashException
 	{
 		Block currentBlock = blockchain.getFirst();										//Get the genesis block
-		if (!isValidBlock(currentBlock,""))												//If the genesis block is not correct...
+		if (!isValidBlock(currentBlock,""))								//If the genesis block is not correct...
 			return false;
 		String previousHashBlock = blockchain.getFirst().getHashBlock();
 		for (int i = 1; i < blockchain.size(); i++)										//For all the blocks AFTER the genesis block

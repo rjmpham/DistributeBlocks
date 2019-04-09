@@ -7,6 +7,7 @@ import distributeblocks.net.NetworkService;
 import distributeblocks.net.PeerNode;
 import distributeblocks.net.message.PeerInfoMessage;
 import distributeblocks.net.message.RequestPeersMessage;
+import distributeblocks.io.Console;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -15,20 +16,16 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 	@Override
 	public void processMessage(RequestPeersMessage message) {
 
-		System.out.println("Got a request peers message from: " + message.senderNode.getAddress());
+		Console.log("Got a request peers message from: " + message.senderNode.getAddress());
 		NetworkManager networkManager = NetworkService.getNetworkManager();
 		ArrayList<IPAddress> addresses = new ArrayList<>();
 		message.senderNode.setLocalAddress(message.localAddress);
 
 		if (networkManager.inSeedMode()){
-			// TODO: In seed mode we want to make some intelligent descisions on which addresses to send probably?
-			// Fuck it, using random number generator!
 			ConfigManager configManager = new ConfigManager();
 			ArrayList<PeerNode> nodes = configManager.readPeerNodes();
 
 			if (nodes.size() > 0) {
-
-				// TODO: Add a configure for the ammount of ndoes that get send back in seed mode?
 				int adressShareCount = Math.min(nodes.size(), 10);
 				Random ran = new Random();
 
