@@ -15,7 +15,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Map;
 
-// TODO: add a confirmation of success print for CLI commands
 // TODO: normalize our Console.log() statements. Some of them seem unprofessional 
 // TODO: normalize our documentation across the system. Some of them seem unprofessional
 // TODO: normalize the use of whitespace throughout the codebase
@@ -28,12 +27,9 @@ import java.util.Map;
  *		up for the demo.
  */
 
-/* TODO: THIS IS A BIG ONE:
- *		make sure that the different path format between linux and windows is handled!
- */
-
+// TODO: replace all file slashes with File.separator
 // TODO: fix transaction sending bug that sends more than I intended
-// TODO: is a transaction created here added to the correct pool?
+// TODO: fix issue with the onHold funds not being cleared properly
 /**
  *  Represents an agent within the P2P network. This class houses a wallet,
  *  and may run all the thread necessary to perform network actions.
