@@ -235,7 +235,7 @@ public class Wallet {
 			transaction_ArrayList.add(new TransactionIn(funds.getId(), funds.getExchange()));
 
 			// Until the requested amount is exceeded
-			if(sum > amount) break;
+			if(sum >= amount) break;
 		}
 
 		/* Create the transaction, without enforcing it, the transaction enforcer checks that the tramsaction is
