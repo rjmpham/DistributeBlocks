@@ -140,6 +140,8 @@ public class Node {
 			createWallet(DEFAULT_WALLET_DIR);
 		if (wallet == null) {
 			System.out.println("Warning: no default wallet loaded!");
+		}else {
+			System.out.println("Default wallet loaded");
 		}
 	}
 
