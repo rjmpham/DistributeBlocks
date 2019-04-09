@@ -194,6 +194,7 @@ public class Node {
 		if (block == null)
 			return;
 					
+		System.out.println("New verified block added. Updating local funds");
 		// Process all the transactions in the block
 		HashMap<String, Transaction> blockData = block.getData();
 		for (Map.Entry<String,Transaction> i: blockData.entrySet()){

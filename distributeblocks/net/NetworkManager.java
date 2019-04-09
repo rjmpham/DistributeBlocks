@@ -476,6 +476,7 @@ public class NetworkManager implements NetworkActions {
 			}
 
 			if (!found){
+				Console.log("Transaction " + transaction.getId_Transaction() + "is new. Broadcasting...");
 				// if we've never seen this transaction before, send it to peers
 				asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
 				
@@ -500,6 +501,7 @@ public class NetworkManager implements NetworkActions {
 	 * @param block	the most recently verified block of the longest chain
 	 */
 	public void updateTransactionPools(Block block) {
+		Console.log("Updating local transaction pools from block " + block.getHashBlock());
 		HashMap<String, Transaction> blockData = block.getData();
 		updateOrphanPool(blockData);
 		updateTransactionPool(blockData);
@@ -591,7 +593,7 @@ public class NetworkManager implements NetworkActions {
 
 	/**
 	 * Goes through the network interfaces, extracts InetAddresses,
-	 * and uses the first one that isnt 127.0.0.1
+	 * and uses the first one that isn't 127.0.0.1
 	 *
 	 * Sets localAddr.
 	 */

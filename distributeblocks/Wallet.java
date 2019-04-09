@@ -132,6 +132,7 @@ public class Wallet {
 			//check to see if the funds have this publicKey as owner
 			if(funds.isMine(publicKey)){
 				//if yes, account for them as part of the funds
+				System.out.println("Received " + funds.getExchange() + " coins");
 				funds_HashMap.put(funds.getId(), funds);
 			}
 		}
