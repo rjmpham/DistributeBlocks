@@ -3,17 +3,19 @@ package distributeblocks.net.processor;
 import distributeblocks.Block;
 import distributeblocks.BlockChain;
 import distributeblocks.Node;
+import distributeblocks.NodeService;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.mining.Miner;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.BlockBroadcastMessage;
+import distributeblocks.io.Console;
 
 import java.util.LinkedList;
 
 public class BlockBroadcastProcessor extends AbstractMessageProcessor<BlockBroadcastMessage> {
     @Override
     public void processMessage(BlockBroadcastMessage message) {
-        System.out.println("Got a block broadcast.");
+        Console.log("Got a block broadcast.");
 
 
         // TODO verify the block is actualy legit!
@@ -24,9 +26,17 @@ public class BlockBroadcastProcessor extends AbstractMessageProcessor<BlockBroad
         // Check to see if our chain already has this block.
         if (!blockChain.getAllBlocks().containsKey(message.block.getHashBlock())) {
 
-            blockChain.addBlock(message.block);
+            blockChain.addBlock(message.block);            
             blockChain.save();
-            System.out.println("Added block to the chain!");
+            Console.log("Added block to the chain!");
+            
+            Block lastVerified = blockChain.getLastVerifiedBlock();
+            if (lastVerified != null) {
+				// Update node wallet with the block which is now verified
+				NodeService.getNode().updateWallet(lastVerified);
+				// Update the transaction pools now that a new block is verified
+				NetworkService.getNetworkManager().updateTransactionPools(lastVerified);
+            }
 
             // TODO Here is the spot to stop mining and restart mining
             NetworkService.getNetworkManager().beginMining();

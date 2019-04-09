@@ -131,7 +131,7 @@ public class ConfigManager {
 
 			ArrayList<PeerNode> nodes = this.readPeerNodes();
 
-			System.out.println("Adding node: " + node.getListeningAddress());
+			Console.log("Adding node: " + node.getListeningAddress());
 
 			boolean found = false;
 			for (PeerNode n : nodes) {
@@ -315,7 +315,7 @@ public class ConfigManager {
 					file.createNewFile();
 				} catch (IOException e) {
 					e.printStackTrace();
-					System.out.println("Could not create timeout file.");
+					Console.log("Could not create timeout file.");
 					return;
 				}
 			}
@@ -325,7 +325,7 @@ public class ConfigManager {
 			try (PrintWriter writer = new PrintWriter(file)){
 				writer.write(gson.toJson(times));
 			} catch (FileNotFoundException e) {
-				System.out.println("Could not write timeout file.");
+				Console.log("Could not write timeout file.");
 			}
 
 		}
@@ -349,7 +349,7 @@ public class ConfigManager {
 					file.createNewFile();
 				} catch (IOException e) {
 					e.printStackTrace();
-					System.out.println("Could not create timeout file.");
+					Console.log("Could not create timeout file.");
 					return null;
 				}
 			}
@@ -393,7 +393,7 @@ public class ConfigManager {
 				try {
 					file.createNewFile();
 				} catch (IOException e) {
-					System.out.println("Could not create the seed list file.");
+					Console.log("Could not create the seed list file.");
 					return;
 				}
 			}
@@ -405,7 +405,7 @@ public class ConfigManager {
 				writer.write(gson.toJson(seedNodes));
 
 			} catch (FileNotFoundException e) {
-				System.out.println("Could not write to seed file.");
+				Console.log("Could not write to seed file.");
 			}
 
 		}

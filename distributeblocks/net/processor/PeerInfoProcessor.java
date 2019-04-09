@@ -6,6 +6,7 @@ import distributeblocks.net.NetworkManager;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.PeerNode;
 import distributeblocks.net.message.PeerInfoMessage;
+import distributeblocks.io.Console;
 
 import java.util.Date;
 import java.util.Random;
@@ -13,10 +14,10 @@ import java.util.Random;
 public class PeerInfoProcessor extends AbstractMessageProcessor<PeerInfoMessage> {
 	@Override
 	public void processMessage(PeerInfoMessage message) {
-		System.out.println("Got a peer info message from: " + message.senderNode.getAddress());
+		Console.log("Got a peer info message from: " + message.senderNode.getAddress());
 
 		for (IPAddress a : message.peerAddresses){
-			System.out.println(" - " + a);
+			Console.log(" - " + a);
 		}
 
 		NetworkManager networkManager = NetworkService.getNetworkManager();
@@ -42,16 +43,16 @@ public class PeerInfoProcessor extends AbstractMessageProcessor<PeerInfoMessage>
 		}
 
 		if (suceeded < needed){
-			System.out.println("Did not get enough peers in peer info :(");
+			Console.log("Did not get enough peers in peer info :(");
 		}
 
 		NetworkService.getNetworkManager().removeTemporaryNode(message.senderNode);
 
 		if (message.seedNode){
-			System.out.println("SHUTTING DOWN NODE CONNECTION BECAUSE ITS A SEED");
+			Console.log("SHUTTING DOWN NODE CONNECTION BECAUSE ITS A SEED");
 			message.senderNode.shutDown();
 		} else if (!message.friend){
-			System.out.println("SHUTTING DOWN NODE CONNECTION BECAUSE ITS NOT A FRIEND " + new Date().getTime());
+			Console.log("SHUTTING DOWN NODE CONNECTION BECAUSE ITS NOT A FRIEND " + new Date().getTime());
 		}
 		// If the node is only in the tempory pool, then it will be disconnected.
 		// this is what we want for the seed node.
