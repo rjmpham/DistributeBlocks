@@ -32,6 +32,8 @@ import java.util.Map;
  *		make sure that the different path format between linux and windows is handled!
  */
 
+// TODO: fix transaction sending bug that sends more than I intended
+// TODO: is a transaction created here added to the correct pool?
 /**
  *  Represents an agent within the P2P network. This class houses a wallet,
  *  and may run all the thread necessary to perform network actions.
@@ -225,8 +227,8 @@ public class Node {
 			PublicKey recipientKey = WalletManager.loadPublicKey(fullPath, Crypto.GEN_ALGORITHM);
 			Transaction transaction = wallet.makeTransaction(recipientKey, amount);
 			if(transaction.transactionEnforcer()){
+				NetworkService.getNetworkManager().addTransaction(transaction);
 				System.out.println("Transaction request has been made");
-				NetworkService.getNetworkManager().broadcastTransaction(transaction);
 			} else{
 				wallet.reverseTransaction(transaction);
 				System.out.println("Transaction request denied");
@@ -249,6 +251,7 @@ public class Node {
 		}
 		NetworkService.getNetworkManager().startMining();
 		mining = true;
+		System.out.println("mining has been enabled");
 	}
 
 	/**
@@ -263,6 +266,7 @@ public class Node {
 			NetworkService.getNetworkManager().stopMining();
 			mining = false;
 		}
+		System.out.println("mining has been disabled");
 	}
 
 	/**

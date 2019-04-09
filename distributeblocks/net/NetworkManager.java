@@ -445,11 +445,6 @@ public class NetworkManager implements NetworkActions {
 	 * @param transaction
 	 */
 	// TODO: make the locks more reasonable here. maybe move code into synchronized sub methods
-	
-	/*
-	 * - checks if inputs exist
-	 * - checks if its a double spend
-	 */
 	// TODO: merge isUnspent, containsValidTransactionInputs, and existsInChain, then call it here
 	public void addTransaction(Transaction transaction){
 //		BlockChain chain = new BlockChain();

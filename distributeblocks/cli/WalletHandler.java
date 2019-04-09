@@ -3,7 +3,6 @@ package distributeblocks.cli;
 import java.util.concurrent.Callable;
 
 import distributeblocks.Node;
-import distributeblocks.Wallet;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -75,7 +74,6 @@ class FundsHandler implements Callable<Void> {
 	
 	@Override
 	public Void call() throws Exception {
-		System.out.println(Wallet.COIN_BASE_KEYS);
 		WalletHandler.node.countFunds();
 		
 		return null;
