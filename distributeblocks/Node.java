@@ -5,6 +5,7 @@ import distributeblocks.cli.CommandLineInterface;
 import distributeblocks.io.WalletManager;
 import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
+import distributeblocks.util.Validator;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
+import distributeblocks.BlockChain;
 import java.util.Map;
 
 // TODO: normalize our Console.log() statements. Some of them seem unprofessional 
@@ -42,6 +44,7 @@ public class Node {
 
 	private boolean started = false;
 	private boolean mining = false;
+	private Validator validator = new Validator();
 	private Wallet wallet;
 	private String walletPath;
 

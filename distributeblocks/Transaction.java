@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.security.*;
 import java.util.ArrayList;
 import java.util.Date;
-
+import distributeblocks.util.Validator;
 import distributeblocks.crypto.*;
 
 /**
@@ -113,12 +113,10 @@ public class Transaction implements Serializable {
   		}
   
   		// Verify that the incoming transactions are valid
-  		for(TransactionIn i : input) {
-  			if (! isValidSource(i.getSourceId())) {
-  				System.out.println("Invalid source transaction: " + i.getSourceId());
-  				return false;
-  			}
-  		}
+  		Validator idk = new Validator();
+  		
+  		BlockChain blockchain = new BlockChain();
+  		idk.isValidTransaction(this, blockchain.getLongestChain());
 
   		// Verify that the transaction is large enough
   		if(getInputExchange() < MIN_TRANSACTION_AMOUNT) {
@@ -140,6 +138,10 @@ public class Transaction implements Serializable {
   			return false;
   		}
 	}
+  
+	public ArrayList<TransactionIn> getTransactionInputs() {
+		return this.input;
+	}
 
   	/**
   	 * Returns sum of exchange values being used
@@ -153,6 +155,10 @@ public class Transaction implements Serializable {
   			total += i.getExchange();
   		}
   		return total;
+  	}
+  	
+  	public float getExchange() {
+  		return this.exchange;
   	}
 
   	/**
@@ -186,5 +192,6 @@ public class Transaction implements Serializable {
   	public byte[] getSignature() { return this.signature; }
    	public ArrayList<TransactionIn> getInput() { return input; }
    	public ArrayList<TransactionOut> getOutput() { return output; }
-	public String getId_Transaction() { return id_Transaction; }
+	  public String getId_Transaction() { return id_Transaction; }
+    public PublicKey getPublicKeySender(){ return pk_Sender; }
 }
