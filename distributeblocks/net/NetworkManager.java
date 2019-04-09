@@ -476,13 +476,13 @@ public class NetworkManager implements NetworkActions {
 			}
 
 			if (!found){
-				Console.log("Transaction " + transaction.getId_Transaction() + "is new. Broadcasting...");
+				Console.log("Transaction " + transaction.getTransactionId() + "is new. Broadcasting...");
 				// if we've never seen this transaction before, send it to peers
 				asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
 				
 //				// Put the transaction into the correct pool
 //				if (Validator.containsValidTransactionInputs(transaction, longestChain)) {
-					transactionPool.put(transaction.getId_Transaction(), transaction);
+					transactionPool.put(transaction.getTransactionId(), transaction);
 //					updateOrphanPool(transaction);
 //				}
 //				else {
@@ -555,7 +555,7 @@ public class NetworkManager implements NetworkActions {
 	 */
 	public void updateOrphanPool(Transaction transaction) {
 		HashMap<String, Transaction> container = new HashMap<String, Transaction>();
-		container.put(transaction.getId_Transaction(), transaction);
+		container.put(transaction.getTransactionId(), transaction);
 		updateOrphanPool(container);
 	}
 	

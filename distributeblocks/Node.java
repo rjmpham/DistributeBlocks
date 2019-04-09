@@ -29,6 +29,8 @@ import java.util.Map;
  */
 
 // TODO: the "coinBase" transaction id may cause problems with hashes and removing old funds that are marked as spent
+// TODO: the "blockReward" parent id might also have this problem
+
 // TODO: replace all file slashes with File.separator
 // TODO: make killing mining sychronized with the new block broadcast, or make sure it doesn't kill it part way through
 /**

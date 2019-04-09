@@ -1,23 +1,15 @@
 package distributeblocks.util;
 
 import java.util.LinkedList;
-import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import distributeblocks.*;
 import distributeblocks.crypto.*;
-import distributeblocks.io.WalletManager;
+import distributeblocks.io.Console;
 
 public class Validator
-{
-	// Coin base keys are used for signing block reward transactions from a static source
-	// TODO: move these to a standard location and grab them from there. same changes to wallet
-	private static final String COIN_BASE_ID = "COIN_BASE";
-	private static final String COIN_BASE_DIR = "/coinBase";
-	private static final KeyPair COIN_BASE_KEYS = WalletManager.loadKeyPair(COIN_BASE_DIR, Crypto.GEN_ALGORITHM);
-	private static final float BLOCK_REWARD_AMOUNT = 5.0f;
-	
+{	
 	/*
 	 * Input: Transaction to check validity of, blockchain to check transaction against
 	 * Output: True if transaction inputs exist in the blockchain and are unspent, false otherwise
@@ -26,20 +18,18 @@ public class Validator
 	 */
 	public boolean isValidTransaction(Transaction transaction, LinkedList<Block> blockchain)
 	{
-		if(transaction.getPublicKeySender().equals(COIN_BASE_KEYS.getPublic()) && transaction.getExchange() == BLOCK_REWARD_AMOUNT){
+		if(transaction.getPublicKeySender().equals(CoinBase.COIN_BASE_KEYS.getPublic()) 
+				&& transaction.getExchange() == CoinBase.BLOCK_REWARD_AMOUNT){
 			return true;
 		}
 		
-		if(!containsValidTransactionInputs(transaction, blockchain))
-		{
+		if(!containsValidTransactionInputs(transaction, blockchain)) {
 			return false; 
 		}
 		
-		if(!isUnspent(transaction, blockchain))
-		{
+		if(!isUnspent(transaction, blockchain)) {
 			return false;
 		}
-		
 		return true;
 	}
 	
@@ -96,7 +86,7 @@ public class Validator
 			}
 		}
 		//if we somehow reach here then the transaction was not even found but none were double spent
-		System.out.println("One or more transaction inputs were not found");
+		Console.log("One or more transaction inputs were not found");
 		return true;
 	}
 	
@@ -115,11 +105,10 @@ public class Validator
 		transaction.getTransactionInputs().forEach(i -> inputs.add(i.getParentId()));
 		
 		//Compare number of inputs found to number of actual inputs
-		if(foundTransactionInputs.size() == inputs.size()){
+		if(foundTransactionInputs.size() == inputs.size()) {
 			return true;
 		}
-		else
-		{
+		else {
 			return false;
 		}
 	}

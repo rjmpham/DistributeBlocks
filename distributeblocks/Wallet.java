@@ -1,16 +1,12 @@
 package distributeblocks;
 
-import java.io.IOException;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import distributeblocks.crypto.*;
 import distributeblocks.io.Console;
-import distributeblocks.io.WalletManager;
-
 
 /**
  * Wallet keeps track of all TransactionOut
@@ -22,13 +18,6 @@ import distributeblocks.io.WalletManager;
  * available.
  */
 public class Wallet {
-	// Coin base keys are used for signing block reward transactions from a static source
-	// TODO: move these to a standard location and grab them from there. same changes to validator
-	private static final String COIN_BASE_ID = "COIN_BASE";
-	private static final String COIN_BASE_DIR = "./coinBase/";
-	public static final KeyPair COIN_BASE_KEYS = loadCoinBase();
-	private static final float BLOCK_REWARD_AMOUNT = 5.0f;
-
 	private PrivateKey privateKey;
 	private PublicKey publicKey;
 	private HashMap<String, TransactionOut> funds_HashMap = new HashMap<String,TransactionOut>(); 	// Funds in this wallet.
@@ -289,40 +278,23 @@ public class Wallet {
 	 * @return a block reward Transaction
 	 */
 	public static Transaction makeBlockReward(PublicKey receiver) {
-		if (COIN_BASE_KEYS == null) {
+		if (CoinBase.COIN_BASE_KEYS == null) {
 			Console.log("CoinBase has not been loaded! Cannot create block reward!");
 			throw new NullPointerException();
 		}
 
-    // TransactionIn comes from the CoinBase with the "blockReward" Id
-		TransactionIn reward = new TransactionIn(COIN_BASE_ID, BLOCK_REWARD_AMOUNT);
-		reward.setParentId("blockReward");
+		// TransactionIn comes from the CoinBase
+		TransactionIn reward = new TransactionIn(CoinBase.COIN_BASE_ID, CoinBase.BLOCK_REWARD_AMOUNT);
+		reward.setParentId(CoinBase.PARENT_TRANSACTION_ID);
 		ArrayList<TransactionIn> transaction_ArrayList = new ArrayList<TransactionIn>();
 
 		// Create a block reward Transaction, gives coins to the receiver
-		Transaction newTransaction = new Transaction(COIN_BASE_KEYS.getPrivate(),
-				COIN_BASE_KEYS.getPublic(),
+		Transaction newTransaction = new Transaction(CoinBase.COIN_BASE_KEYS.getPrivate(),
+				CoinBase.COIN_BASE_KEYS.getPublic(),
 				receiver,
-				BLOCK_REWARD_AMOUNT,
+				CoinBase.BLOCK_REWARD_AMOUNT,
 				transaction_ArrayList);
 		return newTransaction;
-	}
-	
-	/**
-	 * Loads the COIN_BASE_KEYS from the COIN_BASE_DIR.
-	 * 
-	 * @return	a KeyPair loaded for the coinBase
-	 */
-	public static KeyPair loadCoinBase() {
-		System.out.println("creating the coinbase");
-		String fullPath = System.getProperty("user.dir") + COIN_BASE_DIR;
-		try {
-			return WalletManager.loadKeyPair(fullPath, Crypto.GEN_ALGORITHM);
-		} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
-			System.out.println("Warning: failed to load CoinBase keys from " + fullPath);
-			System.out.println("This node cannot mine as no block rewards can be made!");
-			return null;
-		}
 	}
 
 	// Getter methods
