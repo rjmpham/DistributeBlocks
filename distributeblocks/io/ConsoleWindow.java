@@ -9,8 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 
-
-/*
+/**
  * Singleton class to run a windowed console application.
  * This class should be used by instantiating an object and calling
  * the run() method in a new thread. 
@@ -18,7 +17,7 @@ import javafx.stage.Stage;
 // TODO: There is a memory leak in that old logs are never cleared
 public class ConsoleWindow extends Application implements Runnable{
 	
-	// TODO: figure out how to set these through launch
+	// TODO: figure out how to set these through launch (if we want to)
 	private int width = 600;
 	private int height = 300;
 	private String title = "Network Log";
@@ -31,7 +30,7 @@ public class ConsoleWindow extends Application implements Runnable{
 	private static ConsoleWindow instance;
 	public static int instantiations = 0;
 
-	/*
+	/**
 	 * Constructor that ensure singleton is instantiated
 	 */
     public ConsoleWindow() {
@@ -42,21 +41,25 @@ public class ConsoleWindow extends Application implements Runnable{
 	out = new PrintStream(textAreaOutputStream, true);
     }
     
-    /*
+    /**
      * Println to window
+     * 
+     * @param s		String to log
      */
     public synchronized void log(String s) {
     	out.println(s);
     }
 
-    /*
+    /**
      * Return the singleton object
+     * 
+     * @return singleton ConsoleWindow instance
      */
     public static synchronized ConsoleWindow getInstance() {
         return instance;
     }
     
-	/*
+	/**
 	 * Creates the application window with a TextArea bound to a
 	 * TextAreaOutputStream.
 	 * 
@@ -85,7 +88,7 @@ public class ConsoleWindow extends Application implements Runnable{
 		stage.show(); 
 	}
 
-	/*
+	/**
 	 * Launches the console window. This method is blocking
 	 * until the window is closed or exits prematurely.
 	 * 
@@ -93,7 +96,6 @@ public class ConsoleWindow extends Application implements Runnable{
 	 */
 	@Override
 	public void run() {
-		ConsoleWindow.launch();
-		
+		ConsoleWindow.launch();	
 	}
 }
