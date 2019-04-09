@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Type;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -16,13 +18,16 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 
+import distributeblocks.Block;
 import distributeblocks.Transaction;
 import distributeblocks.TransactionOut;
 import distributeblocks.Wallet;
@@ -57,8 +62,9 @@ public class WalletManager {
 	 * @throws IOException 
 	 * @throws InvalidKeySpecException 
 	 * @throws NoSuchAlgorithmException 
+	 * @throws ClassNotFoundException 
 	 */
-	public static Wallet loadWallet(String path) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+	public static Wallet loadWallet(String path) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException, ClassNotFoundException {
 		KeyPair keys = loadKeyPair(path, Crypto.GEN_ALGORITHM);
 		HashMap<String, TransactionOut> funds_HashMap = loadFundsHashMap(path);
 		HashMap<String, TransactionOut> onHold_HashMap = loadOnHoldHashMap(path);
@@ -112,9 +118,14 @@ public class WalletManager {
 		File file = new File(fullPath);
 		file.getParentFile().mkdirs();
 		
-		// Write the json object to the file
-		Gson gson = new Gson();
-		gson.toJson(map, new FileWriter(file));
+		// Write the json object to the file 	<-- does not work with Interfaces (PublicKey and PrivateKey)! 
+		//Gson gson = new Gson();
+		//gson.toJson(map, new FileWriter(file));
+
+		// Write out a serialized version of the hashmap
+		ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(fullPath));
+		out.writeObject(map);
+		out.close();
 	}
 	
 	/**
@@ -124,9 +135,10 @@ public class WalletManager {
 	 * @param path		path to the director where the funds.json file is
 	 * 
 	 * @return the loaded funds_HashMap	
-	 * @throws FileNotFoundException 
+	 * @throws IOException 
+	 * @throws ClassNotFoundException 
 	 */
-	public static HashMap<String, TransactionOut> loadFundsHashMap(String path) throws FileNotFoundException {
+	public static HashMap<String, TransactionOut> loadFundsHashMap(String path) throws ClassNotFoundException, IOException {
 		return loadHashMap(System.getProperty("user.dir") + path + "funds.json");
 	}
 	
@@ -137,9 +149,10 @@ public class WalletManager {
 	 * @param path		path to the director where the onHold.json file is
 	 * 
 	 * @return the loaded onHold_HashMap	
-	 * @throws FileNotFoundException 
+	 * @throws IOException 
+	 * @throws ClassNotFoundException 
 	 */
-	public static HashMap<String, TransactionOut> loadOnHoldHashMap(String path) throws FileNotFoundException {
+	public static HashMap<String, TransactionOut> loadOnHoldHashMap(String path) throws ClassNotFoundException, IOException {
 		return loadHashMap(System.getProperty("user.dir") + path + "onHold.json");
 	}
 	
@@ -150,17 +163,20 @@ public class WalletManager {
 	 * @param fullPath		fully qualified path to to the HashMap json file
 	 * 
 	 * @return loaded HashMap
-	 * 
-	 * @throws FileNotFoundException
+	 * @throws IOException 
+	 * @throws ClassNotFoundException 
 	 */
-	private static <K, V> HashMap<K, V> loadHashMap(String fullPath) throws FileNotFoundException {
+	private static <K, V> HashMap<K, V> loadHashMap(String fullPath) throws IOException, ClassNotFoundException {
 		// Get the type of the generic map
 		Type typeOfHashMap = new TypeToken<HashMap<K, V>>() { }.getType();
 		
-		// Load the map from the file
-		Gson gson = new Gson();
-		JsonReader reader = new JsonReader(new FileReader(fullPath));
-		HashMap<K, V> map = gson.fromJson(reader, typeOfHashMap);
+		// Load the map from the file  	<-- does not work with Interfaces (PublicKey and PrivateKey)!
+		// Gson gson = new Gson();
+		// JsonReader reader = new JsonReader(new FileReader(fullPath));
+		//  HashMap<K, V> map = gson.fromJson(reader, typeOfHashMap);
+		
+		ObjectInputStream in = new ObjectInputStream(new FileInputStream(fullPath));
+		HashMap<K, V> map = (HashMap<K, V>) in.readObject();
 		return map;
 	}
 	

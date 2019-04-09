@@ -29,6 +29,7 @@ public class StartHandler implements Callable<Void> {
 			description = "The port to open on")
 	private int port = 5833;
 	
+	// TODO: replace this with a read of the first line in the seed file
 	@Option(names = {"-sAddr", "--seedAddress"}, 
 			description = "The IP address of a seed node")
 	private String seedAddress = "165.22.129.19";

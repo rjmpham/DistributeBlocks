@@ -122,7 +122,7 @@ public class Node {
 		try {
 			wallet = WalletManager.loadWallet(path);
 			walletPath = path;
-		} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException | ClassNotFoundException e) {
 			System.out.println("Failed to load wallet, keeping previously wallet (if any)");
 			wallet = old;
 		}
