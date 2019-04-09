@@ -23,7 +23,7 @@ import distributeblocks.io.WalletManager;
 public class Wallet {
 	// Coin base keys are used for signing block reward transactions from a static source
 	private static final String COIN_BASE_ID = "COIN_BASE";
-	private static final String COIN_BASE_DIR = "/coinBase/";
+	private static final String COIN_BASE_DIR = "./coinBase/";
 	public static final KeyPair COIN_BASE_KEYS = loadCoinBase();
 	private static final float BLOCK_REWARD_AMOUNT = 5.0f;
 
@@ -299,15 +299,18 @@ public class Wallet {
 	}
 	
 	/**
+	 * Loads the COIN_BASE_KEYS from the COIN_BASE_DIR.
 	 * 
-	 * @return
+	 * @return	a KeyPair loaded for the coinBase
 	 */
 	public static KeyPair loadCoinBase() {
 		System.out.println("creating the coinbase");
+		String fullPath = System.getProperty("user.dir") + COIN_BASE_DIR;
 		try {
-			return WalletManager.loadKeyPair(COIN_BASE_DIR, Crypto.GEN_ALGORITHM);
+			return WalletManager.loadKeyPair(fullPath, Crypto.GEN_ALGORITHM);
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
-			System.out.println("Warning: failed to load CoinBase keys. No block rewards can be made!");
+			System.out.println("Warning: failed to load CoinBase keys from " + fullPath);
+			System.out.println("This node cannot mine as no block rewards can be made!");
 			return null;
 		}
 	}

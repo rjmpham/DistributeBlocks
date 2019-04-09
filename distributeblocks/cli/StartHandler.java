@@ -72,6 +72,10 @@ public class StartHandler implements Callable<Void> {
 			Console.log("Beginning node processes");
 		}
 		
+		// the seed port is this nodes port if this node is a seed
+		if(seed)
+			seedPort = port;
+		
 		// Create config and start network processes
 		NetworkConfig config = new NetworkConfig();
 		config.maxPeers = maxPeers;

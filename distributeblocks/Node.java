@@ -28,6 +28,10 @@ import java.util.Map;
  *		up for the demo.
  */
 
+/* TODO: THIS IS A BIG ONE:
+ *		make sure that the different path format between linux and windows is handled!
+ */
+
 /**
  *  Represents an agent within the P2P network. This class houses a wallet,
  *  and may run all the thread necessary to perform network actions.
@@ -65,7 +69,7 @@ public class Node {
 			try {
 				WalletManager.saveWallet(walletPath, wallet);
 			} catch (IOException e) {
-				System.out.println("Failed to save wallet");
+				System.out.println("Failed to save wallet to " + walletPath);
 			}
 		}
 		// TODO: do we need to safely close all other threads?
@@ -82,31 +86,32 @@ public class Node {
 	 */
 	public void createWallet(String path) {
 		// ensure that it is safe to save wallet data to the directory
-		File file = new File(System.getProperty("user.dir") + path);
+		String fullPath = System.getProperty("user.dir") + path;
+		File file = new File(fullPath);
 		if(!file.isDirectory()) {
 				file.mkdir();
 		}
 		if(file.list().length != 0){
-			System.out.println("Cannot create a wallet in a non-empty directory!");
+			System.out.println("Cannot create a wallet in a non-empty directory " + fullPath);
 			return;
 		}
 		
 		// keep a copy of the current wallet in case creation fails
 		Wallet old = wallet;
 		wallet = new Wallet();
-		walletPath = path;
+		walletPath = fullPath;
 		
 		boolean failed = false;
 		try {
 			WalletManager.saveWallet(path, wallet);
 		} catch (IOException e) {
-			System.out.println(e);
-			System.out.println("Failed to save new wallet, keeping previously wallet (if any)");
+			System.out.println("Failed to save new wallet in " + fullPath);
+			System.out.println("keeping previously wallet (if any)");
 			failed = true;
 			wallet = old;
 		}
 		if (!failed) {
-			System.out.println("Successfully created wallet");
+			System.out.println("Successfully created wallet in " + fullPath);
 		}
 	}
 
@@ -116,14 +121,17 @@ public class Node {
 	 * @param path		path to the directory where wallet info is stored
 	 */
 	public void loadWallet(String path) {
+		String fullPath = System.getProperty("user.dir") + path;
+		
 		// keep a copy of the current wallet in case creation fails
 		Wallet old = wallet;
 		
 		try {
-			wallet = WalletManager.loadWallet(path);
-			walletPath = path;
+			wallet = WalletManager.loadWallet(fullPath);
+			walletPath = fullPath;
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException | ClassNotFoundException e) {
-			System.out.println("Failed to load wallet, keeping previously wallet (if any)");
+			System.out.println("Failed to load wallet from " + fullPath);
+			System.out.println("keeping previously wallet (if any)");
 			wallet = old;
 		}
 	}
@@ -199,9 +207,8 @@ public class Node {
 	 * the network). If the intended transaction is invalid, the 
 	 * operation will be aborted and used funds returned.
 	 * 
-	 * @param recipientKeyPath	path to a directory where a users PK (public.key) is stored	
+	 * @param recipientKeyPath	path to a users PK (public.key)
 	 */
-	// TODO: wouldn't it make more sense to get the path to the file itself?
 	public void createTransaction(String recipientKeyPath, float amount) {
 		if (!walletLoaded()) {
 			System.out.println("No wallet loaded!");
@@ -212,9 +219,10 @@ public class Node {
 			return;
 		}
 
+		String fullPath = System.getProperty("user.dir") + recipientKeyPath;
 		try {
-			PublicKey recipientKey = WalletManager.loadPublicKey(System.getProperty("user.dir") + recipientKeyPath,
-																Crypto.GEN_ALGORITHM);
+			// try to create a transaction
+			PublicKey recipientKey = WalletManager.loadPublicKey(fullPath, Crypto.GEN_ALGORITHM);
 			Transaction transaction = wallet.makeTransaction(recipientKey, amount);
 			if(transaction.transactionEnforcer()){
 				System.out.println("Transaction request has been made");
@@ -225,9 +233,9 @@ public class Node {
 			}
 
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-			System.out.println("Error: could not load KeyPair");
+			System.out.println("Error: could not load KeyPair from " + fullPath);
 		} catch (IOException e) {
-			System.out.println("Error: no KeyPair files found in path " + recipientKeyPath);
+			System.out.println("Error: no KeyPair files found in path " + fullPath);
 		}
 	}
 
