@@ -5,6 +5,7 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import distributeblocks.crypto.*;
 import distributeblocks.io.Console;
@@ -75,16 +76,22 @@ public class Wallet {
 	 * @param transaction	The Transaction to process
 	 */
 	public void update(Transaction transaction) {
+		// Construct a set of TransactionOut ids which were used as inputs
+		HashSet<String> inputs = new HashSet<String>();
+		for (TransactionIn i: transaction.getInput()) {
+			inputs.add(i.getSourceId());
+		}
+
+		// Clear any held funds that were waiting for verification
+		clearFundsOnHold(inputs);
+		// Clear any funds spent, but rescinded (turns out they WERE spent)
+		clearFundsRescinded(inputs);
+		
 		// Construct a map from ids to TransactionOut
 		HashMap<String, TransactionOut> outputs = new HashMap<String, TransactionOut>();
 		for (TransactionOut o: transaction.getOutput()) {
 			outputs.put(o.getId(), o);
 		}
-		
-		// Clear any held funds that were waiting for verification
-		clearFundsOnHold(outputs);
-		// Clear any funds spent, but rescinded
-		clearFundsRescinded(outputs);
 		// Add any newly received funds
 		receiveFunds(outputs);
 	}
@@ -139,17 +146,17 @@ public class Wallet {
 	}
 
 	/**
-	 * Checks over each transaction in verifiedTransactions and removed any matching
+	 * Checks over each TransactionOut id in verifiedTransactions and removed any matching
 	 * transactions which were on hold in this wallet. This essentially marks the
 	 * funds as permanently spent by removing them from the wallet completely.
 	 * 
 	 * This method is called whenever a block becomes verified (sufficiently deep).
 	 * 
-	 * @param verifiedTransactions	HashMap from TransactionOut ids to TransactionOut to process
+	 * @param verifiedTransactions	HashSet of TransactionOut ids to process
 	 */
-	public void clearFundsOnHold(HashMap<String, TransactionOut> verifiedTransactions) {
-		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
-			TransactionOut spent = onHold_HashMap.get(i.getKey());
+	public void clearFundsOnHold(HashSet<String> verifiedTransactions) {
+		for (String id: verifiedTransactions) {
+			TransactionOut spent = onHold_HashMap.get(id);
 			if (spent != null) {
 				onHold_HashMap.remove(spent.getId());
 			}
@@ -157,17 +164,17 @@ public class Wallet {
 	}
 	
 	/**
-	 * Checks over each transaction in verifiedTransactions and removed any matching
+	 * Checks over each TransactionOut id in verifiedTransactions and removed any matching
 	 * transactions which were erroneously rescinded. This essentially marks the
 	 * funds as permanently spent by removing them from the wallet completely.
 	 * 
 	 * This method is called whenever a block becomes verified (sufficiently deep).
 	 * 
-	 * @param verifiedTransactions	HashMap from TransactionOut ids to TransactionOut to process
+	 * @param verifiedTransactions	HashSet of TransactionOut ids to process
 	 */
-	public void clearFundsRescinded(HashMap<String, TransactionOut> verifiedTransactions) {
-		for (Map.Entry<String,TransactionOut> i: verifiedTransactions.entrySet()){
-			TransactionOut spent = funds_HashMap.get(i.getKey());
+	public void clearFundsRescinded(HashSet<String> verifiedTransactions) {
+		for (String id: verifiedTransactions) {
+			TransactionOut spent = funds_HashMap.get(id);
 			if (spent != null) {
 				funds_HashMap.remove(spent.getId());
 			}

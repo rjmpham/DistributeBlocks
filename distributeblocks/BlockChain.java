@@ -8,7 +8,6 @@ import distributeblocks.io.Console;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 public class BlockChain implements Serializable {

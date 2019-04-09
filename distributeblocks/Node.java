@@ -2,7 +2,6 @@ package distributeblocks;
 
 import distributeblocks.crypto.Crypto;
 import distributeblocks.cli.CommandLineInterface;
-import distributeblocks.io.Console;
 import distributeblocks.io.WalletManager;
 import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
@@ -27,9 +26,9 @@ import java.util.Map;
  *		up for the demo.
  */
 
+// TODO: the "coinBase" transaction id may cause problems with hashes and removing old funds that are marked as spent
 // TODO: replace all file slashes with File.separator
-// TODO: fix transaction sending bug that sends more than I intended
-// TODO: fix issue with the onHold funds not being cleared properly
+// TODO: make killing mining sychronized with the new block broadcast, or make sure it doesn't kill it part way through
 /**
  *  Represents an agent within the P2P network. This class houses a wallet,
  *  and may run all the thread necessary to perform network actions.
@@ -174,6 +173,7 @@ public class Node {
 			return;
 		}
 		wallet.rescindHeldFunds();
+		System.out.println("On hold funds have been returned to the wallet");
 	}
 
 	/**
@@ -193,7 +193,7 @@ public class Node {
 		System.out.println("New verified block added. Updating local funds");
 		// Process all the transactions in the block
 		HashMap<String, Transaction> blockData = block.getData();
-		for (Map.Entry<String,Transaction> i: blockData.entrySet()){
+		for (Map.Entry<String, Transaction> i: blockData.entrySet()){
 			wallet.update(i.getValue());
 		}
 	}
