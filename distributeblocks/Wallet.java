@@ -268,35 +268,6 @@ public class Wallet {
 		}
 	}
 
-	/**
-	 * Makes a new transaction from the COIN_BASE.
-	 * The block reward transaction can go to any PublicKey, but
-	 * is usually given to the creator of the block (calling node).
-	 * 
-	 * @param receiver		PublicKey of the receiver
-	 * 
-	 * @return a block reward Transaction
-	 */
-	public static Transaction makeBlockReward(PublicKey receiver) {
-		if (CoinBase.COIN_BASE_KEYS == null) {
-			Console.log("CoinBase has not been loaded! Cannot create block reward!");
-			throw new NullPointerException();
-		}
-
-		// TransactionIn comes from the CoinBase
-		TransactionIn reward = new TransactionIn(CoinBase.COIN_BASE_ID, CoinBase.BLOCK_REWARD_AMOUNT);
-		reward.setParentId(CoinBase.PARENT_TRANSACTION_ID);
-		ArrayList<TransactionIn> transaction_ArrayList = new ArrayList<TransactionIn>();
-
-		// Create a block reward Transaction, gives coins to the receiver
-		Transaction newTransaction = new Transaction(CoinBase.COIN_BASE_KEYS.getPrivate(),
-				CoinBase.COIN_BASE_KEYS.getPublic(),
-				receiver,
-				CoinBase.BLOCK_REWARD_AMOUNT,
-				transaction_ArrayList);
-		return newTransaction;
-	}
-
 	// Getter methods
 	public PrivateKey getPrivateKey(){ return privateKey; }
 	public PublicKey getPublicKey(){ return publicKey; }

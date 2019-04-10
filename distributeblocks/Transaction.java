@@ -106,6 +106,7 @@ public class Transaction implements Serializable {
    	* 
    	* @return true if the transaction is created, false otherwise
    	*/
+	// TODO: why did we call this "transactionEnforcer"? maybe we should rename it
 	public boolean transactionEnforcer() {
   		if(verifySignature() == false) {
   			System.out.println("Transaction Signature failed to verify");
@@ -114,7 +115,7 @@ public class Transaction implements Serializable {
   		
   		// Verify the transaction against the blockchain
   		if (!Validator.isValidTransaction(this)) {
-  			System.out.println("Failed to validate tranaction inputs against the blockchain");
+  			System.out.println("Failed to validate transaction inputs against the blockchain");
   			return false;
   		}
 

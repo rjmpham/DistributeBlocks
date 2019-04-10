@@ -111,12 +111,13 @@ public class Miner {
 
                     Transaction reward;
                     try {
-                    	reward = wallet.makeBlockReward(wallet.getPublicKey());
+                    	reward = CoinBase.makeBlockReward(wallet.getPublicKey());
                     } catch (NullPointerException e) {
                     	Console.log("Terminating mining");
                     	return;
                     }
-                    reward.transactionEnforcer();
+                    reward.transactionEnforcer();	// TODO: can we always assume a block reward transaction will be correctly enforced?
+                    
                    // Transaction rewardOut = new Transaction(wallet.getPrivateKey(), wallet.getPublicKey(), 5.0f, reward.getId_Transaction());
                     data.put(reward.getTransactionId(), reward);
 
