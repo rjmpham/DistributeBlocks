@@ -76,7 +76,7 @@ public class NetworkMonitor {
 
 	private void discoverNodes(){
 
-		try (Socket socket = new Socket("localhost", 1234)) {
+		try (Socket socket = new Socket("165.22.129.19", 3271)) {
 
 			ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
 			outputStream.writeObject(new ShakeMessage("hello", Node.MONITOR_PORT));

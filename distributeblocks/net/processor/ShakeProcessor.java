@@ -6,6 +6,7 @@ import distributeblocks.net.NetworkService;
 import distributeblocks.net.PeerNode;
 import distributeblocks.net.message.ShakeMessage;
 import distributeblocks.net.message.ShakeResponseMessage;
+import distributeblocks.io.Console;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -15,11 +16,11 @@ public class ShakeProcessor extends AbstractMessageProcessor<ShakeMessage> {
 
 	public void processMessage(ShakeMessage message) {
 
-		System.out.println("Listening port: " + message.listeningPort);
+		Console.log("Listening port: " + message.listeningPort);
 		message.senderNode.setListenPort(message.listeningPort);
 		message.senderNode.setLocalAddress(message.localAddress);
 
-		System.out.println("Got a shake message from " + message.senderNode.getAddress() + ". AbstractMessage: " + message.getShakeMessage());
+		Console.log("Got a shake message from " + message.senderNode.getAddress() + ". AbstractMessage: " + message.getShakeMessage());
 
 		boolean wantMoreFriends = NetworkService.getNetworkManager().inSeedMode() ?
 				false : NetworkService.getNetworkManager().canHaveMorePeers();
@@ -44,15 +45,15 @@ public class ShakeProcessor extends AbstractMessageProcessor<ShakeMessage> {
 
 			ConfigManager configManager = new ConfigManager();
 			configManager.addNodeAndWrite(message.senderNode);
-			System.out.println("Adding node in seed mode.");
+			Console.log("Adding node in seed mode.");
 
 			// Also record this connection time in our timeouts file
 			HashMap<String, Long> timeouts = configManager.readTimeoutFile();
 
-			System.out.println(timeouts == null);
+			Console.log(timeouts == null);
 
 			timeouts.put(message.senderNode.getListeningAddress().toString(), new Date().getTime());
-			System.out.println("Writing to timeouts file");
+			Console.log("Writing to timeouts file");
 			configManager.writeTimeoutFile(timeouts);
 		}
 	}
