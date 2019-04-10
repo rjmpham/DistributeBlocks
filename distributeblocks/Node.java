@@ -308,21 +308,10 @@ public class Node {
 		NodeService.init(node);
 		node.loadDefaultWallet();
 
-		if (args.length == 1 && args[0].equals("--monitor")){
-			startMonitor();
-			return;
-		}
-
 		// Parse initial args then run the cli
 		CommandLineInterface cli = new CommandLineInterface(node);
 		cli.parseCommand(args);
 		cli.run();
 	}
 
-	private static void startMonitor(){
-
-
-		NetworkMonitor networkMonitor = new NetworkMonitor();
-
-	}
 }

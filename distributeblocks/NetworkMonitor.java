@@ -1,9 +1,12 @@
 package distributeblocks;
 
 import distributeblocks.net.IPAddress;
+import distributeblocks.net.NetworkService;
+import distributeblocks.net.PeerNode;
 import distributeblocks.net.message.*;
 import org.graphstream.algorithm.generator.Generator;
 import org.graphstream.graph.Graph;
+import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.stream.SourceBase;
 
@@ -25,25 +28,25 @@ public class NetworkMonitor {
 
 	ExecutorService executorService;
 	ServerSocket serverSocket;
-	SingleGraph graph;
+	MultiGraph graph;
+
 	NodeGraphGenerator generator;
 
-	HashMap<String, Boolean> connectedNodes;
+	//HashMap<String, Boolean> connectedNodes;
 
 
 	public NetworkMonitor() {
 
 		executorService = Executors.newCachedThreadPool();
-		connectedNodes = new HashMap<>();
-		graph = new SingleGraph("Network Graph");
+		graph = new MultiGraph("Network Graph");
 		generator = new NodeGraphGenerator();
 		generator.addSink(graph);
 		graph.display();
 
 
 		// First need to discover at least one node on the network
-		discoverNodes();
-
+		Thread thread = new Thread(new NodeAnnouncer());
+		thread.start();
 
 		try (ServerSocket serverSocket = new ServerSocket(Node.MONITOR_PORT)) {
 
@@ -52,13 +55,8 @@ public class NetworkMonitor {
 
 				Socket socket = serverSocket.accept();
 
-
 				final String key = socket.getInetAddress().toString() + socket.getPort();
-
 				System.out.println(key);
-
-
-
 				executorService.submit(new MonitorListener(socket));
 			}
 
@@ -68,29 +66,6 @@ public class NetworkMonitor {
 
 	}
 
-	private void discoverNodes(){
-
-		System.out.println("Attempting to connect to seed");
-		try (Socket socket = new Socket("165.22.129.19", 3271)) {
-
-			System.out.println("connected to seed");
-			ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-
-			outputStream.writeObject(new ShakeMessage("hello", Node.MONITOR_PORT));
-			outputStream.writeObject(new RequestPeersMessage());
-
-			ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-
-			ShakeResponseMessage shakeResponseMessage = (ShakeResponseMessage) inputStream.readObject();
-			PeerInfoMessage message = (PeerInfoMessage)inputStream.readObject();
-
-			executorService.submit(new NodeAnnouncer(message.peerAddresses));
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			discoverNodes();
-		}
-	}
 
 	private class NodeGraphGenerator extends SourceBase implements Generator{
 
@@ -134,6 +109,7 @@ public class NetworkMonitor {
 
 		public MonitorListener(Socket socket) {
 			this.socket = socket;
+			System.out.println("Starting listener on: " + socket.getInetAddress().getHostAddress().toString() + ":" + socket.getPort());
 		}
 
 		@Override
@@ -141,127 +117,90 @@ public class NetworkMonitor {
 
 
 			try {
+
 				ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
 
 				while (true) {
 
 
-					try {
-
-						System.out.println("Waiting for a message");
-						MonitorDataMessage message = (MonitorDataMessage) input.readObject();
-						System.out.println("Got a message");
-
-						if (!connectedNodes.containsKey(message.listeningAddress.toString())) {
-
-							synchronized (connectedNodes) {
-								connectedNodes.put(message.listeningAddress.toString(), true);
-							}
-
-							address = message.listeningAddress.toString();
-							graph.addNode(address);
-						}
+					System.out.println("Waiting for a message");
+					MonitorDataMessage message = (MonitorDataMessage) input.readObject();
+					System.out.println("Got a message");
 
 
 
-						for (IPAddress address : message.connectedPeers){
-							String edgeId = message.listeningAddress.toString() + address.toString();
-							String node1 = message.listeningAddress.toString();
-							String node2 = address.toString();
 
-							graph.addEdge(message.listeningAddress.toString() + address.toString(), message.listeningAddress.toString(), address.toString());
-						}
+					address = message.listeningAddress.toString();
 
-					} catch (ClassNotFoundException e) {
-						e.printStackTrace();
+					if (graph.getNode(address) == null) {
+						graph.addNode(address);
 					}
+
+
+
+					for (IPAddress address : message.connectedPeers) {
+						String edgeId = message.listeningAddress.toString() + address.toString();
+						String node1 = message.listeningAddress.toString();
+						String node2 = message.listeningAddress.toString();
+
+						try {
+							if (graph.getNode(address.toString()) == null) {
+								graph.addNode(address.toString());
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						String id = message.listeningAddress.toString() + address.toString();
+
+						try {
+							if (graph.getEdge(id) == null) {
+								graph.addEdge(id, message.listeningAddress.toString(), address.toString());
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+						//graph.
+					}
+
 
 					System.out.println("got to end of loop");
 				}
 
-
-			} catch (IOException e) {
+			} catch (Exception e){
 				e.printStackTrace();
-			} finally {
 
-				if (address != null) {
-					graph.removeNode(address);
-				}
-
-				try {
-					socket.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				graph.removeNode(address);
 			}
+
+
+			System.out.println("Exiting listener.");
 		}
 	}
 
 	private class NodeAnnouncer implements Runnable {
 
-		ArrayList<IPAddress> addresses;
-	//	ArrayList<Socket> connectedNodes;
-		HashMap<Socket, ObjectOutputStream> connectedNodes;
-
-		public NodeAnnouncer(ArrayList<IPAddress> addresses) {
-			this.addresses = addresses;
-		}
 
 		@Override
 		public void run() {
 
 
 			//ArrayList<ObjectOutputStream> outs = new ArrayList<>();
-			connectedNodes = new HashMap<>();
 
-			for (IPAddress ip : addresses){
-
-				Socket socket = null;
-
-				try {
-					System.out.println("Attempting a connection");
-					socket = new Socket(ip.ip, ip.port);
-					ObjectOutputStream o = new ObjectOutputStream(socket.getOutputStream());
-					connectedNodes.put(socket, o);
-					o.writeObject(new ShakeMessage("hello", Node.MONITOR_PORT));
-					//outs.add(o);
-				} catch (IOException e) {
-					connectedNodes.remove(socket);
-					e.printStackTrace();
-				}
-			}
-
-
-
-			while (true){
-
-				Socket currentSocket = null;
+			while (true) {
 
 				try {
 					Thread.sleep(2000);
-
-					MonitorNotifierMessage msg = new MonitorNotifierMessage();
-
-					for (Map.Entry<Socket, ObjectOutputStream> entry : connectedNodes.entrySet()){
-						currentSocket = entry.getKey();
-						entry.getValue().writeObject(msg);
-					}
-
-
 				} catch (InterruptedException e) {
 					e.printStackTrace();
-					discoverNodes();
-					break;
-				} catch (IOException e) {
-					e.printStackTrace();
-					discoverNodes();
-					break;
-				} finally {
 				}
 
+				for (PeerNode node : NetworkService.getNetworkManager().getPeerNodes()) {
 
+					node.asyncSendMessage(new MonitorNotifierMessage());
+				}
 			}
-
 		}
 	}
 }

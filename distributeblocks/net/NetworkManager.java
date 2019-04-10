@@ -4,6 +4,7 @@ import distributeblocks.*;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.mining.Miner;
 import distributeblocks.net.message.*;
+import distributeblocks.net.processor.MonitorNotifierProcessor;
 import distributeblocks.util.Validator;
 import distributeblocks.io.Console;
 
@@ -39,6 +40,7 @@ public class NetworkManager implements NetworkActions {
 	private IPAddress localAddr;
 	private boolean seed;
 	private boolean mining;
+	private boolean monitor;
 
 	private volatile Socket monitorSocket;
 	private volatile ObjectOutputStream monitorOutput;
@@ -72,6 +74,7 @@ public class NetworkManager implements NetworkActions {
 		this.port = networkConfig.port;
 		this.seed = networkConfig.seed;
 		this.mining = networkConfig.mining;
+		this.monitor = networkConfig.monitor;
 		this.miner = new Miner();
 
 		ConfigManager configManager = new ConfigManager();
@@ -140,6 +143,10 @@ public class NetworkManager implements NetworkActions {
 			scheduledExecutorService.schedule(new AliveNotifier(),aliveNotifierTime, TimeUnit.SECONDS);
 		} else {
 			scheduledExecutorService.schedule(new TimeoutChecker(), seedCheckoutTimer, TimeUnit.SECONDS);
+		}
+
+		if (monitor){
+			NetworkMonitor networkMonitor = new NetworkMonitor();
 		}
 	}
 
@@ -670,8 +677,6 @@ public class NetworkManager implements NetworkActions {
 
 	 	synchronized (monitorLock) {
 
-	 		Console.log("Adding monitor");
-
 			if (monitorSocket == null || monitorSocket.isClosed()) {
 
 				Console.log("Adding monitor for realz");
@@ -681,6 +686,8 @@ public class NetworkManager implements NetworkActions {
 					this.monitorOutput = new ObjectOutputStream(monitorSocket.getOutputStream());
 				} catch (IOException e) {
 					e.printStackTrace();
+					monitorSocket = null;
+					MonitorNotifierProcessor.receivedIDs = new HashSet<>();
 				}
 			}
 		}
@@ -690,10 +697,10 @@ public class NetworkManager implements NetworkActions {
 
 	public void sendToMonitor(AbstractMessage message){
 
-	 	Console.log("!!!!!!!!!!!!!!!!!!!!!!!! Sending message to monitor");
+	 //	Console.log("!!!!!!!!!!!!!!!!!!!!!!!! Sending message to monitor");
 	 	synchronized (monitorLock) {
 			if (monitorSocket != null) {
-				Console.log("!!!!!!!!!!!!!!!!!!!!!!!! Monitor not nul");
+				//Console.log("!!!!!!!!!!!!!!!!!!!!!!!! Monitor not nul");
 				try {
 
 					ArrayList<IPAddress> addresses = new ArrayList<>();
@@ -704,16 +711,17 @@ public class NetworkManager implements NetworkActions {
 
 
 					monitorOutput.writeObject(new MonitorDataMessage(message, addresses));
-					Console.log("!!!!!!!!!!!!!!!!!!!!!!!! Sent message to monitor");
+					//Console.log("!!!!!!!!!!!!!!!!!!!!!!!! Sent message to monitor");
 				} catch (IOException e) {
 					try {
 						monitorSocket.close();
 					} catch (IOException e1) {
 						e1.printStackTrace();
-					} finally {
-						monitorSocket = null;
 					}
 					e.printStackTrace();
+
+					monitorSocket = null;
+					MonitorNotifierProcessor.receivedIDs = new HashSet<>();
 				}
 			}
 		}

@@ -53,6 +53,10 @@ public class StartHandler implements Callable<Void> {
 	@Option(names = {"-b", "--blockfile"},
 			description = "The full peer config file path. Eg: ./blockchain.txt")
 	private String blockFile = "./blockchain.txt";
+
+	@Option(names = {"--monitor"},
+			description = "Start monitor.")
+	private boolean monitor = false;
 	
 	@ArgGroup(exclusive = true)
     private DebugOptions debugOptions;
@@ -84,6 +88,7 @@ public class StartHandler implements Callable<Void> {
 		config.seed = seed;
 		config.seedNode = new IPAddress(seedAddress, seedPort);
 		config.mining = mining;
+		config.monitor = monitor;
 		ConfigManager.PEER_CONFIG_FILE = configFile;
 		ConfigManager.BLOCKCHAIN_FILE = blockFile;
 		node.initializeNetworkService(config);

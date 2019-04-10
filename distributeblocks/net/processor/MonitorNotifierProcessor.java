@@ -4,28 +4,28 @@ import distributeblocks.NetworkMonitor;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.MonitorNotifierMessage;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
 public class MonitorNotifierProcessor extends AbstractMessageProcessor<MonitorNotifierMessage> {
 
-	private static long recievedCounter = -1;
+	public static Set<Long> receivedIDs = new HashSet<>();
 
 
 	@Override
 	public void processMessage(MonitorNotifierMessage message) {
 
 
-		if (recievedCounter < message.id) {
 
+		NetworkService.getNetworkManager().setMonitorSocket(message);
 
-
-			if (recievedCounter == -1) {
-				NetworkService.getNetworkManager().setMonitorSocket(message);
-			}
-
-			recievedCounter = message.id;
-			System.out.println("Propogating monitor notify message.");
+		//System.out.println("Propogating monitor notify message.");
+		if (!receivedIDs.contains(message.id)) {
 			NetworkService.getNetworkManager().asyncSendToAllPeers(message.copy());
-		} else {
-			System.out.println("NOT Propogating monitor notify message.");
 		}
+
+		receivedIDs.add(message.id);
+
 	}
 }
