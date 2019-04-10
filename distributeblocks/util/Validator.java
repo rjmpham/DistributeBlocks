@@ -1,8 +1,10 @@
 package distributeblocks.util;
 
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import distributeblocks.*;
 import distributeblocks.crypto.*;
@@ -10,6 +12,42 @@ import distributeblocks.io.Console;
 
 public class Validator
 {	
+	
+	/**
+	 * Compares a transaction against a HashMap of all
+	 * verified transactions. The returned ValidationData
+	 * will tell whether the transaction is a doubleSpend, and
+	 * whether all its inputs exist.
+	 * 
+	 * @param transaction				transaction to check
+	 * @param verifiedTransactions		transactions to check against
+	 * @return	ValidationData containing resulting transaction state
+	 */
+	public static ValidationData getValidationData(Transaction transaction, HashMap<String, Transaction> verifiedTransactions) {
+		ValidationData validationData = new ValidationData();
+		
+		// Get a list of ids from every transaction that has every been spent
+		HashSet<String> parentIds =  new HashSet<String>();
+		for (Transaction t: verifiedTransactions.values()) {
+			for (TransactionIn i: t.getInput()) {
+				parentIds.add(i.getParentId());
+			}
+		}
+		
+		// for each input used, check if its known, and if it's been seen before
+		for (TransactionIn i: transaction.getInput()) {
+			if (!verifiedTransactions.containsKey(i.getParentId()))
+				validationData.inputsAreKnown = false;
+			if (parentIds.contains(i.getParentId()))
+				validationData.isDoubleSpend = true;
+			
+			// break if we've set both booleans (no need to keep looking)
+			if (!validationData.inputsAreKnown && validationData.isDoubleSpend)
+				break;
+		}
+		return validationData;
+	}
+	
 	/*
 	 * Input: Transaction to check validity of, blockchain to check transaction against
 	 * Output: True if transaction inputs exist in the blockchain and are unspent, false otherwise

@@ -539,14 +539,9 @@ public class NetworkManager implements NetworkActions {
 		
 		// Process the parents, and keep track of any moved Transactions in newParants
 		for (Map.Entry<String,Transaction> o: orphanedTransactionPool.entrySet()){
-			boolean allFound = true;
-			for (TransactionIn i: o.getValue().getInput()) {
-				if (!potentialParents.containsKey(i.getParentId())) {
-					allFound = false;
-					break;
-				}
-			}
-			if (allFound) {
+			
+			// check the orphan against all the potentialParents
+			if (Validator.getValidationData(o.getValue(), potentialParents).inputsAreKnown) {
 				// all parents were found! remove orphaned status
 				orphanedTransactionPool.remove(o.getKey());
 				transactionPool.put(o.getKey(), o.getValue());
