@@ -181,9 +181,6 @@ public class Transaction implements Serializable {
   	public static boolean isValidSource(String id_Transaction_Out) {
   		return true;
   	}
-	public String getId_Transaction() {
-		return id_Transaction;
-	}
 
 	public String getExchangeAmmountString() {
 		return (String.valueOf(this.exchange));

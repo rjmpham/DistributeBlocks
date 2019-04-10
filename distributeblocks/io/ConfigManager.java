@@ -206,7 +206,7 @@ public class ConfigManager {
 
 
 			//TODO Eric look at this 2 electric boogaloo
-			File file = new File(HUMAN_READABLE);
+			File file2 = new File(HUMAN_READABLE);
 			try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(HUMAN_READABLE))) {
 
 
