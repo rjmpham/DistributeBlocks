@@ -9,6 +9,7 @@ import java.util.HashSet;
 import distributeblocks.*;
 import distributeblocks.crypto.*;
 import distributeblocks.io.Console;
+import distributeblocks.net.NetworkService;
 
 public class Validator
 {	
@@ -48,151 +49,70 @@ public class Validator
 		return validationData;
 	}
 	
-	/*
-	 * Input: Transaction to check validity of, blockchain to check transaction against
-	 * Output: True if transaction inputs exist in the blockchain and are unspent, false otherwise
-	 * Details: Checks if transaction inputs exist in the blockchain and are unspent
-	 * If the transaction is a block reward then return true
+	/**
+	 * Check to see if the transaction is valid from the point of view of a
+	 * local user. This means that this method will not accept any transaction
+	 * whose inputs are not known, because a user should not be able to use
+	 * inputs it doesn't know about. This method SHOULD NOT be called on transactions
+	 * received from other peers, because they may know about verified transactions
+	 * we do not.
+	 * 
+	 * @param transaction			the transaction to check
+	 * 
+	 * @return true if the transaction's inputs are known and the transaction isn't a double spend,
+	 * 		   or true if it is a valid block reward transaction
 	 */
-	public boolean isValidTransaction(Transaction transaction, LinkedList<Block> blockchain)
-	{
+	public static boolean isValidTransaction(Transaction transaction) {
+		// check if it is a valid block reward
 		if(transaction.getPublicKeySender().equals(CoinBase.COIN_BASE_KEYS.getPublic()) 
 				&& transaction.getExchange() == CoinBase.BLOCK_REWARD_AMOUNT){
 			return true;
 		}
 		
-		if(!containsValidTransactionInputs(transaction, blockchain)) {
+		// compare the transaction to all that have been verified so far
+		ValidationData validationData = getValidationData(transaction, NetworkService.getNetworkManager().getVerifiedTransactions());
+		if(!validationData.inputsAreKnown) 
 			return false; 
-		}
-		
-		if(!isUnspent(transaction, blockchain)) {
+		if(validationData.isDoubleSpend) {
 			return false;
 		}
 		return true;
 	}
 	
-	/*
-	 * Input: Transaction to check if unspent, blockchain to compare against
-	 * Output: True if unspent, false if one or more inputs were spent
-	 * Details: Loops through every transaction input, for ever transaction, for every block and checks if the given transaction's inputs were used as another transactions inputs
+	/**
+	 * Checks to see if a transaction is trying to use funds
+	 * that have already been used within a verified block of
+	 * the blockchain.
+	 * 
+	 * @param transaction	the transaction to check
+	 * 
+	 * @return true if the transaction tries to use any already spent funds
 	 */
-	public static boolean isUnspent(Transaction transaction, LinkedList<Block> blockchain)
-	{
-		Block currentBlock;
-		
-		//Get all the transaction input id's for the transaction
-		ArrayList<String> inputs = new ArrayList<String>();
-		transaction.getTransactionInputs().forEach(i -> inputs.add(i.getParentId()));
-		
-		//Loop through each block until every transaction input is found
-		for(int i = blockchain.size() - 1; i >= 0; i--)
-		{
-			currentBlock = blockchain.get(i);
-			HashMap<String, Transaction> blockTransactions = currentBlock.getData();
-			
-			//Loop through each transaction in the given block looking for the transaction input id's
-			for (String id : blockTransactions.keySet()) 
-			{
-				//Get the transaction inputs for the transaction we're comparing to that already exists in the blockchain
-				ArrayList<String> existingInputs = new ArrayList<String>();
-				blockTransactions.get(id).getTransactionInputs().forEach(z -> existingInputs.add(z.getParentId()));
-				
-				//Loop through every transaction INPUT id that has not yet been found
-				for(int n = 0; n < inputs.size(); i++)
-				{
-					//Loop through every transaction INPUT for existing transactions
-					//If a match is found then it was spent
-					for(int m = 0; m < existingInputs.size(); m++)
-					{
-						if(existingInputs.get(m).equals(inputs.get(n)))
-						{
-							return false;
-						}
-					}
-					
-					//if found transaction id corresponding to an input, record its block and mark as found, remove it from inputs list and move to next transaction
-					if(id.equals(inputs.get(n))) 
-					{
-						inputs.remove(n);
-						if(inputs.isEmpty())
-						{
-							return true;
-						}
-						break;
-					}
-				}
-			}
-		}
-		//if we somehow reach here then the transaction was not even found but none were double spent
-		Console.log("One or more transaction inputs were not found");
-		return true;
-	}
-	
-	/*
-	 * Input: Transaction and blockchain to check for existing transaciton inputs
-	 * Output: True if all transaction inputs for the given transaction were found in the blockchain
-	 * Details: finds the transaction inputs in the blockchain, and checks if the number found is the same as the number of transaction inputs
-	 */
-	public static boolean containsValidTransactionInputs(Transaction transaction, LinkedList<Block> blockchain)
-	{
-		//Search for the transaction inputs in the blockchain
-		ArrayList<String> foundTransactionInputs = findTransactionInputsBlocks(transaction, blockchain);
-		
-		//Get all the transaction input id's for the transaction
-		ArrayList<String> inputs = new ArrayList<String>();
-		transaction.getTransactionInputs().forEach(i -> inputs.add(i.getParentId()));
-		
-		//Compare number of inputs found to number of actual inputs
-		if(foundTransactionInputs.size() == inputs.size()) {
+	public static boolean isDoubleSpend(Transaction transaction) {
+		// compare the transaction to all that have been verified so far
+		ValidationData validationData = getValidationData(transaction, NetworkService.getNetworkManager().getVerifiedTransactions());
+		if(validationData.isDoubleSpend) 
 			return true;
-		}
-		else {
+		else
 			return false;
-		}
 	}
 	
-	/*
-	 * Input: Transaction, and blockchain linkedlist to find the transaction inputs in
-	 * Output: Arraylist of the block id's the transaction inputs were found in
-	 * Details: cycles through every transaction in every block from the newest block in the chain until it finds all the transaction inputs
+	/**
+	 * Checks to see if a transaction is using input funds
+	 * which are known and verified within a verified block
+	 * of the blockchain.
+	 * 
+	 * @param transaction	the transaction to check
+	 * 
+	 * @return true if the transaction's inputs are all known
 	 */
-	public static ArrayList<String> findTransactionInputsBlocks(Transaction transaction, LinkedList<Block> blockchain)
-	{
-		ArrayList<String> foundTransactionInputs = new ArrayList<String>();
-		Block currentBlock;
-		
-		//Get all the transaction input id's for the transaction
-		ArrayList<String> inputs = new ArrayList<String>();
-		transaction.getTransactionInputs().forEach(i -> inputs.add(i.getParentId()));
-		
-		//Loop through each block until every transaction input is found
-		for(int i = blockchain.size() - 1; i >= 0; i--)
-		{
-			currentBlock = blockchain.get(i);
-			HashMap<String, Transaction> blockTransactions = currentBlock.getData();
-			
-			//Loop through each transaction in the given block looking for the transaction input id's
-			for (String id : blockTransactions.keySet()) 
-			{
-				//Loop through every transaction INPUT id that has not yet been found
-				for(int n = 0; n < inputs.size(); i++)
-				{
-					//if found transaction id corresponding to an input, record its block and mark as found, remove it from inputs list and move to next transaction
-					if(id.equals(inputs.get(n))) 
-					{
-						foundTransactionInputs.add(currentBlock.getHashBlock());
-						inputs.remove(n);
-						if(inputs.isEmpty())
-						{
-							return foundTransactionInputs;
-						}
-						break;
-					}
-				}
-			}
-		}
-		
-		return foundTransactionInputs;
+	public static boolean inputsAreKnown(Transaction transaction) {
+		// compare the transaction to all that have been verified so far
+		ValidationData validationData = getValidationData(transaction, NetworkService.getNetworkManager().getVerifiedTransactions());
+		if(validationData.inputsAreKnown) 
+			return true;
+		else
+			return false;
 	}
 	
 	//Checks if a given block is valid

@@ -113,7 +113,7 @@ public class Transaction implements Serializable {
   		}
   		
   		// Verify the transaction against the blockchain
-  		if (!isValidSource()) {
+  		if (!Validator.isValidTransaction(this)) {
   			System.out.println("Failed to validate tranaction inputs against the blockchain");
   			return false;
   		}
@@ -173,24 +173,6 @@ public class Transaction implements Serializable {
   			total += o.getExchange();
   		}
   		return total;
-  	}
-  	
-  	/**
-  	 * This method must check against the block to see if the 
-  	 * transaction is relying on inputs that either don't exist, or
-  	 * are already spent.
-  	 * 
-  	 * @return whether or not the Transaction is valid for use
-  	 */
-  	// BIG TODO: IMPLEMENT THIS METHOD
-  	public boolean isValidSource() {
-  	// Verify that the incoming transactions are valid
-  		Validator idk = new Validator();
-  		
-  		BlockChain blockchain = new BlockChain();
-  		idk.isValidTransaction(this, blockchain.getLongestChain());
-  		
-  		return true;
   	}
 
   	// Getter methods

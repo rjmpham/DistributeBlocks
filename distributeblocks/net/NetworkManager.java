@@ -191,6 +191,11 @@ public class NetworkManager implements NetworkActions {
 	public IPAddress getLocalAddr() {
 		return localAddr;
 	}
+	
+	// synchronized because another thread may be adding to the verified transactions
+	public synchronized HashMap<String, Transaction> getVerifiedTransactions() {
+		return verifiedTransactions;
+	}
 
 	/**
 	 * Removes a node by reference.
@@ -446,30 +451,21 @@ public class NetworkManager implements NetworkActions {
 	 *
 	 * @param transaction
 	 */
-	// TODO: make the locks more reasonable here. maybe move code into synchronized sub methods
-	// TODO: merge isUnspent, containsValidTransactionInputs, and existsInChain, then call it here
 	public void addTransaction(Transaction transaction){
-		BlockChain chain = new BlockChain();
-		LinkedList<Block> longestChain = chain.getLongestChain();
-
-		// TODO Ian figure out the validation crap.
-		if (!Validator.isUnspent(transaction, longestChain)) {
+		if (Validator.isDoubleSpend(transaction)) {
 			Console.log("Transaction was a double spend! aborting");
 			return;
 		}
 
 		synchronized (transactionPool) {
-
-			// Only re-broadcast transaction if we have not seen it before.
-			boolean found = false;
-
-			// TODO: should check over blockchain as well to find out if we've seen it there already
-			// Compose a hashmap of the normal transaction pool and pending transactions
+			// Compose a hashmap of all verified transactions, the transaction pool and pending transactions
 			HashMap<String, Transaction> combinedPool = new HashMap<>();
+			combinedPool.putAll(verifiedTransactions);
 			combinedPool.putAll(transactionPool);
 			combinedPool.putAll(pendingTransactionPool);
 
 			// Check if we have seen this transaction before
+			boolean found = false;
 			for (String id : combinedPool.keySet()){
 				if (id.equals(transaction.getTransactionId())){
 					found = true;
@@ -478,12 +474,12 @@ public class NetworkManager implements NetworkActions {
 			}
 
 			if (!found){
+				// Only re-broadcast transaction if we have not seen it before.
 				Console.log("Transaction " + transaction.getTransactionId() + "is new. Broadcasting...");
-				// if we've never seen this transaction before, send it to peers
 				asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
 				
 				// Put the transaction into the correct pool
-				if (Validator.containsValidTransactionInputs(transaction, longestChain)) {
+				if (Validator.getValidationData(transaction, combinedPool).inputsAreKnown) {
 					transactionPool.put(transaction.getTransactionId(), transaction);
 					updateOrphanPool(transaction);
 				}
@@ -503,7 +499,7 @@ public class NetworkManager implements NetworkActions {
 	 * 
 	 * @param block	the most recently verified block of the longest chain
 	 */
-	public void updateTransactionPools(Block block) {
+	public synchronized void updateTransactionPools(Block block) {
 		Console.log("Updating local transaction pools from block " + block.getHashBlock());
 		verifiedTransactions.putAll(block.getData());
 		updateOrphanPool(verifiedTransactions);
@@ -523,12 +519,6 @@ public class NetworkManager implements NetworkActions {
 	 * 
 	 * @param potentialParants		Hashmap of Transaction ids to Transactions
 	 */
-	// TODO: should this be synchronized? it is called whenever a transaction is received
-	/* TODO: make a method to take a copy of every transaction/id pair from the blockchain into a hashmap
-	*		update this with any transactions once a block is validated
-	*		use this combined with the potential parents to see if all the inputs in the orphan are accounted for
-	*		use this in the validator to speed it up a ton- it will list every verified transaction in history
-	*/
 	public void updateOrphanPool(HashMap<String, Transaction> potentialParents) {
 		// Recursive basecase
 		if (potentialParents.isEmpty())
@@ -550,7 +540,7 @@ public class NetworkManager implements NetworkActions {
 		}
 		// Call recursively on the new potential parents
 		updateOrphanPool(newParents);
-		}
+	}
 	
 	/**
 	 * Moves any orphaned transaction who are children of the given
