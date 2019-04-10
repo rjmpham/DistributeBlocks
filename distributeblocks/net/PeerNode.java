@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.*;
+import java.security.*;
 
 public class PeerNode {
 
@@ -24,6 +25,9 @@ public class PeerNode {
 	private ExecutorService executorService;
 	private Socket socket;
 	private LinkedBlockingQueue<AbstractMessage> outQueue;
+	
+	private PublicKey publicKey;
+	private String alias;
 
 	private volatile boolean shutDown = false;
 
