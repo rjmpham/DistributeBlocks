@@ -121,7 +121,7 @@ public class Transaction implements Serializable {
 
   		// Verify that the transaction is large enough
   		if(getInputExchange() < MIN_TRANSACTION_AMOUNT) {
-  			System.out.println("# Inputs too small: " + getInputExchange());
+  			System.out.println("Transaction inputs too small: " + getInputExchange());
   			return false;
   		}
   		

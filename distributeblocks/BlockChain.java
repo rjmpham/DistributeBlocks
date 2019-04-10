@@ -98,17 +98,22 @@ public class BlockChain implements Serializable {
 	 * @return
 	 */
 	public LinkedList<Block> getLongestChain(){
-
-		LinkedList<Block> highest = blockChain.get(0);
-
-		for (LinkedList<Block> ls : blockChain){
-			if (ls.size() > highest.size()){
-				highest = ls;
+		
+		try {
+			//find the longest block
+			LinkedList<Block> highest = blockChain.get(0);
+			for (LinkedList<Block> ls : blockChain){
+				if (ls.size() > highest.size()){
+					highest = ls;
+				}
 			}
+			return highest;
+			
 		}
-
-
-		return highest;
+		catch (IndexOutOfBoundsException e) {
+			Console.log("BlockChain is empty, no longest chain!");
+			return null;
+		}
 	}
 
 	/**
@@ -143,24 +148,28 @@ public class BlockChain implements Serializable {
 	}
 	
 	/**
-	 * Creates a HashMap of Strings to Transactions of every verified
+	 * Creates a HashMap of Strings to Transactions of every
 	 * transaction within the longest chain. This is from the genesis
-	 * block, up to and including the last verified block;
+	 * block, up to and including the head of the chain;
 	 * 
 	 * @return HashMap of Strings to Transaction of every verified transaction
 	 */
-	public HashMap<String, Transaction> getVerifiedTransactions() {
+	public HashMap<String, Transaction> getAllTransactions() {
 		LinkedList<Block> longest = getLongestChain();
-		HashMap<String, Transaction> allVerifiedTransactions = new HashMap<String, Transaction>();
+		HashMap<String, Transaction> allTransactions = new HashMap<String, Transaction>();
+		
+		if (longest == null) {
+			return allTransactions;
+		}
 		
 		// Go from the genesis block to the current
 		// TODO: time complexity of this: is Java LinkedList doubly linked, or is going from the head faster?
-		for(int i = 0; i < longest.size() - BlockChain.VERIFIED_DEPTH; i--) {
+		for(int i = 0; i < longest.size(); i++) {
 			// Add every transaction on the block
 			Block block = longest.get(i);
-			allVerifiedTransactions.putAll(block.getData());
+			allTransactions.putAll(block.getData());
 		}
-		return allVerifiedTransactions;
+		return allTransactions;
 	}
 
 	/**

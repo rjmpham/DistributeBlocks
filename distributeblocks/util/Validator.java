@@ -64,6 +64,7 @@ public class Validator
 	 * 		   or true if it is a valid block reward transaction
 	 */
 	public static boolean isValidTransaction(Transaction transaction) {
+		Console.log("Validating transaction " + transaction.getTransactionId());
 		// check if it is a valid block reward
 		if(transaction.getPublicKeySender().equals(CoinBase.COIN_BASE_KEYS.getPublic()) 
 				&& transaction.getExchange() == CoinBase.BLOCK_REWARD_AMOUNT){
@@ -71,10 +72,13 @@ public class Validator
 		}
 		
 		// compare the transaction to all that have been verified so far
-		ValidationData validationData = getValidationData(transaction, NetworkService.getNetworkManager().getVerifiedTransactions());
-		if(!validationData.inputsAreKnown) 
-			return false; 
+		ValidationData validationData = getValidationData(transaction, NetworkService.getNetworkManager().getAllTransactions());
+		if(!validationData.inputsAreKnown) {
+			Console.log("Unknown inputs for transaction " + transaction.getTransactionId());
+			return false;
+		} 
 		if(validationData.isDoubleSpend) {
+			Console.log("Double spend attempt detected on transaction " + transaction.getTransactionId());
 			return false;
 		}
 		return true;
@@ -91,7 +95,7 @@ public class Validator
 	 */
 	public static boolean isDoubleSpend(Transaction transaction) {
 		// compare the transaction to all that have been verified so far
-		ValidationData validationData = getValidationData(transaction, NetworkService.getNetworkManager().getVerifiedTransactions());
+		ValidationData validationData = getValidationData(transaction, NetworkService.getNetworkManager().getAllTransactions());
 		if(validationData.isDoubleSpend) 
 			return true;
 		else
@@ -109,7 +113,7 @@ public class Validator
 	 */
 	public static boolean inputsAreKnown(Transaction transaction) {
 		// compare the transaction to all that have been verified so far
-		ValidationData validationData = getValidationData(transaction, NetworkService.getNetworkManager().getVerifiedTransactions());
+		ValidationData validationData = getValidationData(transaction, NetworkService.getNetworkManager().getAllTransactions());
 		if(validationData.inputsAreKnown) 
 			return true;
 		else

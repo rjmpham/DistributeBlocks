@@ -20,7 +20,7 @@ public class NetworkManager implements NetworkActions {
 	private HashMap<String, Transaction> transactionPool;
 	private HashMap<String, Transaction> orphanedTransactionPool;
 	private HashMap<String, Transaction> pendingTransactionPool; 	// Transactions that are being put into a block.
-	private HashMap<String, Transaction> verifiedTransactions;		// Easy access to every verified transaction ever seen
+	private HashMap<String, Transaction> allTransactions;			// Easy access to every verified transaction ever seen
 
 	private LinkedBlockingQueue<AbstractMessage> incommingQueue;
 	private LinkedBlockingQueue<ArrayList<BlockHeader>> headerQueue;
@@ -98,7 +98,6 @@ public class NetworkManager implements NetworkActions {
 		transactionPool = new HashMap<>();
 		orphanedTransactionPool = new HashMap<>();
 		pendingTransactionPool = new HashMap<>();
-		verifiedTransactions = (new BlockChain()).getVerifiedTransactions();
 	}
 
 
@@ -190,8 +189,8 @@ public class NetworkManager implements NetworkActions {
 	}
 	
 	// synchronized because another thread may be adding to the verified transactions
-	public synchronized HashMap<String, Transaction> getVerifiedTransactions() {
-		return verifiedTransactions;
+	public synchronized HashMap<String, Transaction> getAllTransactions() {
+		return allTransactions;
 	}
 
 	/**
@@ -449,6 +448,7 @@ public class NetworkManager implements NetworkActions {
 	 * @param transaction
 	 */
 	public void addTransaction(Transaction transaction){
+		// check against the whole block
 		if (Validator.isDoubleSpend(transaction)) {
 			Console.log("Transaction was a double spend! aborting");
 			return;
@@ -457,7 +457,7 @@ public class NetworkManager implements NetworkActions {
 		synchronized (transactionPool) {
 			// Compose a hashmap of all verified transactions, the transaction pool and pending transactions
 			HashMap<String, Transaction> combinedPool = new HashMap<>();
-			combinedPool.putAll(verifiedTransactions);
+			combinedPool.putAll(allTransactions);
 			combinedPool.putAll(transactionPool);
 			combinedPool.putAll(pendingTransactionPool);
 
@@ -497,10 +497,18 @@ public class NetworkManager implements NetworkActions {
 	 * @param block	the most recently verified block of the longest chain
 	 */
 	public synchronized void updateTransactionPools(Block block) {
+		if (block == null)
+			return; 	// TODO: why can this happen?
+		
 		Console.log("Updating local transaction pools from block " + block.getHashBlock());
-		verifiedTransactions.putAll(block.getData());
-		updateOrphanPool(verifiedTransactions);
-		updateTransactionPool(verifiedTransactions);
+		
+		if(allTransactions == null) {
+			BlockChain blockChain = new BlockChain();
+			allTransactions = blockChain.getAllTransactions();
+			allTransactions.putAll(block.getData());
+		}
+		updateOrphanPool(allTransactions);
+		updateTransactionPool(allTransactions);
 	}
 	
 	/**
@@ -555,13 +563,13 @@ public class NetworkManager implements NetworkActions {
 	}
 	
 	/**
-	 * Checks over each transaction i the verifiedTransactions and removes
+	 * Checks over each transaction i the allTransactions and removes
 	 * any matches from the transactionPool, since they have been placed onto a 
 	 * verified block.
 	 * 
 	 * This method is called whenever a block becomes verified (sufficiently deep).
 	 * 
-	 * @param verifiedTransactions 	Hashmap of Transaction ids to Transactions
+	 * @param allTransactions 	Hashmap of Transaction ids to Transactions
 	 */
 	public void updateTransactionPool(HashMap<String, Transaction> verifiedTransactions) {
 		for (Map.Entry<String,Transaction> i: verifiedTransactions.entrySet()){
@@ -929,6 +937,8 @@ public class NetworkManager implements NetworkActions {
 
 				}
 				Console.log("AQUIRED THE BLOCKCHAIN!");
+				// update the local copy of all transactions
+				allTransactions = blockChain.getAllTransactions();
 
 				// Process blocks into a chain and save them
 				for (int j = 0; j < highestHeaders.size(); j ++) {
@@ -937,13 +947,13 @@ public class NetworkManager implements NetworkActions {
 
 						if (m.blockHeight == j) {
 							blockChain.addBlock(m.block);
+							// Update the transaction pools with received block
+							NetworkService.getNetworkManager().updateTransactionPools(m.block);
 							
 							Block lastVerified = blockChain.getLastVerifiedBlock();
 							if (lastVerified != null) {
 								// Update node wallet with the block which is now verified
 								NodeService.getNode().updateWallet(lastVerified);
-								// Update the transaction pools now that a new block is verified
-								NetworkService.getNetworkManager().updateTransactionPools(lastVerified);
 							 }
 							break;
 						}
