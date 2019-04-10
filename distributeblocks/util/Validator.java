@@ -11,6 +11,7 @@ import distributeblocks.crypto.*;
 import distributeblocks.io.Console;
 import distributeblocks.net.NetworkService;
 
+// TODO: complete block validation, and add javadocs to it
 public class Validator
 {	
 	

@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 // TODO: this class has become bloated. It should be split up
-// TODO: make the pending transaction pool clearing intelligent (instead of clearing it all)
+// TODO: make the pending transaction pool clearing intelligent (instead of clearing it all, just clear what's been verified)
 // TODO: force agreement on a common block as the true head in case of a a branch (maybe shortest hash)
 public class NetworkManager implements NetworkActions {
 
@@ -31,18 +31,15 @@ public class NetworkManager implements NetworkActions {
 	private int minPeers = 0;
 	private int maxPeers = Integer.MAX_VALUE;
 	private int port = -1;
-	private int seedPeerTimeout = 30000; // mililiseconds
-	private int seedCheckoutTimer = 35; // seconds
-	private int aliveNotifierTime = 20; // seconds
+	private int seedPeerTimeout = 30000; 	// mililiseconds
+	private int seedCheckoutTimer = 35; 	// seconds
+	private int aliveNotifierTime = 20; 	// seconds
 
 	private IPAddress localAddr;
 	private boolean seed;
 	private boolean mining;
 
-	/**
-	 * Time in seconds between attempts at discovering more peer nodes.
-	 */
-	private int peerSearchRate = 10;
+	private int peerSearchRate = 10;		// Time in seconds between attempts at discovering more peer nodes.
 
 	private ExecutorService executorService;
 	private ScheduledExecutorService scheduledExecutorService; // For requesting new peers.
@@ -59,6 +56,8 @@ public class NetworkManager implements NetworkActions {
 	private volatile boolean shutDown = false;
 
 	/**
+	 * Starts all threads necessary to enter the P2P network.
+	 * This will download or update the blockchain if necessary as well.
 	 */
 	public NetworkManager(NetworkConfig networkConfig) {
 
@@ -107,8 +106,6 @@ public class NetworkManager implements NetworkActions {
 	 * Starts handshake process with known nodes.
 	 */
 	public void initialize() {
-
-
 		// Grab known peer nodes from file.
 		ConfigManager configManager = new ConfigManager();
 		peerNodes = Collections.synchronizedList(configManager.readPeerNodes());

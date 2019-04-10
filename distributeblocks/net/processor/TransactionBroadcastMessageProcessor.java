@@ -10,10 +10,13 @@ public class TransactionBroadcastMessageProcessor extends AbstractMessageProcess
 	public void processMessage(TransactionBroadcastMessage message) {
 
 		Console.log("Got transaction broadcast message.");
-		//BlockChain blockchain = new BlockChain();
-		//Validator valid = new Validator();
-		//if(valid.isValidTransaction(message.transaction, blockchain.getLongestChain())){
+		
+		if(message.transaction.verifySignature()) {
 			NetworkService.getNetworkManager().addTransaction(message.transaction);
-		//}
+		}
+		else {
+			Console.log("Transaction signature failed to verify");
+		}
+
 	}
 }

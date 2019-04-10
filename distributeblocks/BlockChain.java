@@ -14,11 +14,11 @@ public class BlockChain implements Serializable {
 	private static final int VERIFIED_DEPTH = 6;	// depth from the head we consider a block to be verified
 
 	private ArrayList<LinkedList<Block>> blockChain;
-	private HashMap<String, Block> allBlocks; // To make looking up blocks much faster.
+	private HashMap<String, Block> allBlocks; 		// To make looking up blocks much faster.
 
 
 	/**
-	 * Automaticaly loads chain from file.
+	 * Automatically loads chain from file.
 	 */
 	public BlockChain() {
 
@@ -26,7 +26,7 @@ public class BlockChain implements Serializable {
 	}
 
 	/**
-	 * Adds block to the chain. Automaticaly puts it on the right fork.
+	 * Adds block to the chain. Automatically puts it on the right fork.
 	 *
 	 * @param block
 	 */
@@ -153,10 +153,10 @@ public class BlockChain implements Serializable {
 		LinkedList<Block> longest = getLongestChain();
 		HashMap<String, Transaction> allVerifiedTransactions = new HashMap<String, Transaction>();
 		
-		// go from the genesis block to the current
+		// Go from the genesis block to the current
 		// TODO: time complexity of this: is Java LinkedList doubly linked, or is going from the head faster?
 		for(int i = 0; i < longest.size() - BlockChain.VERIFIED_DEPTH; i--) {
-			// add every transaction on the block
+			// Add every transaction on the block
 			Block block = longest.get(i);
 			allVerifiedTransactions.putAll(block.getData());
 		}
