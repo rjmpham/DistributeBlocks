@@ -130,16 +130,37 @@ public class BlockChain implements Serializable {
 	 * @return		Last verified block (null if longest chain is too short)
 	 */
 	public Block getLastVerifiedBlock() {
-		LinkedList<Block> highest = getLongestChain();
+		LinkedList<Block> longest = getLongestChain();
 		Block block = null;
 		
 		try {
-			block = highest.get(highest.size() - VERIFIED_DEPTH);
+			block = longest.get(longest.size() - VERIFIED_DEPTH);
 		}
 		catch(IndexOutOfBoundsException e) {
 			Console.log("Longest chain is shorter than the verified depth");
 		}
 		return block;
+	}
+	
+	/**
+	 * Creates a HashMap of Strings to Transactions of every verified
+	 * transaction within the longest chain. This is from the genesis
+	 * block, up to and including the last verified block;
+	 * 
+	 * @return HashMap of Strings to Transaction of every verified transaction
+	 */
+	public HashMap<String, Transaction> getVerifiedTransactions() {
+		LinkedList<Block> longest = getLongestChain();
+		HashMap<String, Transaction> allVerifiedTransactions = new HashMap<String, Transaction>();
+		
+		// go from the genesis block to the current
+		// TODO: time complexity of this: is Java LinkedList doubly linked, or is going from the head faster?
+		for(int i = 0; i < longest.size() - BlockChain.VERIFIED_DEPTH; i--) {
+			// add every transaction on the block
+			Block block = longest.get(i);
+			allVerifiedTransactions.putAll(block.getData());
+		}
+		return allVerifiedTransactions;
 	}
 
 	/**

@@ -19,7 +19,8 @@ public class NetworkManager implements NetworkActions {
 
 	private HashMap<String, Transaction> transactionPool;
 	private HashMap<String, Transaction> orphanedTransactionPool;
-	private HashMap<String, Transaction> pendingTransactionPool; // Transactions that are being put into a block.
+	private HashMap<String, Transaction> pendingTransactionPool; 	// Transactions that are being put into a block.
+	private HashMap<String, Transaction> verifiedTransactions;		// Easy access to every verified transaction ever seen
 
 	private LinkedBlockingQueue<AbstractMessage> incommingQueue;
 	private LinkedBlockingQueue<ArrayList<BlockHeader>> headerQueue;
@@ -98,6 +99,7 @@ public class NetworkManager implements NetworkActions {
 		transactionPool = new HashMap<>();
 		orphanedTransactionPool = new HashMap<>();
 		pendingTransactionPool = new HashMap<>();
+		verifiedTransactions = (new BlockChain()).getVerifiedTransactions();
 	}
 
 
@@ -434,8 +436,7 @@ public class NetworkManager implements NetworkActions {
 	public Miner getMiner(){
 		return miner;
 	}
-
-
+	
 	/**
 	 * Validates transactions.
 	 *
@@ -495,7 +496,8 @@ public class NetworkManager implements NetworkActions {
 	
 	/**
 	 * Updates the transaction pools to remove any transactions
-	 * that have been verified on a block.
+	 * that have been verified on a block. This will also update
+	 * the list of all verified transactions ever seen.
 	 * 
 	 * This method is called whenever a block becomes verified (sufficiently deep).
 	 * 
@@ -503,14 +505,14 @@ public class NetworkManager implements NetworkActions {
 	 */
 	public void updateTransactionPools(Block block) {
 		Console.log("Updating local transaction pools from block " + block.getHashBlock());
-		HashMap<String, Transaction> blockData = block.getData();
-		updateOrphanPool(blockData);
-		updateTransactionPool(blockData);
+		verifiedTransactions.putAll(block.getData());
+		updateOrphanPool(verifiedTransactions);
+		updateTransactionPool(verifiedTransactions);
 	}
 	
 	/**
 	 * Checks over each transaction in the potentialParants and moves
-	 * any orphaned transaction whose parant is discovered over the to
+	 * any orphaned transaction whose parent is discovered over the to
 	 * normal transactionPool. 
 	 * 
 	 * This operation will be called recursively, as any transaction which is
@@ -521,32 +523,42 @@ public class NetworkManager implements NetworkActions {
 	 * 
 	 * @param potentialParants		Hashmap of Transaction ids to Transactions
 	 */
-	// TODO: does this have to be recursive if we properly check if a transaction is an orphan or not when receiving a transaction?
 	// TODO: should this be synchronized? it is called whenever a transaction is received
-	public void updateOrphanPool(HashMap<String, Transaction> potentialParants) {
+	/* TODO: make a method to take a copy of every transaction/id pair from the blockchain into a hashmap
+	*		update this with any transactions once a block is validated
+	*		use this combined with the potential parents to see if all the inputs in the orphan are accounted for
+	*		use this in the validator to speed it up a ton- it will list every verified transaction in history
+	*/
+	public void updateOrphanPool(HashMap<String, Transaction> potentialParents) {
 		// Recursive basecase
-		if (potentialParants.isEmpty())
+		if (potentialParents.isEmpty())
 			return;
 		
-		Transaction transaction;
+		// we may find orphan grandchildren when called recursive. keep track of any transaction moved
 		HashMap<String, Transaction> newParents = new HashMap<String, Transaction>();
 		
 		// Process the parents, and keep track of any moved Transactions in newParants
-		for (Map.Entry<String,Transaction> i: potentialParants.entrySet()){
-			if(orphanedTransactionPool.containsKey(i.getKey())) { //TODO: shouldnt this be the parents id we check against?
-				transaction = orphanedTransactionPool.get(i.getKey());
-				orphanedTransactionPool.remove(i.getKey());
-				
-				transactionPool.put(i.getKey(), i.getValue());
-				newParents.put(i.getKey(), i.getValue());
+		for (Map.Entry<String,Transaction> o: orphanedTransactionPool.entrySet()){
+			boolean allFound = true;
+			for (TransactionIn i: o.getValue().getInput()) {
+				if (!potentialParents.containsKey(i.getParentId())) {
+					allFound = false;
+					break;
+				}
+			}
+			if (allFound) {
+				// all parents were found! remove orphaned status
+				orphanedTransactionPool.remove(o.getKey());
+				transactionPool.put(o.getKey(), o.getValue());
+				newParents.put(o.getKey(), o.getValue());
 			}
 		}
 		// Call recursively on the new potential parents
 		updateOrphanPool(newParents);
-	}
+		}
 	
 	/**
-	 * Moves any orphaned transaction whose who are children of the given
+	 * Moves any orphaned transaction who are children of the given
 	 * transaction out of the orphaned transaction pool.
 	 * 
 	 * This operation is called whenever a new transaction is received and
@@ -575,8 +587,6 @@ public class NetworkManager implements NetworkActions {
 				transactionPool.remove(i.getKey());
 		}
 	}
-	
-
 
 	/**
 	 * Simply connects to all the peers currently loaded into the peer nodes list.
@@ -590,7 +600,6 @@ public class NetworkManager implements NetworkActions {
 			p.connect();
 		}
 	}
-
 
 	/**
 	 * Goes through the network interfaces, extracts InetAddresses,
