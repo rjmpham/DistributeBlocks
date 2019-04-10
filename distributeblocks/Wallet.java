@@ -329,7 +329,7 @@ public class Wallet {
 	/**
 	 * Set the alias of a wallet
 	 */
-	public setAlias(String newAlias){
+	public void setAlias(String newAlias){
 	  alias = newAlias;
 	}
 	
