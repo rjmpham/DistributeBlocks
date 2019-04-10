@@ -4,6 +4,7 @@ import distributeblocks.*;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.AbstractMessage;
 import distributeblocks.net.message.MiningFinishedMessage;
+import distributeblocks.io.Console;
 
 import java.util.HashMap;
 import java.util.concurrent.*;
@@ -32,7 +33,7 @@ public class Miner {
            stopMining();
         }
 
-        System.out.println("Starting new mining operation.");
+        Console.log("Starting new mining operation.");
         this.miner = new BlockMiner(previousBlock, data, targetNumZeros);
         minerFuture = executorService.submit(miner);
     }
@@ -43,7 +44,7 @@ public class Miner {
         // Kill it with fire.
 
         if (miner != null) {
-            System.out.println("Killing miner.");
+            Console.log("Killing miner.");
             miner.killMiner();
         }
 
@@ -51,7 +52,7 @@ public class Miner {
         try {
             if (minerFuture != null) {
                 minerFuture.get();
-                System.out.println("Miner has been violently murdered.");
+                Console.log("Miner has been violently murdered.");
             }
 
         } catch (InterruptedException e) {
@@ -106,9 +107,15 @@ public class Miner {
 
                 try {
 
-                    System.out.println("Beginning mining");
+                    Console.log("Beginning mining");
 
-                    Transaction reward = wallet.makeBlockReward(wallet.getPublicKey());
+                    Transaction reward;
+                    try {
+                    	reward = wallet.makeBlockReward(wallet.getPublicKey());
+                    } catch (NullPointerException e) {
+                    	Console.log("Terminating mining");
+                    	return;
+                    }
                     reward.transactionEnforcer();
                    // Transaction rewardOut = new Transaction(wallet.getPrivateKey(), wallet.getPublicKey(), 5.0f, reward.getId_Transaction());
                     data.put(reward.getId_Transaction(), reward);
@@ -118,12 +125,12 @@ public class Miner {
                     currentBlock.mineBlock();
 
                     if (currentBlock.isBlockMined()) {
-                        System.out.println("Sending mining finished message.");
+                        Console.log("Sending mining finished message.");
                         AbstractMessage message = new MiningFinishedMessage(currentBlock, Miner.this);
                         NetworkService.getNetworkManager().asyncEnqueue(message);        // Send block to be processed on processing queue for this node
                     }
 
-                    System.out.println("Finished Mining");
+                    Console.log("Finished Mining");
 
                     stop = true;
 

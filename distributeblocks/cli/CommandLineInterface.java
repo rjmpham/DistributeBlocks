@@ -9,7 +9,7 @@ import picocli.CommandLine;
 
 import distributeblocks.Node;
 
-/*
+/**
  * Interface to parse and process user commands.
  * This is capable of handing commands received at run time,
  * as well as which the node is running.
@@ -23,7 +23,7 @@ public class CommandLineInterface implements Runnable{
 		this.node = node;
 	}
 	
-	/*
+	/**
 	 * Repeatedly gets user input and attempt to parse it
 	 * as a recognized command.
 	 */
@@ -36,9 +36,11 @@ public class CommandLineInterface implements Runnable{
 		}
 	}
 		
-	/*
+	/**
 	 * Parses a list of command line arguments and
 	 * performs the requested action.
+	 * 
+	 * @param args	command line args
 	 */
 	public void parseCommand(String[] args) {
 		String command = "None";
@@ -64,11 +66,15 @@ public class CommandLineInterface implements Runnable{
 		}
 	}
 	
-	/*
+	/**
 	 * Gets the object name corresponding to a user command.
 	 * This method ensures that there is no naming conflict within
 	 * this package and other packages of the project, since every
 	 * class here has the "Handler" suffix.
+	 * 
+	 * @param command	user inputed command
+	 * 
+	 * @return "distributeblocks.cli." + sentenceCase(command) + "Handler"
 	 */
 	private static String qualifyName(String command) {
 		String first = String.valueOf(command.charAt(0)).toUpperCase();

@@ -7,6 +7,7 @@ import distributeblocks.net.NetworkService;
 import distributeblocks.net.PeerNode;
 import distributeblocks.net.message.PeerInfoMessage;
 import distributeblocks.net.message.RequestPeersMessage;
+import distributeblocks.io.Console;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -15,7 +16,7 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 	@Override
 	public void processMessage(RequestPeersMessage message) {
 
-		System.out.println("Got a request peers message from: " + message.senderNode.getAddress());
+		Console.log("Got a request peers message from: " + message.senderNode.getAddress());
 		NetworkManager networkManager = NetworkService.getNetworkManager();
 		ArrayList<IPAddress> addresses = new ArrayList<>();
 		message.senderNode.setLocalAddress(message.localAddress);
