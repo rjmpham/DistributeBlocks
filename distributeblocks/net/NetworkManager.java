@@ -20,8 +20,6 @@ public class NetworkManager implements NetworkActions {
 	private HashMap<String, Transaction> transactionPool;
 	private HashMap<String, Transaction> orphanedTransactionPool;
 	private HashMap<String, Transaction> pendingTransactionPool; 	// Transactions that are being put into a block.
-	private HashMap<String, Transaction> allTransactions;			// Easy access to every verified transaction ever seen
-
 	private LinkedBlockingQueue<AbstractMessage> incommingQueue;
 	private LinkedBlockingQueue<ArrayList<BlockHeader>> headerQueue;
 	private LinkedBlockingQueue<BlockMessage> blockQueue;
@@ -188,11 +186,6 @@ public class NetworkManager implements NetworkActions {
 		return localAddr;
 	}
 	
-	// synchronized because another thread may be adding to the verified transactions
-	public synchronized HashMap<String, Transaction> getAllTransactions() {
-		return allTransactions;
-	}
-
 	/**
 	 * Removes a node by reference.
 	 *
@@ -457,7 +450,7 @@ public class NetworkManager implements NetworkActions {
 		synchronized (transactionPool) {
 			// Compose a hashmap of all verified transactions, the transaction pool and pending transactions
 			HashMap<String, Transaction> combinedPool = new HashMap<>();
-			combinedPool.putAll(allTransactions);
+			combinedPool.putAll((new BlockChain()).getAllTransactions());
 			combinedPool.putAll(transactionPool);
 			combinedPool.putAll(pendingTransactionPool);
 
@@ -489,26 +482,12 @@ public class NetworkManager implements NetworkActions {
 	
 	/**
 	 * Updates the transaction pools to remove any transactions
-	 * that have been verified on a block. This will also update
-	 * the list of all verified transactions ever seen.
-	 * 
-	 * This method is called whenever a block becomes verified (sufficiently deep).
-	 * 
-	 * @param block	the most recently verified block of the longest chain
+	 * that have been added to the chain, and move orphans
+	 * if necessary.
 	 */
-	public synchronized void updateTransactionPools(Block block) {
-		if (block == null)
-			return; 	// TODO: why can this happen?
-		
-		Console.log("Updating local transaction pools from block " + block.getHashBlock());
-		
-		if(allTransactions == null) {
-			BlockChain blockChain = new BlockChain();
-			allTransactions = blockChain.getAllTransactions();
-			allTransactions.putAll(block.getData());
-		}
-		updateOrphanPool(allTransactions);
-		updateTransactionPool(allTransactions);
+	public synchronized void updateTransactionPools() {
+		updateOrphanPool((new BlockChain()).getAllTransactions());
+		updateTransactionPool((new BlockChain()).getAllTransactions());
 	}
 	
 	/**
@@ -937,8 +916,8 @@ public class NetworkManager implements NetworkActions {
 
 				}
 				Console.log("AQUIRED THE BLOCKCHAIN!");
-				// update the local copy of all transactions
-				allTransactions = blockChain.getAllTransactions();
+				// Update the transaction pools with received block
+				updateTransactionPools();
 
 				// Process blocks into a chain and save them
 				for (int j = 0; j < highestHeaders.size(); j ++) {
@@ -947,8 +926,6 @@ public class NetworkManager implements NetworkActions {
 
 						if (m.blockHeight == j) {
 							blockChain.addBlock(m.block);
-							// Update the transaction pools with received block
-							NetworkService.getNetworkManager().updateTransactionPools(m.block);
 							
 							Block lastVerified = blockChain.getLastVerifiedBlock();
 							if (lastVerified != null) {
@@ -1014,8 +991,8 @@ public class NetworkManager implements NetworkActions {
 	}
 
 	/**
-	 * Seed nodes will uise this periodicaly to go through its timeouts file, and remove nodes
-	 * who have not contacted this node for some ammount of time.
+	 * Seed nodes will use this periodically to go through its timeouts file, and remove nodes
+	 * who have not contacted this node for some amount of time.
 	 */
 	private class TimeoutChecker implements Runnable {
 

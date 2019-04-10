@@ -20,13 +20,14 @@ public class MiningFinishedProcessor extends AbstractMessageProcessor<MiningFini
         blockChain.addBlock(message.block);
         blockChain.save();
         
+        // Update the transaction pools now that a new block is verified
+     	NetworkService.getNetworkManager().updateTransactionPools();
+        
         // Update funds and transaction pools
         Block lastVerified = blockChain.getLastVerifiedBlock();
 		if (lastVerified != null) {
 			// Update node wallet with the block which is now verified
 			NodeService.getNode().updateWallet(lastVerified);
-			// Update the transaction pools now that a new block is verified
-			NetworkService.getNetworkManager().updateTransactionPools(lastVerified);
 		 }
 
         NetworkService.getNetworkManager().clearPendingTransactions();

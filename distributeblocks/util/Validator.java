@@ -30,7 +30,9 @@ public class Validator
 		
 		// Get a list of ids from every transaction that has every been spent
 		HashSet<String> parentIds =  new HashSet<String>();
+		System.out.println("============== every transaction ID that I have verified ==============");
 		for (Transaction t: verifiedTransactions.values()) {
+			System.out.println(t.getTransactionId());
 			for (TransactionIn i: t.getInput()) {
 				parentIds.add(i.getParentId());
 			}
@@ -72,7 +74,7 @@ public class Validator
 		}
 		
 		// compare the transaction to all that have been verified so far
-		ValidationData validationData = getValidationData(transaction, NetworkService.getNetworkManager().getAllTransactions());
+		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactions());
 		if(!validationData.inputsAreKnown) {
 			Console.log("Unknown inputs for transaction " + transaction.getTransactionId());
 			return false;
@@ -95,7 +97,7 @@ public class Validator
 	 */
 	public static boolean isDoubleSpend(Transaction transaction) {
 		// compare the transaction to all that have been verified so far
-		ValidationData validationData = getValidationData(transaction, NetworkService.getNetworkManager().getAllTransactions());
+		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactions());
 		if(validationData.isDoubleSpend) 
 			return true;
 		else
@@ -113,7 +115,7 @@ public class Validator
 	 */
 	public static boolean inputsAreKnown(Transaction transaction) {
 		// compare the transaction to all that have been verified so far
-		ValidationData validationData = getValidationData(transaction, NetworkService.getNetworkManager().getAllTransactions());
+		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactions());
 		if(validationData.inputsAreKnown) 
 			return true;
 		else
@@ -144,7 +146,7 @@ public class Validator
 	public static boolean isValidBlockchain(LinkedList<Block> blockchain) throws FailedToHashException
 	{
 		Block currentBlock = blockchain.getFirst();										//Get the genesis block
-		if (!isValidBlock(currentBlock,""))								//If the genesis block is not correct...
+		if (!isValidBlock(currentBlock,""))												//If the genesis block is not correct...
 			return false;
 		String previousHashBlock = blockchain.getFirst().getHashBlock();
 		for (int i = 1; i < blockchain.size(); i++)										//For all the blocks AFTER the genesis block

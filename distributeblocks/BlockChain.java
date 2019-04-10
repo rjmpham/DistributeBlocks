@@ -11,10 +11,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public class BlockChain implements Serializable {
-	private static final int VERIFIED_DEPTH = 6;	// depth from the head we consider a block to be verified
+	private static final int VERIFIED_DEPTH = 2;				// depth from the head we consider a block to be verified
 
 	private ArrayList<LinkedList<Block>> blockChain;
-	private HashMap<String, Block> allBlocks; 		// To make looking up blocks much faster.
+	private HashMap<String, Block> allBlocks; 					// To make looking up blocks much faster.
+	private HashMap<String, Transaction> allTransactions;		// Easy access to every verified transaction ever seen
 
 
 	/**
@@ -53,6 +54,7 @@ public class BlockChain implements Serializable {
 
 				// Add it to current fork.
 				ls.add(block);
+				updateAllTransactions();
 				return;
 			} else {
 
@@ -79,6 +81,7 @@ public class BlockChain implements Serializable {
 						// Finish off by adding the new block.
 						newFork.add(block);
 						blockChain.add(newFork); // And add the new fork.
+						updateAllTransactions();
 						return;
 					}
 
@@ -154,12 +157,14 @@ public class BlockChain implements Serializable {
 	 * 
 	 * @return HashMap of Strings to Transaction of every verified transaction
 	 */
-	public HashMap<String, Transaction> getAllTransactions() {
+	private void updateAllTransactions() {
 		LinkedList<Block> longest = getLongestChain();
-		HashMap<String, Transaction> allTransactions = new HashMap<String, Transaction>();
+		HashMap<String, Transaction> all = new HashMap<String, Transaction>();
 		
-		if (longest == null) {
-			return allTransactions;
+		// the chain is empty
+		if (longest != null) {
+			this.allTransactions = all;
+			return;
 		}
 		
 		// Go from the genesis block to the current
@@ -167,9 +172,19 @@ public class BlockChain implements Serializable {
 		for(int i = 0; i < longest.size(); i++) {
 			// Add every transaction on the block
 			Block block = longest.get(i);
-			allTransactions.putAll(block.getData());
+			all.putAll(block.getData());
 		}
-		return allTransactions;
+		// update the local copy, and return it
+		this.allTransactions = all;
+	}
+	
+	/**
+	 * Get a hashmap of all transactions on the longest chain.
+	 * 
+	 * @return hashmap from String to Transaction of every transaction on the longest chain
+	 */
+	public synchronized HashMap<String, Transaction> getAllTransactions() {
+		return this.allTransactions;
 	}
 
 	/**
