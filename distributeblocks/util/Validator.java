@@ -37,6 +37,8 @@ public class Validator
 				parentIds.add(i.getParentId());
 			}
 		}
+
+
 		
 		// for each input used, check if its known, and if it's been seen before
 		for (TransactionIn i: transaction.getInput()) {
@@ -74,7 +76,7 @@ public class Validator
 		}
 		
 		// compare the transaction to all that have been verified so far
-		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactions());
+		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactionsFromLongestChain());
 		if(!validationData.inputsAreKnown) {
 			Console.log("Unknown inputs for transaction " + transaction.getTransactionId());
 			return false;
@@ -83,6 +85,12 @@ public class Validator
 			Console.log("Double spend attempt detected on transaction " + transaction.getTransactionId());
 			return false;
 		}
+
+		if (validationData.alreadyOnBlock){
+			Console.log("Block was already on the chain for transaction  " + transaction.getTransactionId());
+			return false;
+		}
+
 		return true;
 	}
 	
@@ -97,7 +105,7 @@ public class Validator
 	 */
 	public static boolean isDoubleSpend(Transaction transaction) {
 		// compare the transaction to all that have been verified so far
-		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactions());
+		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactionsFromLongestChain());
 		if(validationData.isDoubleSpend) 
 			return true;
 		else
@@ -115,7 +123,7 @@ public class Validator
 	 */
 	public static boolean inputsAreKnown(Transaction transaction) {
 		// compare the transaction to all that have been verified so far
-		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactions());
+		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactionsFromLongestChain());
 		if(validationData.inputsAreKnown) 
 			return true;
 		else

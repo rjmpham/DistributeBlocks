@@ -16,7 +16,7 @@ public class BlockChain implements Serializable {
 	private ArrayList<LinkedList<Block>> blockChain;
 	private HashMap<String, Block> allBlocks; 					// To make looking up blocks much faster.
 	private HashMap<String, Transaction> allTransactions;		// Easy access to every verified transaction ever seen
-
+	private static Object blockLock = new Object();
 
 	/**
 	 * Automatically loads chain from file.
@@ -183,29 +183,52 @@ public class BlockChain implements Serializable {
 	 * 
 	 * @return hashmap from String to Transaction of every transaction on the longest chain
 	 */
-	public synchronized HashMap<String, Transaction> getAllTransactions() {
-		return this.allTransactions;
+	/*public HashMap<String, Transaction> getAllTransactions() {
+
+		synchronized (blockLock) {
+
+			return this.allTransactions;
+		}
+	}*/
+
+	public HashMap<String, Transaction> getAllTransactionsFromLongestChain(){
+
+		HashMap<String, Transaction> trans = new HashMap<>();
+
+		synchronized (blockLock){
+
+			for (Block b : getLongestChain()){
+				trans.putAll(b.getData());
+			}
+		}
+		return trans;
 	}
+
 
 	/**
 	 * Loads blockchain from file.
 	 */
-	public synchronized void load(){
+	public void load(){
 
-		this.blockChain = new ConfigManager().loadBlockCHain();
+		synchronized (blockLock) {
 
-		allBlocks = new HashMap<>();
+			this.blockChain = new ConfigManager().loadBlockCHain();
 
-		for (LinkedList<Block> ls : blockChain){
-			for (Block b : ls){
-				allBlocks.put(b.getHashBlock(), b);
+			allBlocks = new HashMap<>();
+
+			for (LinkedList<Block> ls : blockChain) {
+				for (Block b : ls) {
+					allBlocks.put(b.getHashBlock(), b);
+				}
 			}
 		}
 
 	}
 
-	public synchronized void save(){
+	public void save(){
 
-		new ConfigManager().saveBlockChain(this.blockChain);
+		synchronized (blockLock) {
+			new ConfigManager().saveBlockChain(this.blockChain);
+		}
 	}
 }
