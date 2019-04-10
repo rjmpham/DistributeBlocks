@@ -87,7 +87,7 @@ public class Node {
 	 */
 	public void createWallet(String path) {
 		// ensure that it is safe to save wallet data to the directory
-		String fullPath = DirectoryManager.fullPathTo(path);
+		String fullPath = DirectoryManager.fullPathToDir(path);
 		if(!DirectoryManager.isEmptyDir(fullPath, true)){
 			System.out.println("Cannot create a wallet in a non-empty directory " + fullPath);
 			return;
@@ -119,7 +119,7 @@ public class Node {
 	 * @param path		path to the directory where wallet info is stored
 	 */
 	public void loadWallet(String path) {
-		String fullPath = DirectoryManager.fullPathTo(path);
+		String fullPath = DirectoryManager.fullPathToDir(path);
 		
 		// keep a copy of the current wallet in case creation fails
 		Wallet old = wallet;
@@ -219,7 +219,7 @@ public class Node {
 			return;
 		}
 
-		String fullPath = System.getProperty("user.dir") + recipientKeyPath;
+		String fullPath = DirectoryManager.fullPathToFile(recipientKeyPath);
 		try {
 			// try to create a transaction
 			PublicKey recipientKey = WalletManager.loadPublicKey(fullPath, Crypto.GEN_ALGORITHM);

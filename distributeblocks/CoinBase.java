@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
 import distributeblocks.crypto.Crypto;
+import distributeblocks.io.DirectoryManager;
 import distributeblocks.io.WalletManager;
 
 /**
@@ -29,7 +30,7 @@ public class CoinBase {
 	 */
 	public static KeyPair loadCoinBase() {
 		System.out.println("creating the coinbase");
-		String fullPath = System.getProperty("user.dir") + COIN_BASE_DIR;
+		String fullPath = DirectoryManager.fullPathToDir(COIN_BASE_DIR);
 		try {
 			return WalletManager.loadKeyPair(fullPath, Crypto.GEN_ALGORITHM);
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {

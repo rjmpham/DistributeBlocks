@@ -20,7 +20,7 @@ public class DirectoryManager {
 	 * @param path		A directory accessible from the current working directory
 	 * @return			A full path from the file system root to the path given
 	 */
-	public static String fullPathTo(String path) {
+	public static String fullPathToDir(String path) {
 		if (path.length() == 0)
 			return path;
 		
@@ -29,9 +29,31 @@ public class DirectoryManager {
 		
 		// add any required forward or backwar slashes
 		String seperator = (!File.separator.equals(firstChar))? File.separator: "";
-		String suffix = (!File.separator.equals(firstChar))? File.separator: "";
+		String suffix = (!File.separator.equals(lastChar))? File.separator: "";
 		
 		return System.getProperty("user.dir") + seperator + path + suffix;
+	}
+	
+	/**
+	 * Given a String path that represents a file 
+	 * accessible from the current working directory, this 
+	 * method will build a full path from the root of the
+	 * file system up to the current working directory and
+	 * including the path given.
+	 * 
+	 * @param path		A file accessible from the current working directory
+	 * @return			A full path from the file system root to the path given
+	 */
+	public static String fullPathToFile(String path) {
+		if (path.length() == 0)
+			return path;
+		
+		String firstChar = String.valueOf(path.charAt(0));
+		
+		// add any required forward or backwar slashes
+		String seperator = (!File.separator.equals(firstChar))? File.separator: "";
+		
+		return System.getProperty("user.dir") + seperator + path;
 	}
 	
 	/**
