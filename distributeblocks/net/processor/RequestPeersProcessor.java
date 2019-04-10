@@ -11,6 +11,7 @@ import distributeblocks.io.Console;
 
 import java.util.ArrayList;
 import java.util.Random;
+import java.security.PublicKey;
 
 public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeersMessage> {
 	@Override
@@ -19,6 +20,8 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 		Console.log("Got a request peers message from: " + message.senderNode.getAddress());
 		NetworkManager networkManager = NetworkService.getNetworkManager();
 		ArrayList<IPAddress> addresses = new ArrayList<>();
+		ArrayList<PublicKey> publicKeys = new ArrayList<>();
+		ArrayList<String> aliases = new ArrayList<>();
 		message.senderNode.setLocalAddress(message.localAddress);
 
 		if (networkManager.inSeedMode()){
@@ -33,10 +36,14 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 
 					PeerNode node =  nodes.remove(ran.nextInt(Math.max(nodes.size() - 1, 1)));
 					IPAddress addr = node.getListeningAddress();
+					PublicKey publicKey = node.getPublicKey();
+					String alias = node.getAlias();
 
 					// Dont send them the address if its their own address.
 					if (addr.port > 0 && !addr.equals(message.senderNode.getListeningAddress())) {
 						addresses.add(addr);
+						publicKeys.add(publicKey);
+						aliases.add(alias);
 					}
 				}
 			}
@@ -55,7 +62,7 @@ public class RequestPeersProcessor extends AbstractMessageProcessor<RequestPeers
 		}
 
 		// Send them off woo that was easy.
-		message.senderNode.asyncSendMessage(new PeerInfoMessage(addresses, message.friend));
+		message.senderNode.asyncSendMessage(new PeerInfoMessage(addresses, publicKeys, aliases, message.friend));
 
 	}
 }

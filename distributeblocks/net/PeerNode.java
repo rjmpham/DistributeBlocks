@@ -168,6 +168,14 @@ public class PeerNode {
 		addr.port = this.listenPort;
 		return addr;
 	}
+	
+	public PublicKey getPublicKey() {
+		return publicKey;
+	}
+	
+	public String getAlias() {
+		return alias;
+	}
 
 	public void shutDown() {
 
