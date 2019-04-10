@@ -6,6 +6,7 @@ import distributeblocks.net.processor.AbstractMessageProcessor;
 import distributeblocks.net.processor.PeerInfoProcessor;
 
 import java.util.ArrayList;
+import java.security.PublicKey;
 
 public class PeerInfoMessage extends AbstractMessage {
 
