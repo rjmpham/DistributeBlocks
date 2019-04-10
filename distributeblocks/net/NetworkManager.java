@@ -669,7 +669,12 @@ public class NetworkManager implements NetworkActions {
 	public void setMonitorSocket(MonitorNotifierMessage message){
 
 	 	synchronized (monitorLock) {
-			if (monitorSocket == null) {
+
+	 		Console.log("Adding monitor");
+
+			if (monitorSocket == null || monitorSocket.isClosed()) {
+
+				Console.log("Adding monitor for realz");
 
 				try {
 					this.monitorSocket = new Socket(message.monitorAddress.ip, message.monitorAddress.port);
@@ -685,10 +690,21 @@ public class NetworkManager implements NetworkActions {
 
 	public void sendToMonitor(AbstractMessage message){
 
+	 	Console.log("!!!!!!!!!!!!!!!!!!!!!!!! Sending message to monitor");
 	 	synchronized (monitorLock) {
 			if (monitorSocket != null) {
+				Console.log("!!!!!!!!!!!!!!!!!!!!!!!! Monitor not nul");
 				try {
-					monitorOutput.writeObject(new MonitorDataMessage(message));
+
+					ArrayList<IPAddress> addresses = new ArrayList<>();
+
+					for (PeerNode node : getPeerNodes()){
+						addresses.add(node.getListeningAddress());
+					}
+
+
+					monitorOutput.writeObject(new MonitorDataMessage(message, addresses));
+					Console.log("!!!!!!!!!!!!!!!!!!!!!!!! Sent message to monitor");
 				} catch (IOException e) {
 					try {
 						monitorSocket.close();
