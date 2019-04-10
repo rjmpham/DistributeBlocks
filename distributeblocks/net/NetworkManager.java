@@ -12,8 +12,9 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-// TODO: make the pending transaction pool clearing intelligent
-// TODO: force agreement on a comment block as the true head in case of a a branch (maybe shortest hash)
+// TODO: this class has become bloated. It should be split up
+// TODO: make the pending transaction pool clearing intelligent (instead of clearing it all)
+// TODO: force agreement on a common block as the true head in case of a a branch (maybe shortest hash)
 public class NetworkManager implements NetworkActions {
 
 	private HashMap<String, Transaction> transactionPool;
@@ -447,14 +448,14 @@ public class NetworkManager implements NetworkActions {
 	// TODO: make the locks more reasonable here. maybe move code into synchronized sub methods
 	// TODO: merge isUnspent, containsValidTransactionInputs, and existsInChain, then call it here
 	public void addTransaction(Transaction transaction){
-//		BlockChain chain = new BlockChain();
-//		LinkedList<Block> longestChain = chain.getLongestChain();
+		BlockChain chain = new BlockChain();
+		LinkedList<Block> longestChain = chain.getLongestChain();
 
 		// TODO Ian figure out the validation crap.
-//		if (!Validator.isUnspent(transaction, longestChain)) {
-//			Console.log("Transaction was a double spend! aborting");
-//			return;
-//		}
+		if (!Validator.isUnspent(transaction, longestChain)) {
+			Console.log("Transaction was a double spend! aborting");
+			return;
+		}
 
 		synchronized (transactionPool) {
 
@@ -480,14 +481,14 @@ public class NetworkManager implements NetworkActions {
 				// if we've never seen this transaction before, send it to peers
 				asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
 				
-//				// Put the transaction into the correct pool
-//				if (Validator.containsValidTransactionInputs(transaction, longestChain)) {
+				// Put the transaction into the correct pool
+				if (Validator.containsValidTransactionInputs(transaction, longestChain)) {
 					transactionPool.put(transaction.getTransactionId(), transaction);
-//					updateOrphanPool(transaction);
-//				}
-//				else {
-//					orphanedTransactionPool.put(transaction.getId_Transaction(), transaction);
-//				}
+					updateOrphanPool(transaction);
+				}
+				else {
+					orphanedTransactionPool.put(transaction.getTransactionId(), transaction);
+				}
 			}
 		}
 	}
@@ -530,7 +531,7 @@ public class NetworkManager implements NetworkActions {
 		Transaction transaction;
 		HashMap<String, Transaction> newParents = new HashMap<String, Transaction>();
 		
-		// Process the parants, and keep track of any moved Transactions in newParants
+		// Process the parents, and keep track of any moved Transactions in newParants
 		for (Map.Entry<String,Transaction> i: potentialParants.entrySet()){
 			if(orphanedTransactionPool.containsKey(i.getKey())) { //TODO: shouldnt this be the parents id we check against?
 				transaction = orphanedTransactionPool.get(i.getKey());
