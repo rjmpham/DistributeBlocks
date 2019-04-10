@@ -2,12 +2,12 @@ package distributeblocks;
 
 import distributeblocks.crypto.Crypto;
 import distributeblocks.cli.CommandLineInterface;
+import distributeblocks.io.DirectoryManager;
 import distributeblocks.io.WalletManager;
 import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
 import distributeblocks.util.Validator;
 
-import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -31,7 +31,6 @@ import java.util.Map;
 // TODO: the "coinBase" transaction id may cause problems with hashes and removing old funds that are marked as spent
 // TODO: the "blockReward" parent id might also have this problem
 
-// TODO: replace all file slashes with File.separator
 // TODO: make killing mining sychronized with the new block broadcast, or make sure it doesn't kill it part way through
 /**
  *  Represents an agent within the P2P network. This class houses a wallet,
@@ -42,7 +41,7 @@ import java.util.Map;
 public class Node {
 
 	public static int HASH_DIFFICULTY = 4;
-	public static String DEFAULT_WALLET_DIR = "./wallet/";
+	public static String DEFAULT_WALLET_DIR = "wallet";
 
 	private boolean started = false;
 	private boolean mining = false;
@@ -88,12 +87,8 @@ public class Node {
 	 */
 	public void createWallet(String path) {
 		// ensure that it is safe to save wallet data to the directory
-		String fullPath = System.getProperty("user.dir") + path;
-		File file = new File(fullPath);
-		if(!file.isDirectory()) {
-				file.mkdir();
-		}
-		if(file.list().length != 0){
+		String fullPath = DirectoryManager.fullPathTo(path);
+		if(!DirectoryManager.isEmptyDir(fullPath, true)){
 			System.out.println("Cannot create a wallet in a non-empty directory " + fullPath);
 			return;
 		}
@@ -105,6 +100,7 @@ public class Node {
 		
 		boolean failed = false;
 		try {
+			// try to save the wallet, handle any errors that come up
 			WalletManager.saveWallet(path, wallet);
 		} catch (IOException e) {
 			System.out.println("Failed to save new wallet in " + fullPath);
@@ -123,7 +119,7 @@ public class Node {
 	 * @param path		path to the directory where wallet info is stored
 	 */
 	public void loadWallet(String path) {
-		String fullPath = System.getProperty("user.dir") + path;
+		String fullPath = DirectoryManager.fullPathTo(path);
 		
 		// keep a copy of the current wallet in case creation fails
 		Wallet old = wallet;
