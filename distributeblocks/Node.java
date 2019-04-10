@@ -101,7 +101,7 @@ public class Node {
 		boolean failed = false;
 		try {
 			// try to save the wallet, handle any errors that come up
-			WalletManager.saveWallet(path, wallet);
+			WalletManager.saveWallet(fullPath, wallet);
 		} catch (IOException e) {
 			System.out.println("Failed to save new wallet in " + fullPath);
 			System.out.println("keeping previously wallet (if any)");
