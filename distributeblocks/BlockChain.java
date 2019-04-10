@@ -155,13 +155,39 @@ public class BlockChain implements Serializable {
 		
 		// Go from the genesis block to the current
 		// TODO: time complexity of this: is Java LinkedList doubly linked, or is going from the head faster?
-		for(int i = 0; i < longest.size() - BlockChain.VERIFIED_DEPTH; i--) {
+		for(int i = 0; i < longest.size() - BlockChain.VERIFIED_DEPTH; i++) {
 			// Add every transaction on the block
 			Block block = longest.get(i);
 			allVerifiedTransactions.putAll(block.getData());
 		}
 		return allVerifiedTransactions;
 	}
+
+	/**
+	 * Creates a HashMap of Strings to Transactions of every verified
+	 * transaction before the input block. This is from the genesis
+	 * block, up to and excluding the block to be verified;
+	 *
+	 * @param toVerify the block to be considered the head of the chain for the validation check
+	 * @return HashMap of Strings to Transaction of every verified transaction before the input block
+	 */
+	public HashMap<String, Transaction> getVerifiedTransactions(Block toVerify) {
+		//Need to check if there is another blockchain where the block to verify is forked on
+
+		LinkedList<Block> longest = getLongestChain();
+		HashMap<String, Transaction> allVerifiedTransactions = new HashMap<String, Transaction>();
+
+		// Go from the genesis block to the current
+		// TODO: time complexity of this: is Java LinkedList doubly linked, or is going from the head faster?
+		for(int i = 0; i < toVerify; i++) {
+			// Add every transaction on the block
+			Block block = longest.get(i);
+			allVerifiedTransactions.putAll(block.getData());
+		}
+		return allVerifiedTransactions;
+	}
+
+
 
 	/**
 	 * Loads blockchain from file.

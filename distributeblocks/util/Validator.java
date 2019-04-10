@@ -115,19 +115,41 @@ public class Validator
 		else
 			return false;
 	}
-	
-	//Checks if a given block is valid
-	//Currently does not check whether the block satisfies the target
+
+	/**
+	 * Checks if a given block is valid
+	 * Currently does not check whether the block satisfies the target
+	 *
+	 * @param block
+	 * @param hashPreviousBlock
+	 * @return true if the block has all the required variables
+	 * @throws FailedToHashException
+	 */
 	public static boolean isValidBlock(Block block, String hashPreviousBlock) throws FailedToHashException
 	{
-		try
-		{
-			if (!block.getHashBlock().equals(Crypto.calculateBlockHash(block)))				//If the block hash isn't correct...
+		try {
+			if (!block.getHashBlock().equals(Crypto.calculateBlockHash(block))) {        	  //If the block hash isn't correct
 				return false;
-			if (block.getHashData().equals(Crypto.calculateObjectHash(block.getData())))	//If the data hash isn't correct...
+			}
+			if (block.getHashData().equals(Crypto.calculateObjectHash(block.getData()))) {    //If the data hash isn't correct
 				return false;
-			if (block.getHashPrevious().equals(hashPreviousBlock))							//If the previous hash isn't correct...
+			}
+			if (block.getHashPrevious().equals(hashPreviousBlock)) {                          //If the previous hash isn't correct
 				return false;
+			}
+			
+			//get check the hash for property of being valid
+			int hashDifficulty = 4; //TODO get this from node
+
+			String target = new String(new char[hashDifficulty]).replace('\0', '0'); //Create a string with difficulty * "0"
+
+			if (!(block.getHashBlock().substring(0, hashDifficulty).equals(target))){        //If the hash does not meet the difficulty
+				return false;
+			}
+
+
+			//run a for loop that checks every transaction on the block to check it's validity against OLDER blocks
+
 			return true;																	//Otherwise return true
 		}
 		catch (Exception e)
@@ -140,13 +162,13 @@ public class Validator
 	public static boolean isValidBlockchain(LinkedList<Block> blockchain) throws FailedToHashException
 	{
 		Block currentBlock = blockchain.getFirst();										//Get the genesis block
-		if (!isValidBlock(currentBlock,""))								//If the genesis block is not correct...
+		if (!isValidBlock(currentBlock,""))								//If the genesis block is not correct
 			return false;
 		String previousHashBlock = blockchain.getFirst().getHashBlock();
 		for (int i = 1; i < blockchain.size(); i++)										//For all the blocks AFTER the genesis block
 		{
 			currentBlock = blockchain.get(i);
-			if (!isValidBlock(currentBlock,previousHashBlock))							//If block "i" is invalid...
+			if (!isValidBlock(currentBlock,previousHashBlock))							//If block "i" is invalid
 				return false;
 			previousHashBlock = blockchain.get(i).getHashBlock();
 		}
