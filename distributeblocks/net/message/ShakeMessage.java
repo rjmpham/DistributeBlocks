@@ -22,12 +22,11 @@ public class ShakeMessage extends AbstractMessage {
 	 * @param listeningPort
 	 *   This is the port the node will be listening on (the sender of the message).
 	 */
-//	public ShakeMessage(String shakeMessage, int listeningPort, PublicKey publicKey, String alias) {
-	public ShakeMessage(String shakeMessage, int listeningPort) {
+	public ShakeMessage(String shakeMessage, PublicKey publicKey, String alias, int listeningPort) {
 		this.shakeMessage = shakeMessage;
+		this.publicKey = publicKey;
+		this.alias = alias;
 		this.listeningPort = listeningPort;
-//		this.publicKey = publicKey;
-//		this.alias = alias;
 		localAddress = NetworkService.getNetworkManager().getLocalAddr();
 	}
 

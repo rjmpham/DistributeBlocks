@@ -10,6 +10,7 @@ import distributeblocks.io.Console;
 
 import java.util.Date;
 import java.util.Random;
+import java.security.PublicKey;
 
 public class PeerInfoProcessor extends AbstractMessageProcessor<PeerInfoMessage> {
 	@Override
@@ -33,8 +34,10 @@ public class PeerInfoProcessor extends AbstractMessageProcessor<PeerInfoMessage>
 			}
 
 			IPAddress address = message.peerAddresses.remove(ran.nextInt(Math.max(1, message.peerAddresses.size() - 1)));
+			PublicKey publicKey = message.publicKeys.remove(ran.nextInt(Math.max(1, message.publicKeys.size() - 1)));
+			String alias = message.aliases.remove(ran.nextInt(Math.max(1, message.aliases.size() - 1)));
 
-			if (address.port <= 0 || networkManager.isConnectedToNode(address)|| !networkManager.connectToNode(address)){
+			if (address.port <= 0 || networkManager.isConnectedToNode(address)|| !networkManager.connectToNode(address,publicKey,alias)){
 				i --;
 			} else {
 				suceeded ++;

@@ -378,7 +378,7 @@ public class NetworkManager implements NetworkActions {
 	 * @param address
 	 * @return True on success, false on failure.
 	 */
-	public boolean connectToNode(IPAddress address) {
+	public boolean connectToNode(IPAddress address, PublicKey publicKey, String alias) {
 
 		PeerNode node = new PeerNode(address);
 

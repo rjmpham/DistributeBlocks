@@ -168,14 +168,6 @@ public class PeerNode {
 		addr.port = this.listenPort;
 		return addr;
 	}
-	
-	public PublicKey getPublicKey() {
-		return publicKey;
-	}
-	
-	public String getAlias() {
-		return alias;
-	}
 
 	public void shutDown() {
 
@@ -218,6 +210,22 @@ public class PeerNode {
 
 	public IPAddress getLocalAddress() {
 		return localAddress;
+	}
+	
+	public void setPublicKey(PublicKey publicKey) {
+		this.publicKey = publicKey;
+	}
+	
+	public void setAlias(String alias) {
+		this.alias = alias;
+	}
+	
+	public PublicKey getPublicKey() {
+		return publicKey;
+	}
+	
+	public String getAlias() {
+		return alias;
 	}
 
 	@Override

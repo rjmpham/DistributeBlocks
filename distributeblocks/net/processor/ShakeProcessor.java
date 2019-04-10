@@ -19,6 +19,8 @@ public class ShakeProcessor extends AbstractMessageProcessor<ShakeMessage> {
 		Console.log("Listening port: " + message.listeningPort);
 		message.senderNode.setListenPort(message.listeningPort);
 		message.senderNode.setLocalAddress(message.localAddress);
+		message.senderNode.setPublicKey(message.publicKey);
+		message.senderNode.setAlias(message.alias);
 
 		Console.log("Got a shake message from " + message.senderNode.getAddress() + ". AbstractMessage: " + message.getShakeMessage());
 

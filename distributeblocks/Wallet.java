@@ -336,6 +336,7 @@ public class Wallet {
 	// Getter methods
 	public PrivateKey getPrivateKey(){ return privateKey; }
 	public PublicKey getPublicKey(){ return publicKey; }
+	public String getAlias(){ return alias; }
 	public HashMap<String, TransactionOut> getFundsHashMap() { return funds_HashMap; }
 	public HashMap<String, TransactionOut> getOnHoldHashMap() { return onHold_HashMap; }
 }
