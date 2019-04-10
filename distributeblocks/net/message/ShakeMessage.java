@@ -35,7 +35,7 @@ public class ShakeMessage extends AbstractMessage {
 		return shakeMessage;
 	}
 	
-	public String getPublicKey() {
+	public PublicKey getPublicKey() {
 		return publicKey;
 	}
 	
