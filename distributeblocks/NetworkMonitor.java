@@ -8,7 +8,9 @@ import org.graphstream.algorithm.generator.Generator;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.graph.implementations.SingleGraph;
+import org.graphstream.stream.ProxyPipe;
 import org.graphstream.stream.SourceBase;
+import org.graphstream.ui.view.Viewer;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -31,6 +33,8 @@ public class NetworkMonitor {
 	MultiGraph graph;
 
 	NodeGraphGenerator generator;
+	ProxyPipe pipe;
+	Viewer viewer;
 
 	//HashMap<String, Boolean> connectedNodes;
 
@@ -41,7 +45,9 @@ public class NetworkMonitor {
 		graph = new MultiGraph("Network Graph");
 		generator = new NodeGraphGenerator();
 		generator.addSink(graph);
-		graph.display();
+		viewer = graph.display();
+		pipe = viewer.newViewerPipe();
+		pipe.addAttributeSink(graph);
 
 
 		// First need to discover at least one node on the network
@@ -134,6 +140,7 @@ public class NetworkMonitor {
 
 					if (graph.getNode(address) == null) {
 						graph.addNode(address);
+						pipe.pump();
 					}
 
 
@@ -156,6 +163,7 @@ public class NetworkMonitor {
 						try {
 							if (graph.getEdge(id) == null) {
 								graph.addEdge(id, message.listeningAddress.toString(), address.toString());
+								pipe.pump();
 							}
 						} catch (Exception e) {
 							e.printStackTrace();
