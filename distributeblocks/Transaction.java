@@ -112,7 +112,7 @@ public class Transaction implements Serializable {
   			return false;
   		}
   
-  		// Verify that the incoming transactions are valid
+  		// TODO replace with actual validation? Verify that the incoming transactions are valid
   		for(TransactionIn i : input) {
   			if (! isValidSource(i.getSourceId())) {
   				System.out.println("Invalid source transaction: " + i.getSourceId());
@@ -182,9 +182,22 @@ public class Transaction implements Serializable {
   		return true;
   	}
 
+	public String getExchangeAmmountString() {
+		return (String.valueOf(this.exchange));
+	}
+
+	public String getPublicSender(){
+  		return pk_Sender.toString();
+	}
+
+	public String getPublicReceiver(){
+		return pk_Receiver.toString();
+	}
+
   	// Getter methods
   	public byte[] getSignature() { return this.signature; }
    	public ArrayList<TransactionIn> getInput() { return input; }
    	public ArrayList<TransactionOut> getOutput() { return output; }
 	public String getId_Transaction() { return id_Transaction; }
+
 }

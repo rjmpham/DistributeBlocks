@@ -20,7 +20,7 @@ public class Block implements Serializable {
 	private String hashData;								//Hash of the data
 	private String hashPrevious;							//Hash of the previous block
 	private int nonce;										//Nonce used in the hash of the block to get the right number of zeros
-	private HashMap<String, Transaction> data;			//Data being stored in the block. Should be serializable.
+	private HashMap<String, Transaction> data;				//Data being stored in the block. Should be serializable.
 	private long timestamp;									//timestamp for the block
 
 	private int targetNumZeros;		//How many zeros hashBlock must start with in order to be a mined block
