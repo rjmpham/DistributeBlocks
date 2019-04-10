@@ -138,7 +138,8 @@ public class PeerNode {
 	 */
 	public void asyncSendMessage(AbstractMessage message) {
 
-		Console.log("Sending message to peer!");
+		//Console.log("Sending message to peer!");
+		// ^ DIE IN A FIRE
 
 		try {
 			outQueue.put(message);
