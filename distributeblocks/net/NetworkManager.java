@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.security.PublicKey;
 
 // TODO: make the pending transaction pool clearing intelligent
 // TODO: force agreement on a comment block as the true head in case of a a branch (maybe shortest hash)
@@ -388,7 +389,7 @@ public class NetworkManager implements NetworkActions {
 			//addNode(node); // TODO: This may have caused issues with cfg file.
 			addTemporaryNode(node);
 			//node.setLocalAddress(address); // Since we are connecting to it, it must already be the local address.
-			node.asyncSendMessage(new ShakeMessage("Please be my friend.", port));
+			node.asyncSendMessage(new ShakeMessage("Please be my friend.", publicKey, alias, port));
 			return true;
 		}
 
