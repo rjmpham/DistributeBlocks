@@ -31,9 +31,7 @@ public class Validator
 		
 		// Get a list of ids from every transaction that has every been spent
 		HashSet<String> parentIds =  new HashSet<String>();
-		System.out.println("============== every transaction ID that I have ==============");
 		for (TransactionResult t: verifiedTransactions.values()) {
-			System.out.println(t.getId());
 			parentIds.addAll(t.getSourceIds());
 		}
 		
