@@ -2,7 +2,9 @@ package distributeblocks.io;
 
 import com.google.gson.reflect.TypeToken;
 import distributeblocks.Block;
+import distributeblocks.BlockChain;
 import distributeblocks.Node;
+import distributeblocks.Transaction;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.PeerNode;
@@ -25,6 +27,7 @@ public class ConfigManager {
 
 	public static String PEER_CONFIG_FILE = "./peer_config.txt";
 	public static String BLOCKCHAIN_FILE = "./blockchain.txt";
+	public static String HUMAN_READABLE= "./readableblockchain.txt";
 	public static String TIMEOUT_FILE = "./timeoutfile.txt";
 	public static String SEED_FILE = "./seedlist.txt";
 
@@ -169,12 +172,18 @@ public class ConfigManager {
 	}
 
 
+	/**
+	 * This takes in a block chain file and saves it to a file. Further, it takes the longest blockchain and does a
+	 * one directional save to a file
+	 * @param blockChain
+	 */
 
-	public synchronized void saveBlockChain(ArrayList<LinkedList<Block>> blockChain){
+	public synchronized void saveBlockChain(ArrayList<LinkedList<Block>> blockChain, LinkedList<Block> longestChain){
 
 		synchronized (blockChainLock) {
 
 			//Gson gson = new Gson();
+			//TODO check if this file is needed
 			File file = new File(BLOCKCHAIN_FILE);
 
 			try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(BLOCKCHAIN_FILE))) {
@@ -182,12 +191,61 @@ public class ConfigManager {
 				//String json = gson.toJson(blockChain);
 				out.writeObject(blockChain);
 
+
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 				throw new RuntimeException("Could not save blockchain to file.");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+
+
+			/*
+			 * This particular part saves the longest blockchain into a human readable form into a file
+			 */
+
+
+			//TODO Eric look at this 2 electric boogaloo
+			File file2 = new File(HUMAN_READABLE);
+			try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(HUMAN_READABLE))) {
+
+
+				String outString = new String();
+
+				//For each block make a section with the block information
+				for( int i = longestChain.size()-1 ; i>= 0 ; i--){
+					Block currentBlock = longestChain.get(i);
+					HashMap<String, Transaction> blockTransactions = currentBlock.getData();
+
+					outString += "========================================================================\n";
+					outString += "Block number: " + i + '\n';
+
+					outString += "The current block hash is: \n"+currentBlock.getHashBlock() + '\n';
+					outString += "The previous block hash is: \n"+currentBlock.getHashPrevious() +'\n';
+					outString += "========================================================================\n";
+					outString += "TRANSACTIONS: \n";
+					outString += "========================================================================\n";
+
+					//For each transaction on a block make a section that represents the to and from transaction
+					for (String id : blockTransactions.keySet())
+					{
+						outString += "\n";
+						outString += "From: \n" +blockTransactions.get(id).getPublicSender()+"\n";
+						outString += "To:   \n" +blockTransactions.get(id).getPublicReceiver()+"\n";
+						outString += "Amount: " +blockTransactions.get(id).getExchangeAmmountString()+"\n";
+					}
+
+				}
+				out.writeObject(outString);
+
+
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Could not save blockchain to file.");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
 
 		}
 
@@ -215,7 +273,7 @@ public class ConfigManager {
 
 				newFork.add(Block.getGenisisBlock());
 				chain.add(newFork);
-				saveBlockChain(chain);
+				saveBlockChain(chain,chain.get(0));
 
 				//save(generateTestChain()); // TESTING ONLY.
 			}

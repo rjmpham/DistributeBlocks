@@ -22,7 +22,7 @@ public class ShakeMessage extends AbstractMessage {
 	public ShakeMessage(String shakeMessage, int listeningPort) {
 		this.shakeMessage = shakeMessage;
 		this.listeningPort = listeningPort;
-		localAddress = NetworkService.getNetworkManager().getLocalAddr();
+		localAddress = NetworkService.getLocalAddress();
 	}
 
 	public String getShakeMessage() {

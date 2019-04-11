@@ -61,7 +61,6 @@
 ./distributeblocks/net/processor/TransactionBroadcastMessageProcessor.java
 ./distributeblocks/Node.java
 ./distributeblocks/NodeService.java
-./distributeblocks/testDriver.java
 ./distributeblocks/Transaction.java
 ./distributeblocks/TransactionIn.java
 ./distributeblocks/TransactionOut.java

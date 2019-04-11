@@ -4,11 +4,15 @@ import distributeblocks.*;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.mining.Miner;
 import distributeblocks.net.message.*;
+import distributeblocks.net.processor.MonitorNotifierProcessor;
 import distributeblocks.util.ValidationData;
 import distributeblocks.util.Validator;
 import distributeblocks.io.Console;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -38,6 +42,11 @@ public class NetworkManager implements NetworkActions {
 	private IPAddress localAddr;
 	private boolean seed;
 	private boolean mining;
+	private boolean monitor;
+
+	private volatile Socket monitorSocket;
+	private volatile ObjectOutputStream monitorOutput;
+	private Object monitorLock = new Object();
 
 	private int peerSearchRate = 10;		// Time in seconds between attempts at discovering more peer nodes.
 
@@ -66,6 +75,7 @@ public class NetworkManager implements NetworkActions {
 		this.port = networkConfig.port;
 		this.seed = networkConfig.seed;
 		this.mining = networkConfig.mining;
+		this.monitor = networkConfig.monitor;
 		this.miner = new Miner();
 
 		ConfigManager configManager = new ConfigManager();
@@ -133,6 +143,10 @@ public class NetworkManager implements NetworkActions {
 			scheduledExecutorService.schedule(new AliveNotifier(),aliveNotifierTime, TimeUnit.SECONDS);
 		} else {
 			scheduledExecutorService.schedule(new TimeoutChecker(), seedCheckoutTimer, TimeUnit.SECONDS);
+		}
+
+		if (monitor){
+			NetworkMonitor networkMonitor = new NetworkMonitor();
 		}
 	}
 
@@ -646,6 +660,60 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
+	public void setMonitorSocket(MonitorNotifierMessage message){
+
+	 	synchronized (monitorLock) {
+
+			if (monitorSocket == null || monitorSocket.isClosed()) {
+
+				Console.log("Adding monitor for realz");
+
+				try {
+					this.monitorSocket = new Socket(message.monitorAddress.ip, message.monitorAddress.port);
+					this.monitorOutput = new ObjectOutputStream(monitorSocket.getOutputStream());
+				} catch (IOException e) {
+					e.printStackTrace();
+					monitorSocket = null;
+					MonitorNotifierProcessor.receivedIDs = new HashSet<>();
+				}
+			}
+		}
+
+	}
+
+
+	public void sendToMonitor(AbstractMessage message, IPAddress peerNode){
+
+	 //	Console.log("!!!!!!!!!!!!!!!!!!!!!!!! Sending message to monitor");
+	 	synchronized (monitorLock) {
+			if (monitorSocket != null) {
+				//Console.log("!!!!!!!!!!!!!!!!!!!!!!!! Monitor not nul");
+				try {
+
+					ArrayList<IPAddress> addresses = new ArrayList<>();
+
+					for (PeerNode node : getPeerNodes()){
+						addresses.add(node.getListeningAddress());
+					}
+
+
+					monitorOutput.writeObject(new MonitorDataMessage(message, addresses, peerNode));
+					//Console.log("!!!!!!!!!!!!!!!!!!!!!!!! Sent message to monitor");
+				} catch (IOException e) {
+					try {
+						monitorSocket.close();
+					} catch (IOException e1) {
+						//e1.printStackTrace();
+					}
+					//e.printStackTrace();
+
+					monitorSocket = null;
+					MonitorNotifierProcessor.receivedIDs = new HashSet<>();
+				}
+			}
+		}
+	}
+
 
 	// ============================= NetworkActions =============================
 
@@ -965,7 +1033,7 @@ public class NetworkManager implements NetworkActions {
 		}
 	}
 
-
+	
 	/**
 	 * Nodes will use this to periodically announce themselves to the seed node.
 	 * If the seed node does not receive an alive notification within some time period,

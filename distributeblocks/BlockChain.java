@@ -311,9 +311,8 @@ public class BlockChain implements Serializable {
 	}
 
 	public void save(){
-
 		synchronized (blockLock) {
-			new ConfigManager().saveBlockChain(this.blockChain);
+			new ConfigManager().saveBlockChain(this.blockChain,this.getLongestChain());
 		}
 	}
 }

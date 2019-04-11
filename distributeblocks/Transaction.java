@@ -183,11 +183,23 @@ public class Transaction implements Serializable {
   		return total;
   	}
 
+	public String getExchangeAmmountString() {
+		return (String.valueOf(this.exchange));
+	}
+
+	public String getPublicSender(){
+  		return pk_Sender.toString();
+	}
+
+	public String getPublicReceiver(){
+		return pk_Receiver.toString();
+	}
+
   	// Getter methods
   	public byte[] getSignature() { return this.signature; }
    	public ArrayList<TransactionResult> getInput() { return input; }
    	public ArrayList<TransactionResult> getOutput() { return output; }
-	public String getTransactionId() { return transactionId; }
+	  public String getTransactionId() { return transactionId; }
     public PublicKey getPublicKeySender(){ return pk_Sender; }
     public ArrayList<String> getParentIds() { return sourceIds; }
 }
