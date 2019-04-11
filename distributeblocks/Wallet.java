@@ -22,7 +22,8 @@ public class Wallet {
 	private PublicKey publicKey;
 	private HashMap<String, TransactionResult> funds_HashMap = new HashMap<String,TransactionResult>(); 	// Funds in this wallet.
 	private HashMap<String, TransactionResult> onHold_HashMap = new HashMap<String,TransactionResult>(); 	// Spent funds waiting to be removed
-
+	private String alias;
+	
 	/**
 	 * Constructor to create a new empty wallet
 	 */
@@ -30,6 +31,17 @@ public class Wallet {
 	  KeyPair pair = Crypto.keyPairGenerator();
 	  privateKey = pair.getPrivate();
 	  publicKey = pair.getPublic();
+	  this.alias = "";
+	}
+	
+	/**
+	 * Constructor to create a new empty wallet with a certain alias
+	 */
+	public Wallet(String alias){
+	  KeyPair pair = Crypto.keyPairGenerator();
+	  privateKey = pair.getPrivate();
+	  publicKey = pair.getPublic();
+	  this.alias = alias;
 	}
 
 	/**
@@ -267,6 +279,7 @@ public class Wallet {
 	}
 
 	// Getter methods
+	public String getAlias(){ return alias; }
 	public PrivateKey getPrivateKey(){ return privateKey; }
 	public PublicKey getPublicKey(){ return publicKey; }
 	public HashMap<String, TransactionResult> getFundsHashMap() { return funds_HashMap; }
