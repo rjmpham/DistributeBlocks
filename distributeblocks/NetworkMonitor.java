@@ -81,15 +81,18 @@ public class NetworkMonitor {
 		int edgeId = 0;
 
 
+		@Override
 		public void begin() {
 			addNode();
 		}
-		
+
+		@Override
 		public boolean nextEvents() {
 			addNode();
 			return true;
 		}
 
+		@Override
 		public void end() {
 			// Nothing to do
 		}
