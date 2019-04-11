@@ -12,7 +12,6 @@ import com.google.gson.Gson;
 
 import java.io.*;
 import java.util.*;
-import java.security.PublicKey;
 
 /**
  * Reading and writing to config files goes here.
@@ -27,8 +26,6 @@ public class ConfigManager {
 	private static final Object seedListLock = new Object();
 
 	public static String PEER_CONFIG_FILE = "./peer_config.txt";
-	public static String PUBLIC_KEY_CONFIG_FILE = "./public_key_config.txt";
-	public static String ALIAS_CONFIG_FILE = "./alias_config.txt";
 	public static String BLOCKCHAIN_FILE = "./blockchain.txt";
 	public static String HUMAN_READABLE= "./readableblockchain.txt";
 	public static String TIMEOUT_FILE = "./timeoutfile.txt";
@@ -54,7 +51,6 @@ public class ConfigManager {
 
 		synchronized (peerConfigLock) {
 
-			//Read peers
 			Gson gson = new Gson();
 			File file = new File(PEER_CONFIG_FILE);
 
@@ -63,7 +59,7 @@ public class ConfigManager {
 			}
 
 			String json = "";
-			IPAddress[] peers;
+			NodeInfo[] nodes;
 
 			try (Scanner scanner = new Scanner(file)) {
 
@@ -72,45 +68,21 @@ public class ConfigManager {
 					json += scanner.nextLine();
 				}
 
-				peers = gson.fromJson(json, IPAddress[].class);
+				nodes = gson.fromJson(json, NodeInfo[].class);
 
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new RuntimeException("Could not read the peer node config file.");
 			}
-			
-			//Read aliases
-			gson = new Gson();
-			file = new File(ALIAS_CONFIG_FILE);
 
-			if (!file.exists()) {
-				file = createAliasConfigFile();
-			}
-
-			json = "";
-			String[] aliases;
-
-			try (Scanner scanner = new Scanner(file)) {
-
-				while (scanner.hasNextLine()) {
-					// Use  stringbuilder maybe.
-					json += scanner.nextLine();
-				}
-
-				aliases = gson.fromJson(json, String[].class);
-
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new RuntimeException("Could not read the alias node config file.");
-			}
-
-			if (peers != null) {
+			if (nodes != null) {
 
 				ArrayList<PeerNode> peerNodes = new ArrayList<PeerNode>();
 
-				for (int i = 0; i < peers.length; i++) {
-					PeerNode peer = new PeerNode(peers[i]);
-					peer.setAlias(aliases[i]);
+				for (NodeInfo node : nodes) {
+					PeerNode peer = new PeerNode(node.getAddress());
+					peer.setPublicKey(node.getPublicKey());
+					peer.setAlias(node.getAlias());
 					peerNodes.add(peer);
 				}
 
@@ -126,18 +98,13 @@ public class ConfigManager {
 
 		synchronized (peerConfigLock) {
 
-			IPAddress[] peers = new IPAddress[peerNodes.size()];
-			PublicKey[] publicKeys = new PublicKey[peerNodes.size()];
-			String[] aliases = new String[peerNodes.size()];
+			NodeInfo[] peers = new NodeInfo[peerNodes.size()];
 
 			for (int i = 0; i < peerNodes.size(); i++) {
 				PeerNode node = peerNodes.get(i);
-				peers[i] = node.getListeningAddress();
-				publicKeys[i] = node.getPublicKey();
-				aliases[i] = node.getAlias();
+				peers[i] = new NodeInfo(node.getListeningAddress(), node.getPublicKey(), node.getAlias());
 			}
 
-			//Write peers
 			Gson gson = new Gson();
 			File file = new File(PEER_CONFIG_FILE);
 
@@ -154,25 +121,6 @@ public class ConfigManager {
 				e.printStackTrace();
 				throw new RuntimeException("Could not write to peer node config file");
 			}
-			
-			//Write aliases
-			gson = new Gson();
-			file = new File(ALIAS_CONFIG_FILE);
-
-			if (!file.exists()) {
-				file = createAliasConfigFile();
-			}
-
-			try (PrintWriter writer = new PrintWriter(file)) {
-
-				String json = gson.toJson(aliases);
-				writer.write(json);
-
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new RuntimeException("Could not write to alises node config file");
-			}
-			
 		}
 		
 	}
@@ -379,62 +327,6 @@ public class ConfigManager {
 		// We dont need anything fancier than this..
 		if (!file.exists()){
 			throw new RuntimeException("Could not create peer config file.");
-		}
-
-		return file;
-	}
-	
-	/**
-	 * Tries to create the public key config file.
-	 *
-	 * @return
-	 *   File object for the public key config file.
-	 */
-	private File createPublicKeyConfigFile(){
-
-		File  file = new File(PUBLIC_KEY_CONFIG_FILE);
-
-		if (file.exists()){
-			return file;
-		}
-
-		try {
-			file.createNewFile();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		// We dont need anything fancier than this..
-		if (!file.exists()){
-			throw new RuntimeException("Could not create public key config file.");
-		}
-
-		return file;
-	}
-	
-	/**
-	 * Tries to create the alias config file.
-	 *
-	 * @return
-	 *   File object for the alias config file.
-	 */
-	private File createAliasConfigFile(){
-
-		File  file = new File(ALIAS_CONFIG_FILE);
-
-		if (file.exists()){
-			return file;
-		}
-
-		try {
-			file.createNewFile();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		// We dont need anything fancier than this..
-		if (!file.exists()){
-			throw new RuntimeException("Could not create alias config file.");
 		}
 
 		return file;
