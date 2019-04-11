@@ -32,6 +32,7 @@ public class MiningFinishedProcessor extends AbstractMessageProcessor<MiningFini
 
         NetworkService.getNetworkManager().clearPendingTransactions();
         NetworkService.getNetworkManager().asyncSendToAllPeers(new BlockBroadcastMessage(message.block)); // Send block to peers.
+        NetworkService.getNetworkManager().addSentBlock(message.block);
         NetworkService.getNetworkManager().beginMining();
     }
 }

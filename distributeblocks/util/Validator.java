@@ -29,19 +29,27 @@ public class Validator
 	public static ValidationData getValidationData(Transaction transaction, HashMap<String, TransactionResult> verifiedTransactions) {
 		ValidationData validationData = new ValidationData();
 		
-		// Get a list of ids from every transaction that has every been spent
-		HashSet<String> spentTransactionIds =  new HashSet<String>();
+		// Get a map of spent transaction ids paired with their consuming transaction
+		HashMap<String, TransactionResult> spentTransactionIds =  new HashMap<>();
 		for (TransactionResult t: verifiedTransactions.values()) {
-			spentTransactionIds.addAll(t.getSourceIds());
+			for (String sourceId : t.getSourceIds()) {
+				spentTransactionIds.put(sourceId, t);
+			}
 		}
 		
 		// for each input used, check if its known, and if it's been spent before
 		for (TransactionResult i: transaction.getInput()) {
-			for(String key: i.getSourceIds()) {
-				if (!verifiedTransactions.containsKey(key))
+			for(String sourceId: i.getSourceIds()) {
+				if (!verifiedTransactions.containsKey(sourceId)) {
 					validationData.inputsAreKnown = false;
-				if (spentTransactionIds.contains(key))
+				}
+				// Get any known spender of the source in question (if spender isn't null, someone else already spent this source)
+				TransactionResult spender = spentTransactionIds.get(sourceId);
+				// ignore block rewards because they always have the same parent id
+				
+				if (spender != null && spender.getId() != i.getId() && sourceId != CoinBase.PARENT_TRANSACTION_ID) {
 					validationData.isDoubleSpend = true;
+				}
 			
 				// break if we've set both booleans (no need to keep looking, we have all the info we need)
 				if (!validationData.inputsAreKnown && validationData.isDoubleSpend)
@@ -166,19 +174,22 @@ public class Validator
 	 * @return true if the block has all the required variables
 	 * @throws FailedToHashException happens when the crypto methods fails to use their hashing algorithm
 	 */
-	public static boolean isValidBlock(Block block,HashMap<String, Transaction> verifiedTransactions) throws FailedToHashException
+	public static boolean isValidBlock(Block block, HashMap<String, Transaction> verifiedTransactions) throws FailedToHashException
 	{
 		try {
 			if (!block.getHashBlock().equals(Crypto.calculateBlockHash(block))) {       	 	  //If the block hash isn't correct
+				Console.log("Block verification error: Failed to verify block hash");
 				return false;
 			}
-			if (!(block.getHashData().equals(Crypto.calculateObjectHash(block.getData())))) {     //If the data hash isn't correct
-				return false;
-			}
+//			if (!(block.getHashData().equals(Crypto.calculateObjectHash(block.getData())))) {     //If the data hash isn't correct
+//				return false;
+//			}
 			if (!(block.getTargetNumZeros()==Node.HASH_DIFFICULTY)){                              //if the hash difficulty is different
+				Console.log("Block verification error: Block does not meet hash difficulty");
 				return false;
 			}
 			if (!block.isBlockMined())    {     							 			       	  //If the block nonce is off
+				Console.log("Block verification error: Block is not mined");
 				return false;
 			}
 
@@ -193,8 +204,10 @@ public class Validator
 				//if the transaction is a valid coinbase transaction
 				if (Crypto.verifySignature(CoinBase.COIN_BASE_KEYS.getPublic(),t.getTransactionId(),t.getSignature())){
 					blockReward++;
+					continue;
 				}
-				if (blockReward>1){
+				if (blockReward > 1){
+					Console.log("Block verification error: Block contains more than one reward transaction");
 					return false;
 				}
 
@@ -202,20 +215,24 @@ public class Validator
 				 */
 				ValidationData validationData = getValidationDataAlt(t, verifiedTransactions);
 				if(!validationData.inputsAreKnown){
+					Console.log("Block verification error: Failed to find inputs for transaction " + t.getTransactionId());
 					return false;
 				}
-				if(!validationData.isDoubleSpend){
+				if(validationData.isDoubleSpend){
+					Console.log("Block verification error: Found double spend transaction " + t.getTransactionId());
 					return false;
 				}
 				if(validationData.alreadyOnBlock) {
+					Console.log("Block verification error: Found duplicate transaction " + t.getTransactionId());
 					return false;
 				}
 			}
-
+			Console.log("Block verification suceeded");
 			return true;													       			      //Otherwise return true
 		}
 		catch (Exception e)
 		{
+			Console.log("Block verification error: got exception " + e.getMessage());
 			return false;   
 		}
 	}

@@ -118,7 +118,6 @@ public class Miner {
                     }
                     reward.transactionEnforcer();	// TODO: can we always assume a block reward transaction will be correctly enforced?
                     
-                   // Transaction rewardOut = new Transaction(wallet.getPrivateKey(), wallet.getPublicKey(), 5.0f, reward.getId_Transaction());
                     data.put(reward.getTransactionId(), reward);
 
                     currentBlock = new Block(data, previousBlock.getHashBlock(), targetNumZeros);
