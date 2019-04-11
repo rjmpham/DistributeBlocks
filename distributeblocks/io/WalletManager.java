@@ -48,8 +48,9 @@ public class WalletManager {
 	 * @throws IOException 
 	 */
 	public static void saveWallet(String path, Wallet wallet) throws IOException {
+		Console.log("AAAAAAAAAAH0");
 		saveKeyPair(path, new KeyPair(wallet.getPublicKey(), wallet.getPrivateKey()));
-		Console.log("AAAAAAAAAAH");
+		Console.log("AAAAAAAAAAH1");
 		saveFundsHashMap(path, wallet.getFundsHashMap());
 		Console.log("AAAAAAAAAAH2");
 		saveOnHoldHashMap(path, wallet.getOnHoldHashMap());
