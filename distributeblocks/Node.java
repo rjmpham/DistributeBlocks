@@ -37,7 +37,7 @@ import java.util.Map;
  */
 public class Node {
 
-	public static int HASH_DIFFICULTY = 4;
+	public static int HASH_DIFFICULTY = 3;
 	public static String DEFAULT_WALLET_DIR = "./wallet/";
 
 	private boolean started = false;
