@@ -23,8 +23,8 @@ public class Block implements Serializable {
 	private HashMap<String, Transaction> data;				//Data being stored in the block. Should be serializable.
 	private long timestamp;									//timestamp for the block
 
-	private int targetNumZeros;		//How many zeros hashBlock must start with in order to be a mined block
-	private volatile boolean stopMining; // Flag that can be set to terminate a mining operation
+	private int targetNumZeros;								//How many zeros hashBlock must start with in order to be a mined block
+	private volatile boolean stopMining; 					// Flag that can be set to terminate a mining operation
 
 	public static Block getGenisisBlock(){
 

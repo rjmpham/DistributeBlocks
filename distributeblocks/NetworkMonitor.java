@@ -1,5 +1,6 @@
 package distributeblocks;
 
+import distributeblocks.io.Console;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.PeerNode;
@@ -64,7 +65,7 @@ public class NetworkMonitor {
 				Socket socket = serverSocket.accept();
 
 				final String key = socket.getInetAddress().toString() + socket.getPort();
-				System.out.println(key);
+				Console.log(key);
 				executorService.submit(new MonitorListener(socket));
 			}
 
@@ -118,7 +119,7 @@ public class NetworkMonitor {
 
 		public MonitorListener(Socket socket) {
 			this.socket = socket;
-			System.out.println("Starting listener on: " + socket.getInetAddress().getHostAddress().toString() + ":" + socket.getPort());
+			Console.log("Starting listener on: " + socket.getInetAddress().getHostAddress().toString() + ":" + socket.getPort());
 			edgeIDs = new ArrayList<>();
 		}
 
@@ -212,7 +213,7 @@ public class NetworkMonitor {
 				}
 
 			} catch (Exception e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 
 
 				synchronized (graph) {

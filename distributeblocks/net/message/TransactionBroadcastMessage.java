@@ -1,7 +1,7 @@
 package distributeblocks.net.message;
 
 import distributeblocks.Transaction;
-import distributeblocks.TransactionOut;
+import distributeblocks.TransactionResult;
 import distributeblocks.net.processor.AbstractMessageProcessor;
 import distributeblocks.net.processor.TransactionBroadcastMessageProcessor;
 

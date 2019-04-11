@@ -4,6 +4,7 @@ import distributeblocks.*;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.AbstractMessage;
 import distributeblocks.net.message.MiningFinishedMessage;
+import distributeblocks.util.Validator;
 import distributeblocks.io.Console;
 
 import java.util.HashMap;
@@ -103,6 +104,9 @@ public class Miner {
 
             Wallet wallet = NodeService.getNode().getWallet();
 
+            // get rid of any invalid transactions before mining
+            data.entrySet().removeIf(entry -> !Validator.isValidTransaction(entry.getValue()));
+            
             while (!stop) {
 
                 try {
@@ -111,14 +115,14 @@ public class Miner {
 
                     Transaction reward;
                     try {
-                    	reward = wallet.makeBlockReward(wallet.getPublicKey());
+                    	reward = CoinBase.makeBlockReward(wallet.getPublicKey());
                     } catch (NullPointerException e) {
                     	Console.log("Terminating mining");
                     	return;
                     }
-                    reward.transactionEnforcer();
-                   // Transaction rewardOut = new Transaction(wallet.getPrivateKey(), wallet.getPublicKey(), 5.0f, reward.getId_Transaction());
-                    data.put(reward.getId_Transaction(), reward);
+                    reward.transactionEnforcer();	// TODO: can we always assume a block reward transaction will be correctly enforced?
+                    
+                    data.put(reward.getTransactionId(), reward);
 
                     currentBlock = new Block(data, previousBlock.getHashBlock(), targetNumZeros);
 

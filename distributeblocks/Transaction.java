@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.security.*;
 import java.util.ArrayList;
 import java.util.Date;
-
+import distributeblocks.util.Validator;
 import distributeblocks.crypto.*;
 
 /**
@@ -25,18 +25,19 @@ import distributeblocks.crypto.*;
 public class Transaction implements Serializable {
 	private static final float MIN_TRANSACTION_AMOUNT = 0.1f;
 	
-	private String id_Transaction; //Hash of the contents of the Transaction
+	private String transactionId; //Hash of the contents of the Transaction
 	private PublicKey pk_Sender; // senders address
 	private PublicKey pk_Receiver; // receivers address
 	private float exchange; // the amount to be exchanged
 	private byte[] signature; // for user's personal wallet
-	private ArrayList<TransactionIn> input = new ArrayList<TransactionIn>();
-	private ArrayList<TransactionOut> output = new ArrayList<TransactionOut>();
+	private ArrayList<String> sourceIds = new ArrayList<String>();	// the ids of TransactionResults this uses
+	private ArrayList<TransactionResult> input = new ArrayList<TransactionResult>();
+	private ArrayList<TransactionResult> output = new ArrayList<TransactionResult>();
 	private long timestamp; //timestamp for the block
 	//private static int count_Transactions = 0; // estimates number of transactions created.
 
 	/**
-   	* Constructor for a new transactionl
+   	* Constructor for a new transaction
    	* Generating transactions requires the public keys of both
    	* the sender and receiver as well as the amount.
    	* 
@@ -46,14 +47,20 @@ public class Transaction implements Serializable {
    	* @param amount				Amount to send
    	* @param variables			Inputs being used
    	*/
-	public Transaction(PrivateKey senderPrivateKey, PublicKey send, PublicKey recieve , float amount,  ArrayList<TransactionIn> variables) {
+	public Transaction(PrivateKey senderPrivateKey, PublicKey send, PublicKey recieve , float amount,  ArrayList<TransactionResult> variables) {
 		this.pk_Sender = send;
 		this.pk_Receiver = recieve;
 		this.exchange = amount;
 		this.input = variables;
+		
+		this.sourceIds = new ArrayList<String>();
+		for (TransactionResult r: this.input) {
+			this.sourceIds.add(r.getId());
+		}
+		
 		this.timestamp = new Date().getTime();
 		try {
-			this.id_Transaction = calculateHash();
+			this.transactionId = calculateHash();
 		} catch (FailedToHashException e) {
 			e.printStackTrace();
 		}
@@ -85,7 +92,7 @@ public class Transaction implements Serializable {
    	* @param privateKey		The PrivateKey used to sign the transaction
    	*/
 	public void generateSignature(PrivateKey privateKey) {
-	  this.signature = Crypto.signMessage(privateKey, this.id_Transaction);
+	  this.signature = Crypto.signMessage(privateKey, this.transactionId);
 	  return;
   }
   
@@ -96,8 +103,8 @@ public class Transaction implements Serializable {
 	 * @return true if the signature matches the public key of the sender
 	 */
 	public boolean verifySignature() {
-	  return Crypto.verifySignature(this.pk_Sender, this.id_Transaction, this.signature);
-	}
+	  return Crypto.verifySignature(this.pk_Sender, this.transactionId, this.signature);
+  }
   
 	/**
    	* Method to handle the transaction. This will verify that
@@ -106,32 +113,31 @@ public class Transaction implements Serializable {
    	* 
    	* @return true if the transaction is created, false otherwise
    	*/
+	// TODO: why did we call this "transactionEnforcer"? maybe we should rename it
 	public boolean transactionEnforcer() {
   		if(verifySignature() == false) {
-  			System.out.println("#Transaction Signature failed to verify");
+  			System.out.println("Transaction Signature failed to verify");
   			return false;
   		}
-  
-  		// TODO replace with actual validation? Verify that the incoming transactions are valid
-  		for(TransactionIn i : input) {
-  			if (! isValidSource(i.getSourceId())) {
-  				System.out.println("Invalid source transaction: " + i.getSourceId());
-  				return false;
-  			}
+  		
+  		// Verify the transaction against the blockchain
+  		if (!Validator.isValidTransaction(this)) {
+  			System.out.println("Failed to validate transaction inputs against the blockchain");
+  			return false;
   		}
 
   		// Verify that the transaction is large enough
   		if(getInputExchange() < MIN_TRANSACTION_AMOUNT) {
-  			System.out.println("# Inputs too small: " + getInputExchange());
+  			System.out.println("Transaction inputs too small: " + getInputExchange());
   			return false;
   		}
   		
   		try {
   		//generate transaction output:
   		float remaining = getInputExchange() - exchange;
-  		output.add(new TransactionOut(this.pk_Receiver, exchange, id_Transaction));		// Send exchange to receiver
+  		output.add(new TransactionResult(this.pk_Receiver, exchange, transactionId, sourceIds));		// Send exchange to receiver
   		if (remaining != 0.0f)
-  			output.add(new TransactionOut(this.pk_Sender, remaining, id_Transaction)); 	// Send the left over 'change' back to sender
+  			output.add(new TransactionResult(this.pk_Sender, remaining, transactionId, sourceIds)); 	// Send the left over 'change' back to sender
 
   		return true;
   		
@@ -139,6 +145,10 @@ public class Transaction implements Serializable {
   			System.out.println("Failed to hash transaction");
   			return false;
   		}
+	}
+  
+	public ArrayList<TransactionResult> getTransactionInputs() {
+		return this.input;
 	}
 
   	/**
@@ -149,10 +159,14 @@ public class Transaction implements Serializable {
   	 */
   	public float getInputExchange() {
   		float total = 0;
-  		for(TransactionIn i : input) {
+  		for(TransactionResult i : input) {
   			total += i.getExchange();
   		}
   		return total;
+  	}
+  	
+  	public float getExchange() {
+  		return this.exchange;
   	}
 
   	/**
@@ -163,23 +177,10 @@ public class Transaction implements Serializable {
   	 */
   	public float getOutputExchange() {
   		float total = 0;
-  		for(TransactionOut o : output) {
+  		for(TransactionResult o : output) {
   			total += o.getExchange();
   		}
   		return total;
-  	}
-  	
-  	/**
-  	 * This method must check against the block to see if a transaction
-  	 * with the given id exists. If so, return true, else, return false.
-  	 * 
-  	 * @param id_Transaction_Out	id of the TransactionOut to check
-  	 * 
-  	 * @return whether or not the TransactionOut is valid for use
-  	 */
-  	// BIG TODO: IMPLEMENT THIS METHOD
-  	public static boolean isValidSource(String id_Transaction_Out) {
-  		return true;
   	}
 
 	public String getExchangeAmmountString() {
@@ -196,8 +197,9 @@ public class Transaction implements Serializable {
 
   	// Getter methods
   	public byte[] getSignature() { return this.signature; }
-   	public ArrayList<TransactionIn> getInput() { return input; }
-   	public ArrayList<TransactionOut> getOutput() { return output; }
-	public String getId_Transaction() { return id_Transaction; }
-
+   	public ArrayList<TransactionResult> getInput() { return input; }
+   	public ArrayList<TransactionResult> getOutput() { return output; }
+	  public String getTransactionId() { return transactionId; }
+    public PublicKey getPublicKeySender(){ return pk_Sender; }
+    public ArrayList<String> getParentIds() { return sourceIds; }
 }

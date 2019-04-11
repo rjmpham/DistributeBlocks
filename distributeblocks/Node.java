@@ -2,19 +2,18 @@ package distributeblocks;
 
 import distributeblocks.crypto.Crypto;
 import distributeblocks.cli.CommandLineInterface;
+import distributeblocks.io.DirectoryManager;
 import distributeblocks.io.WalletManager;
-import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
-import org.graphstream.graph.Graph;
-import org.graphstream.graph.implementations.SingleGraph;
+import distributeblocks.util.Validator;
 
-import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
+import distributeblocks.BlockChain;
 import java.util.Map;
 
 // TODO: normalize our Console.log() statements. Some of them seem unprofessional 
@@ -29,9 +28,6 @@ import java.util.Map;
  *		up for the demo.
  */
 
-// TODO: the "coinBase" transaction id may cause problems with hashes and removing old funds that are marked as spent
-// TODO: replace all file slashes with File.separator
-// TODO: make killing mining sychronized with the new block broadcast, or make sure it doesn't kill it part way through
 /**
  *  Represents an agent within the P2P network. This class houses a wallet,
  *  and may run all the thread necessary to perform network actions.
@@ -43,9 +39,11 @@ public class Node {
 
 	public static int HASH_DIFFICULTY = 4;
 	public static int MONITOR_PORT = 7329;
-	public static String DEFAULT_WALLET_DIR = "./wallet/";
+	public static String DEFAULT_WALLET_DIR = "wallet";
+
 	private boolean started = false;
 	private boolean mining = false;
+	private Validator validator = new Validator();
 	private Wallet wallet;
 	private String walletPath;
 
@@ -87,12 +85,8 @@ public class Node {
 	 */
 	public void createWallet(String path) {
 		// ensure that it is safe to save wallet data to the directory
-		String fullPath = System.getProperty("user.dir") + path;
-		File file = new File(fullPath);
-		if(!file.isDirectory()) {
-				file.mkdir();
-		}
-		if(file.list().length != 0){
+		String fullPath = DirectoryManager.fullPathToDir(path);
+		if(!DirectoryManager.isEmptyDir(fullPath, true)){
 			System.out.println("Cannot create a wallet in a non-empty directory " + fullPath);
 			return;
 		}
@@ -104,7 +98,8 @@ public class Node {
 		
 		boolean failed = false;
 		try {
-			WalletManager.saveWallet(path, wallet);
+			// try to save the wallet, handle any errors that come up
+			WalletManager.saveWallet(fullPath, wallet);
 		} catch (IOException e) {
 			System.out.println("Failed to save new wallet in " + fullPath);
 			System.out.println("keeping previously wallet (if any)");
@@ -122,7 +117,7 @@ public class Node {
 	 * @param path		path to the directory where wallet info is stored
 	 */
 	public void loadWallet(String path) {
-		String fullPath = System.getProperty("user.dir") + path;
+		String fullPath = DirectoryManager.fullPathToDir(path);
 		
 		// keep a copy of the current wallet in case creation fails
 		Wallet old = wallet;
@@ -194,7 +189,7 @@ public class Node {
 		if (block == null)
 			return;
 					
-		System.out.println("New verified block added. Updating local funds");
+		System.out.println("New verified block added");
 		// Process all the transactions in the block
 		HashMap<String, Transaction> blockData = block.getData();
 		for (Map.Entry<String, Transaction> i: blockData.entrySet()){
@@ -222,7 +217,7 @@ public class Node {
 			return;
 		}
 
-		String fullPath = System.getProperty("user.dir") + recipientKeyPath;
+		String fullPath = DirectoryManager.fullPathToFile(recipientKeyPath);
 		try {
 			// try to create a transaction
 			PublicKey recipientKey = WalletManager.loadPublicKey(fullPath, Crypto.GEN_ALGORITHM);

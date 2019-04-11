@@ -17,8 +17,11 @@ public class BlockBroadcastProcessor extends AbstractMessageProcessor<BlockBroad
     public void processMessage(BlockBroadcastMessage message) {
         Console.log("Got a block broadcast.");
 
+        if (NetworkService.getNetworkManager().sentBlockBefore(message.block)) {
+        	Console.log("Block has already been sent");
+        	return;
+        }
 
-        // TODO verify the block is actualy legit!
         ConfigManager configManager = new ConfigManager();
         BlockChain blockChain = new BlockChain();
 
@@ -26,21 +29,25 @@ public class BlockBroadcastProcessor extends AbstractMessageProcessor<BlockBroad
         // Check to see if our chain already has this block.
         if (!blockChain.getAllBlocks().containsKey(message.block.getHashBlock())) {
 
-            blockChain.addBlock(message.block);            
+        	// try to add the transaction, and bail if that fails
+            boolean added = blockChain.addBlock(message.block);
+            if (!added) {
+            	return;
+            }
             blockChain.save();
-            Console.log("Added block to the chain!");
             
             Block lastVerified = blockChain.getLastVerifiedBlock();
             if (lastVerified != null) {
 				// Update node wallet with the block which is now verified
 				NodeService.getNode().updateWallet(lastVerified);
 				// Update the transaction pools now that a new block is verified
-				NetworkService.getNetworkManager().updateTransactionPools(lastVerified);
+				NetworkService.getNetworkManager().updateTransactionPools();
             }
 
             // TODO Here is the spot to stop mining and restart mining
             NetworkService.getNetworkManager().beginMining();
             NetworkService.getNetworkManager().asyncSendToAllPeers(new BlockBroadcastMessage(message.block)); // Propogate on the network.
+            NetworkService.getNetworkManager().addSentBlock(message.block);
         }
 
         // If we already have it do nothing.
