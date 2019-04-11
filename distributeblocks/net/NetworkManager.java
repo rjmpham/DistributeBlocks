@@ -661,10 +661,10 @@ public class NetworkManager implements NetworkActions {
 				pendingTransactionPool.putAll(poolCopy);
 
 				// MALICOUS CODE HERE
-				if (chain.size() > 1) {
-					miner.startMining(poolCopy, chain.get(chain.size() - 1), Node.HASH_DIFFICULTY);
-				} else {
+				if (chain.size() > 2) {
 					miner.startMining(poolCopy, chain.get(chain.size() - 2), Node.HASH_DIFFICULTY);
+				} else {
+					miner.startMining(poolCopy, chain.get(chain.size() - 1), Node.HASH_DIFFICULTY);
 				}
 			}
 		}
