@@ -14,6 +14,8 @@ public class BlockChain implements Serializable {
 	private static final int VERIFIED_DEPTH = 2;				// depth from the head we consider a block to be verified
 
 	private ArrayList<LinkedList<Block>> blockChain;
+
+	private static Object blockLock = new Object();
 	private HashMap<String, Block> allBlocks; 									// To make looking up blocks much faster.
 	private HashMap<String, Transaction> allTransactions = new HashMap<>();					// Easy access to every root Transaction
 	private HashMap<String, TransactionResult> allTransactionResults = new HashMap<>();		// Easy access to every TransactionResult in the longest chain
@@ -227,29 +229,52 @@ public class BlockChain implements Serializable {
 	 * 
 	 * @return hashmap from String to Transaction of every transaction on the longest chain
 	 */
-	public synchronized HashMap<String, Transaction> getAllTransactions() {
-		return this.allTransactions;
+	/*public HashMap<String, Transaction> getAllTransactions() {
+
+		synchronized (blockLock) {
+
+			return this.allTransactions;
+		}
+	}*/
+
+	public HashMap<String, Transaction> getAllTransactionsFromLongestChain(){
+
+		HashMap<String, Transaction> trans = new HashMap<>();
+
+		synchronized (blockLock){
+
+			for (Block b : getLongestChain()){
+				trans.putAll(b.getData());
+			}
+		}
+		return trans;
 	}
+
 
 	/**
 	 * Loads blockchain from file.
 	 */
-	public synchronized void load(){
+	public void load(){
 
-		this.blockChain = new ConfigManager().loadBlockChain();
+		synchronized (blockLock) {
+      
+			this.blockChain = new ConfigManager().loadBlockCHain();
 
-		allBlocks = new HashMap<>();
+			allBlocks = new HashMap<>();
 
-		for (LinkedList<Block> ls : blockChain){
-			for (Block b : ls){
-				allBlocks.put(b.getHashBlock(), b);
+			for (LinkedList<Block> ls : blockChain) {
+				for (Block b : ls) {
+					allBlocks.put(b.getHashBlock(), b);
+				}
 			}
 		}
 		updateAllTransactionResults();
 	}
 
-	public synchronized void save(){
+	public void save(){
 
-		new ConfigManager().saveBlockChain(this.blockChain);
+		synchronized (blockLock) {
+			new ConfigManager().saveBlockChain(this.blockChain);
+		}
 	}
 }

@@ -463,6 +463,7 @@ public class NetworkManager implements NetworkActions {
 
 		synchronized (transactionPool) {
 			// Compose a hashmap of all verified transactions, the transaction pool and pending transactions
+
 			//HashMap<String, Transaction> combinedPool = new HashMap<>();
 			//combinedPool.putAll(transactionPool);
 			//combinedPool.putAll(pendingTransactionPool);
@@ -504,7 +505,7 @@ public class NetworkManager implements NetworkActions {
 	 * This method is called whenever a block becomes verified (sufficiently deep),
 	 * or when a new transaction is received
 	 * 
-	 * @param potentialParants		Hashmap of Transaction ids to Transactions
+	 * @param potentialParents		Hashmap of Transaction ids to Transactions
 	 */
 //	public void updateOrphanPool(HashMap<String, Transaction> potentialParents) {
 //		// Recursive basecase
@@ -551,7 +552,7 @@ public class NetworkManager implements NetworkActions {
 	 * 
 	 * This method is called whenever a block becomes verified (sufficiently deep).
 	 * 
-	 * @param allTransactions 	Hashmap of Transaction ids to Transactions
+	 * @param verifiedTransactions 	Hashmap of Transaction ids to Transactions
 	 */
 	public void updateTransactionPool(HashMap<String, Transaction> verifiedTransactions) {
 		for (Map.Entry<String,Transaction> i: verifiedTransactions.entrySet()){
@@ -924,7 +925,6 @@ public class NetworkManager implements NetworkActions {
 
 				// Process blocks into a chain and save them
 				for (int j = 0; j < highestHeaders.size(); j ++) {
-
 					for (BlockMessage m : blockQueue) {
 
 						if (m.blockHeight == j) {

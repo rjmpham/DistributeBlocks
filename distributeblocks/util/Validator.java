@@ -34,6 +34,8 @@ public class Validator
 		for (TransactionResult t: verifiedTransactions.values()) {
 			parentIds.addAll(t.getSourceIds());
 		}
+
+
 		
 		// for each input used, check if its known, and if it's been seen before
 		for (TransactionResult i: transaction.getInput()) {
@@ -105,6 +107,12 @@ public class Validator
 			Console.log("Double spend attempt detected on transaction " + transaction.getTransactionId());
 			return false;
 		}
+
+		if (validationData.alreadyOnBlock){
+			Console.log("Block was already on the chain for transaction  " + transaction.getTransactionId());
+			return false;
+		}
+
 		return true;
 	}
 	
