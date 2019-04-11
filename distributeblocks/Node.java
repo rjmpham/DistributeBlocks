@@ -143,7 +143,7 @@ public class Node {
 	private void loadDefaultWallet() {
 		loadWallet(DEFAULT_WALLET_DIR);
 		if (wallet == null)
-			createWallet(DEFAULT_WALLET_DIR);
+			createWallet(DEFAULT_WALLET_DIR,"");
 		if (wallet == null) {
 			System.out.println("Warning: no default wallet loaded!");
 		}else {
