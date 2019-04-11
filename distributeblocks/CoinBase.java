@@ -60,11 +60,17 @@ public class CoinBase {
 			throw new NullPointerException();
 		}
 
-		// TransactionIn comes from the CoinBase
-		TransactionIn reward = new TransactionIn(CoinBase.COIN_BASE_ID, CoinBase.BLOCK_REWARD_AMOUNT);
-		reward.setParentIds(new ArrayList<String>(Arrays.asList(CoinBase.PARENT_TRANSACTION_ID)));
+		TransactionResult reward = null;
+		try {
+			// TransactionIn comes from the CoinBase
+			ArrayList<String> source = new ArrayList<String>(Arrays.asList(CoinBase.PARENT_TRANSACTION_ID));
+			reward = new TransactionResult(receiver, CoinBase.BLOCK_REWARD_AMOUNT,  CoinBase.COIN_BASE_ID, source);
+		} catch (FailedToHashException e) {
+			Console.log("Failed to hash reward transaction");
+			throw new NullPointerException();
+		}
 		
-		ArrayList<TransactionIn> transaction_ArrayList = new ArrayList<TransactionIn>();
+		ArrayList<TransactionResult> transaction_ArrayList = new ArrayList<TransactionResult>();
 		transaction_ArrayList.add(reward);
 
 		// Create a block reward Transaction, gives coins to the receiver

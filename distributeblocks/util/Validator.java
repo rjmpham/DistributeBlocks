@@ -34,14 +34,14 @@ public class Validator
 		System.out.println("============== every transaction ID that I have ==============");
 		for (Transaction t: verifiedTransactions.values()) {
 			System.out.println(t.getTransactionId());
-			for (TransactionIn i: t.getInput()) {
-				parentIds.addAll(i.getParentIds());
+			for (TransactionResult i: t.getInput()) {
+				parentIds.addAll(i.getSourceIds());
 			}
 		}
 		
 		// for each input used, check if its known, and if it's been seen before
-		for (TransactionIn i: transaction.getInput()) {
-			for(String key: i.getParentIds()) {
+		for (TransactionResult i: transaction.getInput()) {
+			for(String key: i.getSourceIds()) {
 				if (!verifiedTransactions.containsKey(key))
 					validationData.inputsAreKnown = false;
 				if (parentIds.contains(key))
