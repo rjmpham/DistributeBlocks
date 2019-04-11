@@ -198,6 +198,8 @@ public class Node {
 		for (Map.Entry<String, Transaction> i: blockData.entrySet()){
 			wallet.update(i.getValue());
 		}
+
+		// Malicious code heerree!!!
 	}
 	
 	/**
