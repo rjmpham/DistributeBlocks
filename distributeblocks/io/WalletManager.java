@@ -317,17 +317,12 @@ public class WalletManager {
 	 * @throws IOException
 	 */
 	public static void saveAlias(String path, String alias) throws IOException {
-		Console.log("test1"); //debug
-		String fullpath = path + "alias.txt";
-		File file = new File(fullpath);
+		File file = new File(path + "alias.txt");
 		file.getParentFile().mkdirs();
 		
-		Console.log("test2"); //debug
 		// Store alias
-		BufferedWriter writer = new BufferedWriter(new FileWriter(fullpath));
-		Console.log("test3"); //debug
+		BufferedWriter writer = new BufferedWriter(new FileWriter(path));
 		writer.write(alias);
-		Console.log("test4"); //debug
 		writer.close();
 	}
 	
@@ -339,14 +334,13 @@ public class WalletManager {
 	 * @throws IOException
 	 */
 	public static String loadAlias(String path) throws IOException {
-		String fullpath = path + "alias.txt";
-		File file = new File(fullpath);
+		File file = new File(path + "alias.txt");
 		file.getParentFile().mkdirs();
 		
 		// Read Alias
 		String alias;
-		BufferedReader reader = new BufferedReader(new FileReader(fullpath));
-		alias = reader.readLine();
+		BufferedReader reader = new BufferedReader(new FileReader(path));
+		reader.readLine(alias);
 		reader.close();
 		
 		return alias;
