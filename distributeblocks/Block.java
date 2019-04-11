@@ -28,13 +28,9 @@ public class Block implements Serializable {
 
 	public static Block getGenisisBlock(){
 
-		// TODO: Deal with the damn timestamp!!!!!
-
 		try {
 			Block block = new Block(new HashMap<>(), "", 0);
 
-
-			// TODO: This is a crappy hack to get all the nodes to have the same genesis block. Do something else?
 			try {
 				Field timeStamp = Block.class.getDeclaredField("timestamp");
 				timeStamp.setAccessible(true);

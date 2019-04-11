@@ -31,7 +31,6 @@ import java.util.Map;
 // TODO: the "coinBase" transaction id may cause problems with hashes and removing old funds that are marked as spent
 // TODO: the "blockReward" parent id might also have this problem
 
-// TODO: make killing mining sychronized with the new block broadcast, or make sure it doesn't kill it part way through
 /**
  *  Represents an agent within the P2P network. This class houses a wallet,
  *  and may run all the thread necessary to perform network actions.
@@ -74,7 +73,6 @@ public class Node {
 				System.out.println("Failed to save wallet to " + walletPath);
 			}
 		}
-		// TODO: do we need to safely close all other threads?
 		System.exit(0);
 
 	}

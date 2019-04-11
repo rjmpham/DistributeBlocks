@@ -113,7 +113,6 @@ public class Transaction implements Serializable {
    	* 
    	* @return true if the transaction is created, false otherwise
    	*/
-	// TODO: why did we call this "transactionEnforcer"? maybe we should rename it
 	public boolean transactionEnforcer() {
   		if(verifySignature() == false) {
   			System.out.println("Transaction Signature failed to verify");

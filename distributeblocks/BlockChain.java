@@ -176,7 +176,7 @@ public class BlockChain implements Serializable {
 	 * Creates a HashMap of Strings to Transactions of every verified
 	 * transaction before the input block. This is from the genesis
 	 * block, up to and excluding the block to be verified;
-	 * TODO RICHARD THIS
+	 *
 	 * @param chain the block to be considered the head of the chain for the validation check
 	 * @return HashMap of Strings to Transaction of every verified transaction before the input block
 	 */
@@ -200,7 +200,7 @@ public class BlockChain implements Serializable {
 	 * 
 	 * @return HashMap of Strings to Transaction of every verified transaction
 	 */
-	// TODO: don't call thi method so often! it's time complexity is bad!
+	// don't call this method so often! it's time complexity is bad!
 	private void updateAllTransactionResults() {
 		LinkedList<Block> longest = getLongestChain();
 		HashMap<String, TransactionResult> all = new HashMap<String, TransactionResult>();
@@ -233,7 +233,7 @@ public class BlockChain implements Serializable {
 	 * 
 	 * @return HashMap of Strings to Transaction of every verified transaction
 	 */
-	// TODO: don't call this method so often! it's time complexity is bad!
+	// don't call this method so often! it's time complexity is bad!
 	private void updateAllTransactions() {
 		LinkedList<Block> longest = getLongestChain();
 		HashMap<String, Transaction> all = new HashMap<String, Transaction>();

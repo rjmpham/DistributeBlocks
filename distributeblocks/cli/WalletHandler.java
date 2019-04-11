@@ -81,6 +81,7 @@ class FundsHandler implements Callable<Void> {
 }
 
 // TODO: allow the user to rescind a specific fund
+// TODO: rescind does not work somewhere
 @Command(description = "Rescind all held funds",
 		 name = "rescind", mixinStandardHelpOptions = true)
 class RescindHandler implements Callable<Void> {
