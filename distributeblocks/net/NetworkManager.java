@@ -672,7 +672,7 @@ public class NetworkManager implements NetworkActions {
 					this.monitorSocket = new Socket(message.monitorAddress.ip, message.monitorAddress.port);
 					this.monitorOutput = new ObjectOutputStream(monitorSocket.getOutputStream());
 				} catch (IOException e) {
-					e.printStackTrace();
+					Console.log("Failed to connect to monitor");
 					monitorSocket = null;
 					MonitorNotifierProcessor.receivedIDs = new HashSet<>();
 				}
