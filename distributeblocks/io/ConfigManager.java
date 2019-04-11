@@ -255,7 +255,7 @@ public class ConfigManager {
 
 	}
 
-	public synchronized ArrayList<LinkedList<Block>> loadBlockCHain(){
+	public synchronized ArrayList<LinkedList<Block>> loadBlockChain(){
 
 		synchronized (blockChainLock) {
 

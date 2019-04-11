@@ -2,5 +2,9 @@
 <classpath>
 	<classpathentry kind="src" path=""/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/bouncycastle_lib"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/gson_lib"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/picocli_lib"/>
+	<classpathentry kind="lib" path="C:/Users/King/Desktop/eclipsejar/picocli-4.0.0-alpha-1.jar"/>
 	<classpathentry kind="output" path=""/>
 </classpath>

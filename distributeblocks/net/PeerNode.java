@@ -308,9 +308,11 @@ public class PeerNode {
 
 					message = outQueue.take();
 					stream.writeObject(message);
+					NetworkService.getNetworkManager().sendToMonitor(message, PeerNode.this.getListeningAddress());
 
 				} catch (InterruptedException | IOException e) {
 					//e.printStackTrace();
+					//System.out.println("Type: " + message.getClass().getName());
 					NetworkService.getNetworkManager().asyncEnqueue(new SendFailMessage(PeerNode.this,message ));
 				}
 			}

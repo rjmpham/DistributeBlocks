@@ -29,7 +29,7 @@ import com.google.gson.stream.JsonReader;
 
 import distributeblocks.Block;
 import distributeblocks.Transaction;
-import distributeblocks.TransactionOut;
+import distributeblocks.TransactionResult;
 import distributeblocks.Wallet;
 import distributeblocks.crypto.Crypto;
 
@@ -66,8 +66,8 @@ public class WalletManager {
 	 */
 	public static Wallet loadWallet(String path) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException, ClassNotFoundException {
 		KeyPair keys = loadKeyPair(path, Crypto.GEN_ALGORITHM);
-		HashMap<String, TransactionOut> funds_HashMap = loadFundsHashMap(path);
-		HashMap<String, TransactionOut> onHold_HashMap = loadOnHoldHashMap(path);
+		HashMap<String, TransactionResult> funds_HashMap = loadFundsHashMap(path);
+		HashMap<String, TransactionResult> onHold_HashMap = loadOnHoldHashMap(path);
 		
 		if (keys == null)
 			return null;
@@ -81,7 +81,7 @@ public class WalletManager {
 	 * 
 	 * @param funds_HashMap		the funds_HashMap of a Wallet
 	 */
-	public static void saveFundsHashMap(String path, HashMap<String, TransactionOut> funds_HashMap) {
+	public static void saveFundsHashMap(String path, HashMap<String, TransactionResult> funds_HashMap) {
 		try {
 			String fullPath = path + "funds.bin";
 			saveHashMap(fullPath, funds_HashMap);
@@ -97,7 +97,7 @@ public class WalletManager {
 	 * 
 	 * @param onHold_HashMap	the onHold_HashMap of a Wallet
 	 */
-	public static void saveOnHoldHashMap(String path, HashMap<String, TransactionOut> onHold_HashMap) {
+	public static void saveOnHoldHashMap(String path, HashMap<String, TransactionResult> onHold_HashMap) {
 		try {
 			String fullPath = path + "onHold.bin";
 			saveHashMap(fullPath, onHold_HashMap);
@@ -140,7 +140,7 @@ public class WalletManager {
 	 * @throws IOException 
 	 * @throws ClassNotFoundException 
 	 */
-	public static HashMap<String, TransactionOut> loadFundsHashMap(String path) throws ClassNotFoundException, IOException {
+	public static HashMap<String, TransactionResult> loadFundsHashMap(String path) throws ClassNotFoundException, IOException {
 		String fullPath = path + "funds.bin";
 		return loadHashMap(fullPath);
 	}
@@ -155,7 +155,7 @@ public class WalletManager {
 	 * @throws IOException 
 	 * @throws ClassNotFoundException 
 	 */
-	public static HashMap<String, TransactionOut> loadOnHoldHashMap(String path) throws ClassNotFoundException, IOException {
+	public static HashMap<String, TransactionResult> loadOnHoldHashMap(String path) throws ClassNotFoundException, IOException {
 		String fullPath = path + "onHold.bin";
 		return loadHashMap(fullPath);
 	}

@@ -27,7 +27,7 @@ public class ShakeMessage extends AbstractMessage {
 		this.publicKey = publicKey;
 		this.alias = alias;
 		this.listeningPort = listeningPort;
-		localAddress = NetworkService.getNetworkManager().getLocalAddr();
+		localAddress = NetworkService.getLocalAddress();
 	}
 
 	public String getShakeMessage() {
