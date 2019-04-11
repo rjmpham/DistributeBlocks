@@ -8,6 +8,7 @@ import distributeblocks.Transaction;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.PeerNode;
+import distributeblocks.io.NodeInfo;
 import com.google.gson.Gson;
 
 import java.io.*;
@@ -68,7 +69,7 @@ public class ConfigManager {
 					json += scanner.nextLine();
 				}
 
-				nodes = gson.fromJson(json, IPAddress[].class);
+				nodes = gson.fromJson(json, NodeInfo[].class);
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -79,8 +80,11 @@ public class ConfigManager {
 
 				ArrayList<PeerNode> peerNodes = new ArrayList<PeerNode>();
 
-				for (IPAddress ip : nodes) {
-					peerNodes.add(new PeerNode(ip));
+				for (NodeInfo node : nodes) {
+					PeerNode peer = new PeerNode(node.getAddr());
+					peer.setPublicKey(node.getPublicKey());
+					peer.setAlias(node.getAlias());
+					peerNodes.add(peer);
 				}
 
 				return peerNodes;
@@ -95,10 +99,11 @@ public class ConfigManager {
 
 		synchronized (peerConfigLock) {
 
-			IPAddress[] peers = new IPAddress[peerNodes.size()];
+			NodeInfo[] peers = new NodeInfo[peerNodes.size()];
 
 			for (int i = 0; i < peerNodes.size(); i++) {
-				peers[i] = peerNodes.get(i).getListeningAddress();
+				PeerNode node = peerNodes.get(i);
+				peers[i] = new NodeInfo(node.getListeningAddress(), node.getPublicKey(), node.getAlias());
 			}
 
 			Gson gson = new Gson();
