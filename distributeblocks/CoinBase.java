@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import distributeblocks.crypto.Crypto;
 import distributeblocks.io.Console;
@@ -32,10 +33,11 @@ public class CoinBase {
 	 * @return	a KeyPair loaded for the coinBase
 	 */
 	public static KeyPair loadCoinBase() {
-		System.out.println("creating the coinbase");
 		String fullPath = DirectoryManager.fullPathToDir(COIN_BASE_DIR);
 		try {
-			return WalletManager.loadKeyPair(fullPath, Crypto.GEN_ALGORITHM);
+			KeyPair keyPair = WalletManager.loadKeyPair(fullPath, Crypto.GEN_ALGORITHM);
+			System.out.println("successfully created the coinbase");
+			return keyPair;
 		} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
 			System.out.println("Warning: failed to load CoinBase keys from " + fullPath);
 			System.out.println("This node cannot mine as no block rewards can be made!");
@@ -58,10 +60,17 @@ public class CoinBase {
 			throw new NullPointerException();
 		}
 
-		// TransactionIn comes from the CoinBase
-		TransactionIn reward = new TransactionIn(CoinBase.COIN_BASE_ID, CoinBase.BLOCK_REWARD_AMOUNT);
-		reward.setParentId(CoinBase.PARENT_TRANSACTION_ID);
-		ArrayList<TransactionIn> transaction_ArrayList = new ArrayList<TransactionIn>();
+		TransactionResult reward = null;
+		try {
+			// TransactionIn comes from the CoinBase
+			ArrayList<String> source = new ArrayList<String>(Arrays.asList(CoinBase.PARENT_TRANSACTION_ID));
+			reward = new TransactionResult(receiver, CoinBase.BLOCK_REWARD_AMOUNT, CoinBase.COIN_BASE_ID, source);
+		} catch (FailedToHashException e) {
+			Console.log("Failed to hash reward transaction");
+			throw new NullPointerException();
+		}
+		
+		ArrayList<TransactionResult> transaction_ArrayList = new ArrayList<TransactionResult>();
 		transaction_ArrayList.add(reward);
 
 		// Create a block reward Transaction, gives coins to the receiver

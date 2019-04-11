@@ -11,4 +11,5 @@ public class ValidationData {
 	// by default, assume the best (not a double spend, and inputs are known)
 	public boolean isDoubleSpend = false;
 	public boolean inputsAreKnown = true;
+	public boolean alreadyOnBlock = false;
 }

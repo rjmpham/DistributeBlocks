@@ -4,6 +4,7 @@ import distributeblocks.*;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.mining.Miner;
 import distributeblocks.net.message.*;
+import distributeblocks.util.ValidationData;
 import distributeblocks.util.Validator;
 import distributeblocks.io.Console;
 
@@ -18,13 +19,12 @@ import java.util.concurrent.*;
 public class NetworkManager implements NetworkActions {
 
 	private HashMap<String, Transaction> transactionPool;
-	private HashMap<String, Transaction> orphanedTransactionPool;
+	//private HashMap<String, Transaction> orphanedTransactionPool;
 	private HashMap<String, Transaction> pendingTransactionPool; 	// Transactions that are being put into a block.
-	private HashMap<String, Transaction> verifiedTransactions;		// Easy access to every verified transaction ever seen
-
 	private LinkedBlockingQueue<AbstractMessage> incommingQueue;
 	private LinkedBlockingQueue<ArrayList<BlockHeader>> headerQueue;
 	private LinkedBlockingQueue<BlockMessage> blockQueue;
+	private HashSet<String> sentTransactions;
 
 	private volatile AquireChain aquireChain; // TODO: Replace with events to make this not awfull?
 
@@ -96,9 +96,9 @@ public class NetworkManager implements NetworkActions {
 		headerQueue = new LinkedBlockingQueue<>();
 		blockQueue = new LinkedBlockingQueue<>();
 		transactionPool = new HashMap<>();
-		orphanedTransactionPool = new HashMap<>();
+		//orphanedTransactionPool = new HashMap<>();
 		pendingTransactionPool = new HashMap<>();
-		verifiedTransactions = (new BlockChain()).getVerifiedTransactions();
+		sentTransactions = new HashSet<>();
 	}
 
 
@@ -189,11 +189,6 @@ public class NetworkManager implements NetworkActions {
 		return localAddr;
 	}
 	
-	// synchronized because another thread may be adding to the verified transactions
-	public synchronized HashMap<String, Transaction> getVerifiedTransactions() {
-		return verifiedTransactions;
-	}
-
 	/**
 	 * Removes a node by reference.
 	 *
@@ -449,58 +444,54 @@ public class NetworkManager implements NetworkActions {
 	 * @param transaction
 	 */
 	public void addTransaction(Transaction transaction){
-		if (Validator.isDoubleSpend(transaction)) {
+		// if we've sent this transaction before, exit immediately 
+		if (sentTransactions.contains(transaction.getTransactionId())) {
+			return;
+		}
+		
+		// check against the whole block
+		ValidationData validationData = Validator.getValidationData(transaction, (new BlockChain()).getAllTransactionResults());
+		if (validationData.isDoubleSpend) {
 			Console.log("Transaction was a double spend! aborting");
 			return;
 		}
+		
+		// broadcast transaction if we have not seen it before and it is valid
+		Console.log("Transaction " + transaction.getTransactionId() + "is new. Broadcasting...");
+		asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
+		sentTransactions.add(transaction.getTransactionId());
 
 		synchronized (transactionPool) {
 			// Compose a hashmap of all verified transactions, the transaction pool and pending transactions
-			HashMap<String, Transaction> combinedPool = new HashMap<>();
-			combinedPool.putAll(verifiedTransactions);
-			combinedPool.putAll(transactionPool);
-			combinedPool.putAll(pendingTransactionPool);
 
-			// Check if we have seen this transaction before
-			boolean found = false;
-			for (String id : combinedPool.keySet()){
-				if (id.equals(transaction.getTransactionId())){
-					found = true;
-					break;
-				}
-			}
+			//HashMap<String, Transaction> combinedPool = new HashMap<>();
+			//combinedPool.putAll(transactionPool);
+			//combinedPool.putAll(pendingTransactionPool);
 
-			if (!found){
-				// Only re-broadcast transaction if we have not seen it before.
-				Console.log("Transaction " + transaction.getTransactionId() + "is new. Broadcasting...");
-				asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
+			// Check against the blockchain and the transaction pools
+			//ValidationData poolValidationData = Validator.getValidationDataAlt(transaction, combinedPool);
+
+			//if (!validationData.inputsAreKnown && !poolValidationData.inputsAreKnown){
 				
 				// Put the transaction into the correct pool
-				if (Validator.getValidationData(transaction, combinedPool).inputsAreKnown) {
-					transactionPool.put(transaction.getTransactionId(), transaction);
-					updateOrphanPool(transaction);
-				}
-				else {
-					orphanedTransactionPool.put(transaction.getTransactionId(), transaction);
-				}
-			}
+				transactionPool.put(transaction.getTransactionId(), transaction);
+				//updateOrphanPool(transaction);
+			//}
+			//else {
+			//	orphanedTransactionPool.put(transaction.getTransactionId(), transaction);
+			//}
 		}
 	}
 	
 	/**
 	 * Updates the transaction pools to remove any transactions
-	 * that have been verified on a block. This will also update
-	 * the list of all verified transactions ever seen.
-	 * 
-	 * This method is called whenever a block becomes verified (sufficiently deep).
-	 * 
-	 * @param block	the most recently verified block of the longest chain
+	 * that have been added to the chain, and move orphans
+	 * if necessary.
 	 */
-	public synchronized void updateTransactionPools(Block block) {
-		Console.log("Updating local transaction pools from block " + block.getHashBlock());
-		verifiedTransactions.putAll(block.getData());
-		updateOrphanPool(verifiedTransactions);
-		updateTransactionPool(verifiedTransactions);
+	public synchronized void updateTransactionPools() {
+		BlockChain blockChain = new BlockChain();
+		//updateOrphanPool(blockChain.getAllTransactions());
+		updateTransactionPool(blockChain.getAllTransactions());
 	}
 	
 	/**
@@ -514,30 +505,30 @@ public class NetworkManager implements NetworkActions {
 	 * This method is called whenever a block becomes verified (sufficiently deep),
 	 * or when a new transaction is received
 	 * 
-	 * @param potentialParants		Hashmap of Transaction ids to Transactions
+	 * @param potentialParents		Hashmap of Transaction ids to Transactions
 	 */
-	public void updateOrphanPool(HashMap<String, Transaction> potentialParents) {
-		// Recursive basecase
-		if (potentialParents.isEmpty())
-			return;
-		
-		// we may find orphan grandchildren when called recursive. keep track of any transaction moved
-		HashMap<String, Transaction> newParents = new HashMap<String, Transaction>();
-		
-		// Process the parents, and keep track of any moved Transactions in newParants
-		for (Map.Entry<String,Transaction> o: orphanedTransactionPool.entrySet()){
-			
-			// check the orphan against all the potentialParents
-			if (Validator.getValidationData(o.getValue(), potentialParents).inputsAreKnown) {
-				// all parents were found! remove orphaned status
-				orphanedTransactionPool.remove(o.getKey());
-				transactionPool.put(o.getKey(), o.getValue());
-				newParents.put(o.getKey(), o.getValue());
-			}
-		}
-		// Call recursively on the new potential parents
-		updateOrphanPool(newParents);
-	}
+//	public void updateOrphanPool(HashMap<String, Transaction> potentialParents) {
+//		// Recursive basecase
+//		if (potentialParents.isEmpty())
+//			return;
+//		
+//		// we may find orphan grandchildren when called recursive. keep track of any transaction moved
+//		HashMap<String, Transaction> newParents = new HashMap<String, Transaction>();
+//		
+//		// Process the parents, and keep track of any moved Transactions in newParants
+//		for (Map.Entry<String,Transaction> o: orphanedTransactionPool.entrySet()){
+//			
+//			// check the orphan against all the potentialParents
+//			if (Validator.getValidationDataAlt(o.getValue(), potentialParents).inputsAreKnown) {
+//				// all parents were found! remove orphaned status
+//				orphanedTransactionPool.remove(o.getKey());
+//				transactionPool.put(o.getKey(), o.getValue());
+//				newParents.put(o.getKey(), o.getValue());
+//			}
+//		}
+//		// Call recursively on the new potential parents
+//		//updateOrphanPool(newParents);
+//	}
 	
 	/**
 	 * Moves any orphaned transaction who are children of the given
@@ -548,14 +539,14 @@ public class NetworkManager implements NetworkActions {
 	 * 
 	 * @param transaction		the potential parent Transactions
 	 */
-	public void updateOrphanPool(Transaction transaction) {
-		HashMap<String, Transaction> container = new HashMap<String, Transaction>();
-		container.put(transaction.getTransactionId(), transaction);
-		updateOrphanPool(container);
-	}
+//	public void updateOrphanPool(Transaction transaction) {
+//		HashMap<String, Transaction> container = new HashMap<String, Transaction>();
+//		container.put(transaction.getTransactionId(), transaction);
+//		updateOrphanPool(container);
+//	}
 	
 	/**
-	 * Checks over each transaction i the verifiedTransactions and removes
+	 * Checks over each transaction i the allTransactions and removes
 	 * any matches from the transactionPool, since they have been placed onto a 
 	 * verified block.
 	 * 
@@ -929,10 +920,11 @@ public class NetworkManager implements NetworkActions {
 
 				}
 				Console.log("AQUIRED THE BLOCKCHAIN!");
+				// Update the transaction pools with received block
+				updateTransactionPools();
 
 				// Process blocks into a chain and save them
 				for (int j = 0; j < highestHeaders.size(); j ++) {
-
 					for (BlockMessage m : blockQueue) {
 
 						if (m.blockHeight == j) {
@@ -942,8 +934,6 @@ public class NetworkManager implements NetworkActions {
 							if (lastVerified != null) {
 								// Update node wallet with the block which is now verified
 								NodeService.getNode().updateWallet(lastVerified);
-								// Update the transaction pools now that a new block is verified
-								NetworkService.getNetworkManager().updateTransactionPools(lastVerified);
 							 }
 							break;
 						}
@@ -1004,8 +994,8 @@ public class NetworkManager implements NetworkActions {
 	}
 
 	/**
-	 * Seed nodes will uise this periodicaly to go through its timeouts file, and remove nodes
-	 * who have not contacted this node for some ammount of time.
+	 * Seed nodes will use this periodically to go through its timeouts file, and remove nodes
+	 * who have not contacted this node for some amount of time.
 	 */
 	private class TimeoutChecker implements Runnable {
 

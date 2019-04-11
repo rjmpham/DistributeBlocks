@@ -12,17 +12,19 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public class BlockChain implements Serializable {
-	private static final int VERIFIED_DEPTH = 6;	// depth from the head we consider a block to be verified
+	private static final int VERIFIED_DEPTH = 2;				// depth from the head we consider a block to be verified
 
 	private ArrayList<LinkedList<Block>> blockChain;
-	private HashMap<String, Block> allBlocks; 		// To make looking up blocks much faster.
 
+	private static Object blockLock = new Object();
+	private HashMap<String, Block> allBlocks; 									// To make looking up blocks much faster.
+	private HashMap<String, Transaction> allTransactions = new HashMap<>();					// Easy access to every root Transaction
+	private HashMap<String, TransactionResult> allTransactionResults = new HashMap<>();		// Easy access to every TransactionResult in the longest chain
 
 	/**
 	 * Automatically loads chain from file.
 	 */
 	public BlockChain() {
-
 		load();
 	}
 
@@ -53,10 +55,12 @@ public class BlockChain implements Serializable {
 
 			//If the block is a new header block add it to the head of a chain
 			if (ls.getLast().getHashBlock().equals(previous)){
-
+        
 				try {
 					if (validator.isValidBlock(block,this.getVerifiedTransactions(ls))) {
 						ls.add(block);
+            updateAllTransactions();
+				    updateAllTransactionResults();
 						return;
 					}
 				} catch (FailedToHashException e) {
@@ -91,6 +95,8 @@ public class BlockChain implements Serializable {
 								/* Finish off by adding the new block. */
 								newFork.add(block);
 								blockChain.add(newFork); // And add the new fork.
+                updateAllTransactions();
+						    updateAllTransactionResults();
 								return;
 							}
 							else {
@@ -99,7 +105,6 @@ public class BlockChain implements Serializable {
 						} catch (FailedToHashException e) {
 							Console.log("Failed to hash exception! BlockChain class under addBlock.");
 						}
-
 					}
 
 					index ++;
@@ -118,17 +123,22 @@ public class BlockChain implements Serializable {
 	 * @return
 	 */
 	public LinkedList<Block> getLongestChain(){
-
-		LinkedList<Block> highest = blockChain.get(0);
-
-		for (LinkedList<Block> ls : blockChain){
-			if (ls.size() > highest.size()){
-				highest = ls;
+		
+		try {
+			//find the longest block
+			LinkedList<Block> highest = blockChain.get(0);
+			for (LinkedList<Block> ls : blockChain){
+				if (ls.size() > highest.size()){
+					highest = ls;
+				}
 			}
+			return highest;
+			
 		}
-
-
-		return highest;
+		catch (IndexOutOfBoundsException e) {
+			Console.log("BlockChain is empty, no longest chain!");
+			return null;
+		}
 	}
 
 	/**
@@ -184,44 +194,126 @@ public class BlockChain implements Serializable {
 	}
 
 	/**
-	 * Creates a HashMap of Strings to Transactions of every verified
+	 * Creates a HashMap of Strings to Transactions of every
 	 * transaction within the longest chain. This is from the genesis
-	 * block, up to and including the last verified block;
-	 *
+	 * block, up to and including the head of the chain;
+	 * 
 	 * @return HashMap of Strings to Transaction of every verified transaction
 	 */
-	public HashMap<String, Transaction> getVerifiedTransactions() {
+	// TODO: don't call thi method so often! it's time complexity is bad!
+	private void updateAllTransactionResults() {
 		LinkedList<Block> longest = getLongestChain();
-		HashMap<String, Transaction> allVerifiedTransactions = new HashMap<String, Transaction>();
-
+		HashMap<String, TransactionResult> all = new HashMap<String, TransactionResult>();
+		
+		// the chain is empty
+		if (longest == null) {
+			this.allTransactionResults = all;
+			return;
+		}
+		
 		// Go from the genesis block to the current
 		// TODO: time complexity of this: is Java LinkedList doubly linked, or is going from the head faster?
-		for(int i = 0; i < longest.size() - BlockChain.VERIFIED_DEPTH; i++) {
+		for(int i = 0; i < longest.size(); i++) {
 			// Add every transaction on the block
 			Block block = longest.get(i);
-			allVerifiedTransactions.putAll(block.getData());
+			for(Transaction t: block.getData().values()) {
+				for(TransactionResult r: t.getInput()) {
+					all.put(r.getId(), r);
+				}
+			}
 		}
-		return allVerifiedTransactions;
+		// update the local copy, and return it
+		this.allTransactionResults = all;
 	}
+	
+	/**
+	 * Creates a HashMap of Strings to Transactions of every
+	 * transaction within the longest chain. This is from the genesis
+	 * block, up to and including the head of the chain;
+	 * 
+	 * @return HashMap of Strings to Transaction of every verified transaction
+	 */
+	// TODO: don't call this method so often! it's time complexity is bad!
+	private void updateAllTransactions() {
+		LinkedList<Block> longest = getLongestChain();
+		HashMap<String, Transaction> all = new HashMap<String, Transaction>();
+		
+		// the chain is empty
+		if (longest == null) {
+			this.allTransactions= all;
+			return;
+		}
+		
+		// Go from the genesis block to the current
+		// TODO: time complexity of this: is Java LinkedList doubly linked, or is going from the head faster?
+		for(int i = 0; i < longest.size(); i++) {
+			// Add every transaction on the block
+			Block block = longest.get(i);
+			all.putAll(block.getData());
+		}
+		// update the local copy, and return it
+		this.allTransactions = all;
+	}
+	
+	/**
+	 * Get a hashmap of all transaction results on the longest chain.
+	 * 
+	 * @return hashmap from String to TransactionResult of every transaction on the longest chain
+	 */
+	public synchronized HashMap<String, TransactionResult> getAllTransactionResults() {
+		return this.allTransactionResults;
+	}
+	
+	/**
+	 * Get a hashmap of all transactions on the longest chain.
+	 * 
+	 * @return hashmap from String to Transaction of every transaction on the longest chain
+	 */
+	public HashMap<String, Transaction> getAllTransactions() {
+
+		synchronized (blockLock) {
+
+			return this.allTransactions;
+		}
+	}
+
+	public HashMap<String, Transaction> getAllTransactionsFromLongestChain(){
+
+		HashMap<String, Transaction> trans = new HashMap<>();
+
+		synchronized (blockLock){
+
+			for (Block b : getLongestChain()){
+				trans.putAll(b.getData());
+			}
+		}
+		return trans;
+	}
+
 	/**
 	 * Loads blockchain from file.
 	 */
-	public synchronized void load(){
+	public void load(){
 
-		this.blockChain = new ConfigManager().loadBlockCHain();
+		synchronized (blockLock) {
+      
+			this.blockChain = new ConfigManager().loadBlockChain();
 
-		allBlocks = new HashMap<>();
+			allBlocks = new HashMap<>();
 
-		for (LinkedList<Block> ls : blockChain){
-			for (Block b : ls){
-				allBlocks.put(b.getHashBlock(), b);
+			for (LinkedList<Block> ls : blockChain) {
+				for (Block b : ls) {
+					allBlocks.put(b.getHashBlock(), b);
+				}
 			}
 		}
-
+		updateAllTransactionResults();
 	}
 
-	public synchronized void save(){
+	public void save(){
 
-		new ConfigManager().saveBlockChain(this.blockChain);
+		synchronized (blockLock) {
+			new ConfigManager().saveBlockChain(this.blockChain);
+		}
 	}
 }
