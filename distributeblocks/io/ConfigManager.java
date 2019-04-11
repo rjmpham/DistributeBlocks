@@ -44,7 +44,7 @@ public class ConfigManager {
 	/**
 	 * Reads peer node data from a config file.
 	 * Creates the config file if it does not exist.
-	 * 
+	 *
 	 * @return
 	 *   All known peer nodes from the config file.
 	 */
@@ -119,7 +119,7 @@ public class ConfigManager {
 				throw new RuntimeException("Could not write to peer node config file");
 			}
 		}
-		
+
 	}
 
 
@@ -240,11 +240,7 @@ public class ConfigManager {
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 				throw new RuntimeException("Could not save blockchain to file.");
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-
+			} 
 		}
 
 	}
@@ -506,6 +502,6 @@ public class ConfigManager {
 		}
 
 	}
-	
+
 
 }

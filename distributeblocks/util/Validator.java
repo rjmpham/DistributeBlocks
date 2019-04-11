@@ -13,22 +13,22 @@ import distributeblocks.net.NetworkService;
 
 // TODO: complete block validation, and add javadocs to it
 public class Validator
-{	
-	
+{
+
 	/**
 	 * Compares a transaction against a HashMap of all
 	 * verified transaction results. The returned ValidationData
 	 * will tell whether the transaction is a doubleSpend, and
 	 * whether all its inputs exist.
-	 * 
+	 *
 	 * @param transaction				transaction to check
 	 * @param verifiedTransactions		transaction results to check against
-	 * 
+	 *
 	 * @return	ValidationData containing resulting transaction state
 	 */
 	public static ValidationData getValidationData(Transaction transaction, HashMap<String, TransactionResult> verifiedTransactions) {
 		ValidationData validationData = new ValidationData();
-		
+
 		// Get a map of spent transaction ids paired with their consuming transaction
 		HashMap<String, TransactionResult> spentTransactionIds =  new HashMap<>();
 		for (TransactionResult t: verifiedTransactions.values()) {
@@ -36,7 +36,7 @@ public class Validator
 				spentTransactionIds.put(sourceId, t);
 			}
 		}
-		
+
 		// for each input used, check if its known, and if it's been spent before
 		for (TransactionResult i: transaction.getInput()) {
 			for(String sourceId: i.getSourceIds()) {
@@ -46,11 +46,11 @@ public class Validator
 				// Get any known spender of the source in question (if spender isn't null, someone else already spent this source)
 				TransactionResult spender = spentTransactionIds.get(sourceId);
 				// ignore block rewards because they always have the same parent id
-				
+
 				if (spender != null && spender.getId() != i.getId() && sourceId != CoinBase.PARENT_TRANSACTION_ID) {
 					validationData.isDoubleSpend = true;
 				}
-			
+
 				// break if we've set both booleans (no need to keep looking, we have all the info we need)
 				if (!validationData.inputsAreKnown && validationData.isDoubleSpend)
 					break;
@@ -58,21 +58,21 @@ public class Validator
 		}
 		return validationData;
 	}
-	
+
 	/**
 	 * Compares a transaction against a HashMap of all
 	 * verified transactions. The returned ValidationData
 	 * will tell whether the transaction is a doubleSpend, and
 	 * whether all its inputs exist.
-	 * 
+	 *
 	 * @param transaction				transaction to check
 	 * @param verifiedTransactions		transactions to check against
-	 * 
+	 *
 	 * @return	ValidationData containing resulting transaction state
 	 */
 	public static ValidationData getValidationDataAlt(Transaction transaction, HashMap<String, Transaction> verifiedTransactions) {
 		HashMap<String, TransactionResult> verifiedTransactionResults = new HashMap<>();
-		
+
 		// get all the TransactionResult inputs from the verified transactions
 		for(Transaction t: verifiedTransactions.values()) {
 			for(TransactionResult r: t.getInput()) {
@@ -81,13 +81,13 @@ public class Validator
 		}
 		// check over the transaction results for doubleSpent and inputsAreKnow
 		ValidationData validationData = getValidationData(transaction, verifiedTransactionResults);
-		
+
 		// check to see if the whole transaction is itself a duplicate
 		validationData.alreadyOnBlock = verifiedTransactions.containsKey(transaction.getTransactionId());
-		
+
 		return validationData;
 	}
-	
+
 	/**
 	 * Check to see if the transaction is valid from the point of view of a
 	 * local user. This means that this method will not accept any transaction
@@ -95,27 +95,27 @@ public class Validator
 	 * inputs it doesn't know about. This method SHOULD NOT be called on transactions
 	 * received from other peers, because they may know about verified transactions
 	 * we do not.
-	 * 
+	 *
 	 * @param transaction			the transaction to check
-	 * 
+	 *
 	 * @return true if the transaction's inputs are known and the transaction isn't a double spend,
 	 * 		   or true if it is a valid block reward transaction
 	 */
 	public static boolean isValidTransaction(Transaction transaction) {
 		Console.log("Validating transaction " + transaction.getTransactionId());
 		// check if it is a valid block reward
-		if(transaction.getPublicKeySender().equals(CoinBase.COIN_BASE_KEYS.getPublic()) 
+		if(transaction.getPublicKeySender().equals(CoinBase.COIN_BASE_KEYS.getPublic())
 				&& transaction.getExchange() == CoinBase.BLOCK_REWARD_AMOUNT){
 			return true;
 		}
-		
+
 		// compare the transaction to all that have been verified so far
 		BlockChain blockChain = new BlockChain();
 		ValidationData validationData = getValidationData(transaction, blockChain.getAllTransactionResults());
 		if(!validationData.inputsAreKnown) {
 			Console.log("Unknown inputs for transaction " + transaction.getTransactionId());
 			return false;
-		} 
+		}
 		if(validationData.isDoubleSpend) {
 			Console.log("Double spend attempt detected on transaction " + transaction.getTransactionId());
 			return false;
@@ -128,38 +128,38 @@ public class Validator
 
 		return true;
 	}
-	
+
 	/**
 	 * Checks to see if a transaction is trying to use funds
 	 * that have already been used within a verified block of
 	 * the blockchain.
-	 * 
+	 *
 	 * @param transaction	the transaction to check
-	 * 
+	 *
 	 * @return true if the transaction tries to use any already spent funds
 	 */
 	public static boolean isDoubleSpend(Transaction transaction) {
 		// compare the transaction to all that have been verified so far
 		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactionResults());
-		if(validationData.isDoubleSpend) 
+		if(validationData.isDoubleSpend)
 			return true;
 		else
 			return false;
 	}
-	
+
 	/**
 	 * Checks to see if a transaction is using input funds
 	 * which are known and verified within a verified block
 	 * of the blockchain.
-	 * 
+	 *
 	 * @param transaction	the transaction to check
-	 * 
+	 *
 	 * @return true if the transaction's inputs are all known
 	 */
 	public static boolean inputsAreKnown(Transaction transaction) {
 		// compare the transaction to all that have been verified so far
 		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactionResults());
-		if(validationData.inputsAreKnown) 
+		if(validationData.inputsAreKnown)
 			return true;
 		else
 			return false;
@@ -184,7 +184,7 @@ public class Validator
 //			if (!(block.getHashData().equals(Crypto.calculateObjectHash(block.getData())))) {     //If the data hash isn't correct
 //				return false;
 //			}
-			if (!(block.getTargetNumZeros()==Node.HASH_DIFFICULTY)){                              //if the hash difficulty is different
+			if (!(block.getTargetNumZeros()>=Node.HASH_DIFFICULTY)){                              //if the hash difficulty is different
 				Console.log("Block verification error: Block does not meet hash difficulty");
 				return false;
 			}
@@ -233,7 +233,7 @@ public class Validator
 		catch (Exception e)
 		{
 			Console.log("Block verification error: got exception " + e.getMessage());
-			return false;   
+			return false;
 		}
 	}
 }
