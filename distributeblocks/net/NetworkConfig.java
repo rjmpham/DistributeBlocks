@@ -9,4 +9,5 @@ public class NetworkConfig {
     public IPAddress seedNode;
     public boolean seed;
     public boolean mining;
+    public boolean monitor = false;
 }

@@ -3,8 +3,11 @@ package distributeblocks;
 import distributeblocks.crypto.Crypto;
 import distributeblocks.cli.CommandLineInterface;
 import distributeblocks.io.WalletManager;
+import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.implementations.SingleGraph;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,9 +40,10 @@ import java.util.Map;
  */
 public class Node {
 
-	public static int HASH_DIFFICULTY = 3;
-	public static String DEFAULT_WALLET_DIR = "./wallet/";
 
+	public static int HASH_DIFFICULTY = 4;
+	public static int MONITOR_PORT = 7329;
+	public static String DEFAULT_WALLET_DIR = "./wallet/";
 	private boolean started = false;
 	private boolean mining = false;
 	private Wallet wallet;
@@ -310,4 +314,5 @@ public class Node {
 		cli.parseCommand(args);
 		cli.run();
 	}
+
 }

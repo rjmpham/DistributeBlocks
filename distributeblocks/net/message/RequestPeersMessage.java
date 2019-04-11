@@ -21,12 +21,12 @@ public class RequestPeersMessage extends AbstractMessage {
 	 *       ShakeMessage -> ShakeResponse -> RequestPeers -> PeerInfo -> *disconnect if friend in PeerInfo is false*
 	 */
 	public RequestPeersMessage(boolean friends){
-		localAddress = NetworkService.getNetworkManager().getLocalAddr();
+		localAddress = NetworkService.getLocalAddress();
 		this.friend = friends;
 	}
 
 	public RequestPeersMessage() {
-		localAddress = NetworkService.getNetworkManager().getLocalAddr();
+		localAddress = NetworkService.getLocalAddress();
 		friend = true;
 	}
 
