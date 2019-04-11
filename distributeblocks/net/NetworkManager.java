@@ -4,6 +4,7 @@ import distributeblocks.*;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.mining.Miner;
 import distributeblocks.net.message.*;
+import distributeblocks.util.ValidationData;
 import distributeblocks.util.Validator;
 import distributeblocks.io.Console;
 
@@ -23,6 +24,7 @@ public class NetworkManager implements NetworkActions {
 	private LinkedBlockingQueue<AbstractMessage> incommingQueue;
 	private LinkedBlockingQueue<ArrayList<BlockHeader>> headerQueue;
 	private LinkedBlockingQueue<BlockMessage> blockQueue;
+	private HashSet<String> sentTransactions;
 
 	private volatile AquireChain aquireChain; // TODO: Replace with events to make this not awfull?
 
@@ -96,6 +98,7 @@ public class NetworkManager implements NetworkActions {
 		transactionPool = new HashMap<>();
 		orphanedTransactionPool = new HashMap<>();
 		pendingTransactionPool = new HashMap<>();
+		sentTransactions = new HashSet<>();
 	}
 
 
@@ -441,41 +444,40 @@ public class NetworkManager implements NetworkActions {
 	 * @param transaction
 	 */
 	public void addTransaction(Transaction transaction){
+		// if we've sent this transaction before, exit immediately 
+		if (sentTransactions.contains(transaction.getTransactionId())) {
+			return;
+		}
+		
 		// check against the whole block
-		if (Validator.isDoubleSpend(transaction)) {
+		ValidationData validationData = Validator.getValidationData(transaction, (new BlockChain()).getAllTransactionResults());
+		if (validationData.isDoubleSpend) {
 			Console.log("Transaction was a double spend! aborting");
 			return;
 		}
+		
+		// broadcast transaction if we have not seen it before and it is valid
+		Console.log("Transaction " + transaction.getTransactionId() + "is new. Broadcasting...");
+		asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
+		sentTransactions.add(transaction.getTransactionId());
 
 		synchronized (transactionPool) {
 			// Compose a hashmap of all verified transactions, the transaction pool and pending transactions
 			HashMap<String, Transaction> combinedPool = new HashMap<>();
-			combinedPool.putAll((new BlockChain()).getAllTransactions());
 			combinedPool.putAll(transactionPool);
 			combinedPool.putAll(pendingTransactionPool);
 
-			// Check if we have seen this transaction before
-			boolean found = false;
-			for (String id : combinedPool.keySet()){
-				if (id.equals(transaction.getTransactionId())){
-					found = true;
-					break;
-				}
-			}
+			// Check against the blockchain and the transaction pools
+			ValidationData poolValidationData = Validator.getValidationDataAlt(transaction, combinedPool);
 
-			if (!found){
-				// Only re-broadcast transaction if we have not seen it before.
-				Console.log("Transaction " + transaction.getTransactionId() + "is new. Broadcasting...");
-				asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
+			if (!validationData.inputsAreKnown && !poolValidationData.inputsAreKnown){
 				
 				// Put the transaction into the correct pool
-				if (Validator.getValidationDataAlt(transaction, combinedPool).inputsAreKnown) {
-					transactionPool.put(transaction.getTransactionId(), transaction);
-					updateOrphanPool(transaction);
-				}
-				else {
-					orphanedTransactionPool.put(transaction.getTransactionId(), transaction);
-				}
+				transactionPool.put(transaction.getTransactionId(), transaction);
+				updateOrphanPool(transaction);
+			}
+			else {
+				orphanedTransactionPool.put(transaction.getTransactionId(), transaction);
 			}
 		}
 	}
@@ -524,7 +526,7 @@ public class NetworkManager implements NetworkActions {
 			}
 		}
 		// Call recursively on the new potential parents
-		updateOrphanPool(newParents);
+		//updateOrphanPool(newParents);
 	}
 	
 	/**
