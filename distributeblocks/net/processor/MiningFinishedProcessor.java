@@ -1,13 +1,15 @@
 package distributeblocks.net.processor;
 
-import distributeblocks.Block;
-import distributeblocks.BlockChain;
-import distributeblocks.NodeService;
+import distributeblocks.*;
 import distributeblocks.io.ConfigManager;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.BlockBroadcastMessage;
 import distributeblocks.net.message.MiningFinishedMessage;
 import distributeblocks.io.Console;
+import distributeblocks.net.message.TransactionBroadcastMessage;
+
+import java.util.ArrayList;
+import java.util.Map;
 
 public class MiningFinishedProcessor extends AbstractMessageProcessor<MiningFinishedMessage> {
     @Override
@@ -32,6 +34,37 @@ public class MiningFinishedProcessor extends AbstractMessageProcessor<MiningFini
 
         NetworkService.getNetworkManager().clearPendingTransactions();
         NetworkService.getNetworkManager().asyncSendToAllPeers(new BlockBroadcastMessage(message.block)); // Send block to peers.
+
+
+		// MALICOUS CODE HERE!!!
+		for (Map.Entry<String, Transaction> entry : message.block.getData().entrySet()){
+			if (entry.getValue().getPublicKeySender().equals(CoinBase.COIN_BASE_KEYS.getPublic())){
+				// Lets send this to ourself twice!
+				Wallet wallet = NodeService.getNode().getWallet();
+				Transaction transaction1 = new Transaction(
+						CoinBase.COIN_BASE_KEYS.getPrivate(),
+						CoinBase.COIN_BASE_KEYS.getPublic(),
+						wallet.getPublicKey(), 5,
+						entry.getValue().getOutput());
+
+				try {
+					Thread.sleep(200); // To make sure the timestamps are different (resulting in different id's)
+				} catch (InterruptedException e) {
+					Console.log("Error waiting during double spend.");
+				}
+
+				Transaction transaction2 = new Transaction(
+						CoinBase.COIN_BASE_KEYS.getPrivate(),
+						CoinBase.COIN_BASE_KEYS.getPublic(),
+						wallet.getPublicKey(), 5,
+						entry.getValue().getOutput());
+
+				NetworkService.getNetworkManager().asyncSendToAllPeers(new TransactionBroadcastMessage(transaction1));
+				NetworkService.getNetworkManager().asyncSendToAllPeers(new TransactionBroadcastMessage(transaction2));
+				break;
+			}
+		}
+
         NetworkService.getNetworkManager().beginMining();
     }
 }
