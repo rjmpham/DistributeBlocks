@@ -224,7 +224,15 @@ public class WalletManager {
 		System.out.println("CCCCCCCCH3");
 		X509EncodedKeySpec encodedKeySpec = new X509EncodedKeySpec(publicKey.getEncoded());
 		System.out.println("CCCCCCCCH4");
-		FileOutputStream fos = new FileOutputStream(fullPath);
+		System.out.println(fullPath);
+		try
+		{
+			FileOutputStream fos = new FileOutputStream(fullPath);
+		}
+		catch(Exception e)
+		{
+			Console.log(e.toString());
+		}
 		System.out.println("CCCCCCCCH5");
 		fos.write(encodedKeySpec.getEncoded());
 		System.out.println("CCCCCCCCH6");

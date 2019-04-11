@@ -62,6 +62,7 @@
 ./distributeblocks/io/TextAreaOutputStream.java
 ./distributeblocks/io/WalletManager.java
 ./distributeblocks/io/Console.java
+./distributeblocks/io/NodeInfo.java
 ./distributeblocks/Wallet.java
 ./distributeblocks/NodeService.java
 ./distributeblocks/Transaction.java
