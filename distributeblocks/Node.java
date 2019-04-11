@@ -3,11 +3,8 @@ package distributeblocks;
 import distributeblocks.crypto.Crypto;
 import distributeblocks.cli.CommandLineInterface;
 import distributeblocks.io.WalletManager;
-import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkConfig;
 import distributeblocks.net.NetworkService;
-import org.graphstream.graph.Graph;
-import org.graphstream.graph.implementations.SingleGraph;
 
 import java.io.File;
 import java.io.IOException;
