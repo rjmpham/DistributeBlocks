@@ -229,13 +229,13 @@ public class BlockChain implements Serializable {
 	 * 
 	 * @return hashmap from String to Transaction of every transaction on the longest chain
 	 */
-	/*public HashMap<String, Transaction> getAllTransactions() {
+	public HashMap<String, Transaction> getAllTransactions() {
 
 		synchronized (blockLock) {
 
 			return this.allTransactions;
 		}
-	}*/
+	}
 
 	public HashMap<String, Transaction> getAllTransactionsFromLongestChain(){
 
@@ -258,7 +258,7 @@ public class BlockChain implements Serializable {
 
 		synchronized (blockLock) {
       
-			this.blockChain = new ConfigManager().loadBlockCHain();
+			this.blockChain = new ConfigManager().loadBlockChain();
 
 			allBlocks = new HashMap<>();
 
