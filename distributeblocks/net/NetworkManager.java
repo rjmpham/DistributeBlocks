@@ -649,7 +649,13 @@ public class NetworkManager implements NetworkActions {
 				transactionPool.clear();
 
 				pendingTransactionPool.putAll(poolCopy);
-				miner.startMining(poolCopy, chain.get(chain.size() - 1), Node.HASH_DIFFICULTY);
+
+				// MALICOUS CODE HERE
+				if (chain.size() > 1) {
+					miner.startMining(poolCopy, chain.get(chain.size() - 1), Node.HASH_DIFFICULTY);
+				} else {
+					miner.startMining(poolCopy, chain.get(chain.size() - 2), Node.HASH_DIFFICULTY);
+				}
 			}
 		}
 	}
