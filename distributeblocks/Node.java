@@ -40,6 +40,7 @@ import java.util.Map;
  */
 public class Node {
 
+
 	public static int HASH_DIFFICULTY = 4;
 	public static int MONITOR_PORT = 7329;
 	public static String DEFAULT_WALLET_DIR = "./wallet/";
