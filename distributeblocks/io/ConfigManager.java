@@ -233,6 +233,7 @@ public class ConfigManager {
 						outString += "From: \n" +blockTransactions.get(id).getPublicSender()+"\n";
 						outString += "To:   \n" +blockTransactions.get(id).getPublicReceiver()+"\n";
 						outString += "Amount: " +blockTransactions.get(id).getExchangeAmmountString()+"\n";
+						outString += "ID: " +blockTransactions.get(id).getTransactionId() +"\n";
 					}
 
 				}
