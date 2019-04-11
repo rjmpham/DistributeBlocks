@@ -5,7 +5,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.BufferedReader;
 import java.io.FileWriter;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -319,7 +321,7 @@ public class WalletManager {
 		file.getParentFile().mkdirs();
 		
 		// Store alias
-		FileWriter writer = new FileWriter(path);
+		BufferedWriter writer = new BufferedWriter(new FileWriter(path));
 		writer.write(alias);
 		writer.close();
 	}
@@ -337,7 +339,7 @@ public class WalletManager {
 		
 		// Read Alias
 		String alias;
-		FileReader reader = new FileReader(path);
+		BufferedReader reader = new BufferedReader(new FileReader(path));
 		reader.readLine(alias);
 		reader.close();
 		
