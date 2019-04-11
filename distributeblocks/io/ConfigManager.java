@@ -8,7 +8,6 @@ import distributeblocks.Transaction;
 import distributeblocks.net.IPAddress;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.PeerNode;
-import distributeblocks.io.NodeInfo;
 import com.google.gson.Gson;
 
 import java.io.*;
