@@ -171,7 +171,7 @@ public class Node {
 			return;
 		}
 		wallet.rescindHeldFunds();
-		System.out.println("On hold funds have been returned to the wallet");
+		//System.out.println("On hold funds have been returned to the wallet");
 	}
 
 	/**

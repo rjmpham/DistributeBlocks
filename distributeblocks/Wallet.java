@@ -73,9 +73,9 @@ public class Wallet {
 		}
 
 		// Clear any held funds that were waiting for verification
-		clearFundsOnHold(inputs);
+		//clearFundsOnHold(inputs);
 		// Clear any funds spent, but rescinded (turns out they WERE spent)
-		clearFundsRescinded(inputs);
+		//clearFundsRescinded(inputs);
 		
 		// Construct a map from ids to TransactionResult
 		HashMap<String, TransactionResult> outputs = new HashMap<String, TransactionResult>();
@@ -180,9 +180,14 @@ public class Wallet {
 	 * This method is called when the user gives up on previous transactions
 	 * and wishes to re-spend the funds they had tried to spend previously.
 	 */
-	public void rescindHeldFunds() {
-		for (Map.Entry<String,TransactionResult> i: onHold_HashMap.entrySet()){
-			rescindHeldFund(i.getKey());
+	public synchronized void rescindHeldFunds() {
+		try {
+			for (Map.Entry<String,TransactionResult> i: onHold_HashMap.entrySet()){
+				rescindHeldFund(i.getKey());
+				System.out.println("Rescinded funds successfully");
+			}
+		} catch (Exception e) {
+			System.out.println("Please try again");
 		}
 	}
 	
@@ -242,11 +247,11 @@ public class Wallet {
 		Transaction newTransaction = new Transaction(privateKey, publicKey, receiver, amount, transaction_ArrayList);
 
 		// put the funds used to create this transaction on hold
-		for(TransactionResult i: transaction_ArrayList){
-			TransactionResult spent = funds_HashMap.get(i.getId());
-			funds_HashMap.remove(i.getId());
-			onHold_HashMap.put(spent.getId(), spent);
-		}
+//		for(TransactionResult i: transaction_ArrayList){
+//			TransactionResult spent = funds_HashMap.get(i.getId());
+//			funds_HashMap.remove(i.getId());
+//			onHold_HashMap.put(spent.getId(), spent);
+//		}
 		return newTransaction;
 	}
 	
