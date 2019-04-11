@@ -191,7 +191,7 @@ public class BlockChain implements Serializable {
 	 * 
 	 * @return HashMap of Strings to Transaction of every verified transaction
 	 */
-	// TODO: don't call thi method so often! it's time complexity is bad!
+	// TODO: don't call this method so often! it's time complexity is bad!
 	private void updateAllTransactions() {
 		LinkedList<Block> longest = getLongestChain();
 		HashMap<String, Transaction> all = new HashMap<String, Transaction>();

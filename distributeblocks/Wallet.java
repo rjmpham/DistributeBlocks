@@ -75,7 +75,7 @@ public class Wallet {
 		// Clear any held funds that were waiting for verification
 		clearFundsOnHold(inputs);
 		// Clear any funds spent, but rescinded (turns out they WERE spent)
-		clearFundsRescinded(inputs);
+		//clearFundsRescinded(inputs);
 		
 		// Construct a map from ids to TransactionResult
 		HashMap<String, TransactionResult> outputs = new HashMap<String, TransactionResult>();

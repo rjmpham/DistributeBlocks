@@ -19,7 +19,7 @@ import java.util.concurrent.*;
 public class NetworkManager implements NetworkActions {
 
 	private HashMap<String, Transaction> transactionPool;
-	private HashMap<String, Transaction> orphanedTransactionPool;
+	//private HashMap<String, Transaction> orphanedTransactionPool;
 	private HashMap<String, Transaction> pendingTransactionPool; 	// Transactions that are being put into a block.
 	private LinkedBlockingQueue<AbstractMessage> incommingQueue;
 	private LinkedBlockingQueue<ArrayList<BlockHeader>> headerQueue;
@@ -96,7 +96,7 @@ public class NetworkManager implements NetworkActions {
 		headerQueue = new LinkedBlockingQueue<>();
 		blockQueue = new LinkedBlockingQueue<>();
 		transactionPool = new HashMap<>();
-		orphanedTransactionPool = new HashMap<>();
+		//orphanedTransactionPool = new HashMap<>();
 		pendingTransactionPool = new HashMap<>();
 		sentTransactions = new HashSet<>();
 	}
@@ -463,22 +463,22 @@ public class NetworkManager implements NetworkActions {
 
 		synchronized (transactionPool) {
 			// Compose a hashmap of all verified transactions, the transaction pool and pending transactions
-			HashMap<String, Transaction> combinedPool = new HashMap<>();
-			combinedPool.putAll(transactionPool);
-			combinedPool.putAll(pendingTransactionPool);
+			//HashMap<String, Transaction> combinedPool = new HashMap<>();
+			//combinedPool.putAll(transactionPool);
+			//combinedPool.putAll(pendingTransactionPool);
 
 			// Check against the blockchain and the transaction pools
-			ValidationData poolValidationData = Validator.getValidationDataAlt(transaction, combinedPool);
+			//ValidationData poolValidationData = Validator.getValidationDataAlt(transaction, combinedPool);
 
-			if (!validationData.inputsAreKnown && !poolValidationData.inputsAreKnown){
+			//if (!validationData.inputsAreKnown && !poolValidationData.inputsAreKnown){
 				
 				// Put the transaction into the correct pool
 				transactionPool.put(transaction.getTransactionId(), transaction);
-				updateOrphanPool(transaction);
-			}
-			else {
-				orphanedTransactionPool.put(transaction.getTransactionId(), transaction);
-			}
+				//updateOrphanPool(transaction);
+			//}
+			//else {
+			//	orphanedTransactionPool.put(transaction.getTransactionId(), transaction);
+			//}
 		}
 	}
 	
@@ -489,7 +489,7 @@ public class NetworkManager implements NetworkActions {
 	 */
 	public synchronized void updateTransactionPools() {
 		BlockChain blockChain = new BlockChain();
-		updateOrphanPool(blockChain.getAllTransactions());
+		//updateOrphanPool(blockChain.getAllTransactions());
 		updateTransactionPool(blockChain.getAllTransactions());
 	}
 	
@@ -506,28 +506,28 @@ public class NetworkManager implements NetworkActions {
 	 * 
 	 * @param potentialParants		Hashmap of Transaction ids to Transactions
 	 */
-	public void updateOrphanPool(HashMap<String, Transaction> potentialParents) {
-		// Recursive basecase
-		if (potentialParents.isEmpty())
-			return;
-		
-		// we may find orphan grandchildren when called recursive. keep track of any transaction moved
-		HashMap<String, Transaction> newParents = new HashMap<String, Transaction>();
-		
-		// Process the parents, and keep track of any moved Transactions in newParants
-		for (Map.Entry<String,Transaction> o: orphanedTransactionPool.entrySet()){
-			
-			// check the orphan against all the potentialParents
-			if (Validator.getValidationDataAlt(o.getValue(), potentialParents).inputsAreKnown) {
-				// all parents were found! remove orphaned status
-				orphanedTransactionPool.remove(o.getKey());
-				transactionPool.put(o.getKey(), o.getValue());
-				newParents.put(o.getKey(), o.getValue());
-			}
-		}
-		// Call recursively on the new potential parents
-		//updateOrphanPool(newParents);
-	}
+//	public void updateOrphanPool(HashMap<String, Transaction> potentialParents) {
+//		// Recursive basecase
+//		if (potentialParents.isEmpty())
+//			return;
+//		
+//		// we may find orphan grandchildren when called recursive. keep track of any transaction moved
+//		HashMap<String, Transaction> newParents = new HashMap<String, Transaction>();
+//		
+//		// Process the parents, and keep track of any moved Transactions in newParants
+//		for (Map.Entry<String,Transaction> o: orphanedTransactionPool.entrySet()){
+//			
+//			// check the orphan against all the potentialParents
+//			if (Validator.getValidationDataAlt(o.getValue(), potentialParents).inputsAreKnown) {
+//				// all parents were found! remove orphaned status
+//				orphanedTransactionPool.remove(o.getKey());
+//				transactionPool.put(o.getKey(), o.getValue());
+//				newParents.put(o.getKey(), o.getValue());
+//			}
+//		}
+//		// Call recursively on the new potential parents
+//		//updateOrphanPool(newParents);
+//	}
 	
 	/**
 	 * Moves any orphaned transaction who are children of the given
@@ -538,11 +538,11 @@ public class NetworkManager implements NetworkActions {
 	 * 
 	 * @param transaction		the potential parent Transactions
 	 */
-	public void updateOrphanPool(Transaction transaction) {
-		HashMap<String, Transaction> container = new HashMap<String, Transaction>();
-		container.put(transaction.getTransactionId(), transaction);
-		updateOrphanPool(container);
-	}
+//	public void updateOrphanPool(Transaction transaction) {
+//		HashMap<String, Transaction> container = new HashMap<String, Transaction>();
+//		container.put(transaction.getTransactionId(), transaction);
+//		updateOrphanPool(container);
+//	}
 	
 	/**
 	 * Checks over each transaction i the allTransactions and removes
