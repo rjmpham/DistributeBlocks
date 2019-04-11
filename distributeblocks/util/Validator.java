@@ -29,22 +29,40 @@ public class Validator
 	public static ValidationData getValidationData(Transaction transaction, HashMap<String, TransactionResult> verifiedTransactions) {
 		ValidationData validationData = new ValidationData();
 		
-		// Get a list of ids from every transaction that has every been spent
-		HashSet<String> spentTransactionIds =  new HashSet<String>();
+		// Get a map of spent transaction ids paired with their consuming transaction
+		HashMap<String, TransactionResult> spentTransactionIds =  new HashMap<>();
 		for (TransactionResult t: verifiedTransactions.values()) {
-			spentTransactionIds.addAll(t.getSourceIds());
+			for (String sourceId : t.getSourceIds()) {
+				spentTransactionIds.put(sourceId, t);
+			}
 		}
 		
 		// for each input used, check if its known, and if it's been spent before
 		for (TransactionResult i: transaction.getInput()) {
-			for(String key: i.getSourceIds()) {
-				if (!verifiedTransactions.containsKey(key)) {
+			for(String sourceId: i.getSourceIds()) {
+				if (!verifiedTransactions.containsKey(sourceId)) {
 					validationData.inputsAreKnown = false;
 				}
+				// Get any known spender of the source in question (if spender isn't null, someone else already spent this source)
+				TransactionResult spender = spentTransactionIds.get(sourceId);
 				// ignore block rewards because they always have the same parent id
-				if (spentTransactionIds.contains(key) && key != CoinBase.PARENT_TRANSACTION_ID) {
+				System.out.println("============================================================================");
+				System.out.println("I'm checking if transaction " + transaction.getTransactionId() + "is valid");
+				System.out.println("The input im checking right now is " + i.getId());
+				System.out.println("I'm going to check to see if Transaction result " + sourceId + " has been spent");
+				System.out.println("I checked to see if there was a spender, and it was " + spender);
+				System.out.println("spender != null: " + (spender != null));
+				if (spender != null) {System.out.println("spender.getId() != i.getId():" + (spender.getId() != i.getId()));}
+				System.out.println("sourceId != CoinBase.PARENT_TRANSACTION_ID: " + (sourceId != CoinBase.PARENT_TRANSACTION_ID));
+				
+				if (spender != null && spender.getId() != i.getId() && sourceId != CoinBase.PARENT_TRANSACTION_ID) {
+					System.out.println("I decided that it is a double spend");
 					validationData.isDoubleSpend = true;
-				}	
+				}
+				else {
+					System.out.println("I decided that it is NOT a double spend");
+				}
+				System.out.println("============================================================================");
 			
 				// break if we've set both booleans (no need to keep looking, we have all the info we need)
 				if (!validationData.inputsAreKnown && validationData.isDoubleSpend)
