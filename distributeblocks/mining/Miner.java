@@ -4,6 +4,7 @@ import distributeblocks.*;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.AbstractMessage;
 import distributeblocks.net.message.MiningFinishedMessage;
+import distributeblocks.util.Validator;
 import distributeblocks.io.Console;
 
 import java.util.HashMap;
@@ -103,6 +104,9 @@ public class Miner {
 
             Wallet wallet = NodeService.getNode().getWallet();
 
+            // get rid of any invalid transactions before mining
+            data.entrySet().removeIf(entry -> !Validator.isValidTransaction(entry.getValue()));
+            
             while (!stop) {
 
                 try {

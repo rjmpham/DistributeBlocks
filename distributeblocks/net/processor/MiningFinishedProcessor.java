@@ -13,7 +13,8 @@ public class MiningFinishedProcessor extends AbstractMessageProcessor<MiningFini
     @Override
     public void processMessage(MiningFinishedMessage message) {
         Console.log("Got Finished mining message.");
-
+        System.out.println("Mined new block");
+        
         ConfigManager configManager = new ConfigManager();
         // Add the newly mined block to our chain
         BlockChain blockChain = new BlockChain();

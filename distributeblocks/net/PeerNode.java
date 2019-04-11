@@ -167,7 +167,7 @@ public class PeerNode {
 
 	public void shutDown() {
 
-		Console.log("SHUTDOWN WAS CALLED ON NODE: " + getListeningAddress());
+		Console.log("Shutdown was called on node: " + getListeningAddress());
 		shutDown = true;
 		executorService.shutdown();
 
