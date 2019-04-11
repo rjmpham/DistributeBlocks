@@ -76,7 +76,7 @@ public class Block implements Serializable {
 	public Block (HashMap<String, Transaction> data, String hashPrevious, int targetNumZeros) throws FailedToHashException
 	{
 		this.nonce = 0;
-		this.targetNumZeros = targetNumZeros;
+		this.targetNumZeros = 0;
 		this.hashPrevious = hashPrevious;
 		this.timestamp = new Date().getTime();
 		this.data = data;
