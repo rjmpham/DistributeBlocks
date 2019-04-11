@@ -230,7 +230,6 @@ public class Wallet {
 			TransactionResult funds = item.getValue();
 			sum += funds.getExchange();
 			transaction_ArrayList.add(funds);
-
 			// Until the requested amount is exceeded
 			if(sum >= amount) break;
 		}

@@ -64,7 +64,7 @@ public class CoinBase {
 		try {
 			// TransactionIn comes from the CoinBase
 			ArrayList<String> source = new ArrayList<String>(Arrays.asList(CoinBase.PARENT_TRANSACTION_ID));
-			reward = new TransactionResult(receiver, CoinBase.BLOCK_REWARD_AMOUNT,  CoinBase.COIN_BASE_ID, source);
+			reward = new TransactionResult(receiver, CoinBase.BLOCK_REWARD_AMOUNT, CoinBase.COIN_BASE_ID, source);
 		} catch (FailedToHashException e) {
 			Console.log("Failed to hash reward transaction");
 			throw new NullPointerException();

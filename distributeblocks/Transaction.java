@@ -55,7 +55,7 @@ public class Transaction implements Serializable {
 		
 		this.sourceIds = new ArrayList<String>();
 		for (TransactionResult r: this.input) {
-			this.sourceIds.addAll(r.getSourceIds());
+			this.sourceIds.add(r.getId());
 		}
 		
 		this.timestamp = new Date().getTime();
