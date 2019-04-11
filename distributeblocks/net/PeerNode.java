@@ -92,7 +92,7 @@ public class PeerNode {
 				executorService.execute(new Listener());
 				executorService.execute(new Sender());
 
-				asyncSendMessage(new ShakeMessage("Hey there ;)", NetworkService.getNetworkManager().getPort()));
+				asyncSendMessage(new ShakeMessage("Hey there ;)", publicKey, alias, NetworkService.getNetworkManager().getPort()));
 
 			} catch (IOException e) {
 				//e.printStackTrace();
@@ -123,7 +123,7 @@ public class PeerNode {
 				executorService.execute(new Listener());
 				executorService.execute(new Sender());
 
-				asyncSendMessage(new ShakeMessage("Hey there ;)", NetworkService.getNetworkManager().getPort()));
+				asyncSendMessage(new ShakeMessage("Hey there ;)", publicKey, alias, NetworkService.getNetworkManager().getPort()));
 
 			} catch (IOException e) {
 				Console.log("Failed to connect to " + address);
