@@ -23,6 +23,7 @@ public class Validator
 	 * 
 	 * @param transaction				transaction to check
 	 * @param verifiedTransactions		transactions to check against
+	 * 
 	 * @return	ValidationData containing resulting transaction state
 	 */
 	public static ValidationData getValidationData(Transaction transaction, HashMap<String, Transaction> verifiedTransactions) {
@@ -30,24 +31,26 @@ public class Validator
 		
 		// Get a list of ids from every transaction that has every been spent
 		HashSet<String> parentIds =  new HashSet<String>();
-		System.out.println("============== every transaction ID that I have verified ==============");
+		System.out.println("============== every transaction ID that I have ==============");
 		for (Transaction t: verifiedTransactions.values()) {
 			System.out.println(t.getTransactionId());
 			for (TransactionIn i: t.getInput()) {
-				parentIds.add(i.getParentId());
+				parentIds.addAll(i.getParentIds());
 			}
 		}
 		
 		// for each input used, check if its known, and if it's been seen before
 		for (TransactionIn i: transaction.getInput()) {
-			if (!verifiedTransactions.containsKey(i.getParentId()))
-				validationData.inputsAreKnown = false;
-			if (parentIds.contains(i.getParentId()))
-				validationData.isDoubleSpend = true;
+			for(String key: i.getParentIds()) {
+				if (!verifiedTransactions.containsKey(key))
+					validationData.inputsAreKnown = false;
+				if (parentIds.contains(key))
+					validationData.isDoubleSpend = true;
 			
-			// break if we've set both booleans (no need to keep looking)
-			if (!validationData.inputsAreKnown && validationData.isDoubleSpend)
-				break;
+				// break if we've set both booleans (no need to keep looking)
+				if (!validationData.inputsAreKnown && validationData.isDoubleSpend)
+					break;
+			}
 		}
 		return validationData;
 	}
@@ -74,7 +77,8 @@ public class Validator
 		}
 		
 		// compare the transaction to all that have been verified so far
-		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactions());
+		BlockChain blockChain = new BlockChain();
+		ValidationData validationData = getValidationData(transaction, blockChain.getAllTransactions());
 		if(!validationData.inputsAreKnown) {
 			Console.log("Unknown inputs for transaction " + transaction.getTransactionId());
 			return false;

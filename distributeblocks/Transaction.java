@@ -30,6 +30,7 @@ public class Transaction implements Serializable {
 	private PublicKey pk_Receiver; // receivers address
 	private float exchange; // the amount to be exchanged
 	private byte[] signature; // for user's personal wallet
+	private ArrayList<String> parentIds = new ArrayList<String>();
 	private ArrayList<TransactionIn> input = new ArrayList<TransactionIn>();
 	private ArrayList<TransactionOut> output = new ArrayList<TransactionOut>();
 	private long timestamp; //timestamp for the block
@@ -51,6 +52,12 @@ public class Transaction implements Serializable {
 		this.pk_Receiver = recieve;
 		this.exchange = amount;
 		this.input = variables;
+		
+		this.parentIds = new ArrayList<String>();
+		for (TransactionIn i: this.input) {
+			this.parentIds.addAll(i.getParentIds());
+		}
+		
 		this.timestamp = new Date().getTime();
 		try {
 			this.transactionId = calculateHash();
@@ -128,9 +135,9 @@ public class Transaction implements Serializable {
   		try {
   		//generate transaction output:
   		float remaining = getInputExchange() - exchange;
-  		output.add(new TransactionOut(this.pk_Receiver, exchange, transactionId));		// Send exchange to receiver
+  		output.add(new TransactionOut(this.pk_Receiver, exchange, transactionId, parentIds));		// Send exchange to receiver
   		if (remaining != 0.0f)
-  			output.add(new TransactionOut(this.pk_Sender, remaining, transactionId)); 	// Send the left over 'change' back to sender
+  			output.add(new TransactionOut(this.pk_Sender, remaining, transactionId, parentIds)); 	// Send the left over 'change' back to sender
 
   		return true;
   		
@@ -182,4 +189,5 @@ public class Transaction implements Serializable {
    	public ArrayList<TransactionOut> getOutput() { return output; }
 	public String getTransactionId() { return transactionId; }
     public PublicKey getPublicKeySender(){ return pk_Sender; }
+    public ArrayList<String> getParentIds() { return parentIds; }
 }

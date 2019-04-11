@@ -35,7 +35,7 @@ public class BlockBroadcastProcessor extends AbstractMessageProcessor<BlockBroad
 				// Update node wallet with the block which is now verified
 				NodeService.getNode().updateWallet(lastVerified);
 				// Update the transaction pools now that a new block is verified
-				NetworkService.getNetworkManager().updateTransactionPools(lastVerified);
+				NetworkService.getNetworkManager().updateTransactionPools();
             }
 
             // TODO Here is the spot to stop mining and restart mining

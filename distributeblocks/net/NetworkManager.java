@@ -486,8 +486,9 @@ public class NetworkManager implements NetworkActions {
 	 * if necessary.
 	 */
 	public synchronized void updateTransactionPools() {
-		updateOrphanPool((new BlockChain()).getAllTransactions());
-		updateTransactionPool((new BlockChain()).getAllTransactions());
+		BlockChain blockChain = new BlockChain();
+		updateOrphanPool(blockChain.getAllTransactions());
+		updateTransactionPool(blockChain.getAllTransactions());
 	}
 	
 	/**

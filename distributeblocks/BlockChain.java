@@ -14,15 +14,14 @@ public class BlockChain implements Serializable {
 	private static final int VERIFIED_DEPTH = 2;				// depth from the head we consider a block to be verified
 
 	private ArrayList<LinkedList<Block>> blockChain;
-	private HashMap<String, Block> allBlocks; 					// To make looking up blocks much faster.
-	private HashMap<String, Transaction> allTransactions;		// Easy access to every verified transaction ever seen
+	private HashMap<String, Block> allBlocks; 									// To make looking up blocks much faster.
+	private HashMap<String, Transaction> allTransactions = new HashMap<>();		// Easy access to every transaction in the longest chain
 
 
 	/**
 	 * Automatically loads chain from file.
 	 */
 	public BlockChain() {
-
 		load();
 	}
 
@@ -162,7 +161,7 @@ public class BlockChain implements Serializable {
 		HashMap<String, Transaction> all = new HashMap<String, Transaction>();
 		
 		// the chain is empty
-		if (longest != null) {
+		if (longest == null) {
 			this.allTransactions = all;
 			return;
 		}
@@ -192,7 +191,7 @@ public class BlockChain implements Serializable {
 	 */
 	public synchronized void load(){
 
-		this.blockChain = new ConfigManager().loadBlockCHain();
+		this.blockChain = new ConfigManager().loadBlockChain();
 
 		allBlocks = new HashMap<>();
 
@@ -201,7 +200,7 @@ public class BlockChain implements Serializable {
 				allBlocks.put(b.getHashBlock(), b);
 			}
 		}
-
+		updateAllTransactions();
 	}
 
 	public synchronized void save(){

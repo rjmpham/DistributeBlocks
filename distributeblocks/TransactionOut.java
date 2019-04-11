@@ -2,6 +2,8 @@ package distributeblocks;
 
 import java.io.Serializable;
 import java.security.*;
+import java.util.ArrayList;
+
 import distributeblocks.crypto.*;
 
 /**
@@ -16,16 +18,22 @@ public class TransactionOut implements Serializable {
 
 	private String id; 				// ID of the transaction
 	private PublicKey pk_Receiver; 	// Receiver of the coins
-	private String id_Parent; 		// The id of the transaction this output was created in
+	private String containerId; 		// The id of the transaction this output was created in
+	private ArrayList<String> sourceIds = new ArrayList<>(); // the ids of transaction where this came from
 	private float exchange; 		// Amount transfered / receiver owns
-
-	public TransactionOut(PublicKey pk_Target, float amount, String id_Input) throws FailedToHashException{
+	
+	public TransactionOut(PublicKey pk_Target, float amount, String containerId, ArrayList<String> sourceIds) throws FailedToHashException{
 		this.pk_Receiver = pk_Target;
 		this.exchange = amount;
-		this.id_Parent = id_Input;
-		this.id = Crypto.calculateObjectHash(Crypto.keyToString(pk_Target)+Float.toString(amount)+ id_Input);
+		this.containerId = containerId;
+		this.id = Crypto.calculateObjectHash(Crypto.keyToString(pk_Target)+Float.toString(amount)+ containerId);
+		this.sourceIds = sourceIds;
 	}
 
+	public void setParentIds(ArrayList<String> parentIds) {
+		this.sourceIds = parentIds;
+	}
+	
 	/**
 	 * Check if a coin belongs to the given key
 	 * 
@@ -40,5 +48,6 @@ public class TransactionOut implements Serializable {
 	// Getter methods
 	public float getExchange() { return exchange; }
 	public String getId() { return id; }
-
+	public String getContainerId() { return containerId; }
+	public ArrayList<String> getSourceIds() { return sourceIds; }
 }

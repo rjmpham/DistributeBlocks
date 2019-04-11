@@ -1,6 +1,7 @@
 package distributeblocks;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  * TransactionIn is used to keep track of a
@@ -13,7 +14,7 @@ import java.io.Serializable;
 public class TransactionIn implements Serializable {
 	private String sourceId; 		// ID of the source TransactionOut
 	private TransactionOut funds; 	// Pointer to the source TransactionOut
-	private String parentId; 		// The id of the transaction this output was created in
+	private ArrayList<String> parentIds; 		// The id of the transaction this output was created in
 	private float exchange;			// Amount of funds being used
 
 	/**
@@ -27,13 +28,19 @@ public class TransactionIn implements Serializable {
 		this.exchange = exchange;
 	}
 	
+	public TransactionIn(String sourceId, float exchange, ArrayList<String> parentIds) {
+		this.sourceId = sourceId;
+		this.exchange = exchange;
+		this.parentIds = parentIds;
+	}
+	
   // Setter methods
-	public void setParentId(String parentId) {
-		this.parentId = parentId;
+	public void setParentIds(ArrayList<String> parentIds) {
+		this.parentIds = parentIds;
 	}
 	
 	// Getter methods
 	public float getExchange() { return exchange; }
 	public String getSourceId() { return sourceId; }
-  public String getParentId() { return parentId; }
+	public ArrayList<String> getParentIds() { return parentIds; }
 }

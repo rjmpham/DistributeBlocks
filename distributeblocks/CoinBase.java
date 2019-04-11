@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import distributeblocks.crypto.Crypto;
 import distributeblocks.io.Console;
@@ -61,7 +62,8 @@ public class CoinBase {
 
 		// TransactionIn comes from the CoinBase
 		TransactionIn reward = new TransactionIn(CoinBase.COIN_BASE_ID, CoinBase.BLOCK_REWARD_AMOUNT);
-		reward.setParentId(CoinBase.PARENT_TRANSACTION_ID);
+		reward.setParentIds(new ArrayList<String>(Arrays.asList(CoinBase.PARENT_TRANSACTION_ID)));
+		
 		ArrayList<TransactionIn> transaction_ArrayList = new ArrayList<TransactionIn>();
 		transaction_ArrayList.add(reward);
 

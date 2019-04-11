@@ -229,7 +229,7 @@ public class Wallet {
 			// Add funds to the transaction_ArrayList
 			TransactionOut funds = item.getValue();
 			sum += funds.getExchange();
-			transaction_ArrayList.add(new TransactionIn(funds.getId(), funds.getExchange()));
+			transaction_ArrayList.add(new TransactionIn(funds.getId(), funds.getExchange(), funds.getSourceIds()));
 
 			// Until the requested amount is exceeded
 			if(sum >= amount) break;
@@ -244,7 +244,6 @@ public class Wallet {
 
 		// put the funds used to create this transaction on hold
 		for(TransactionIn i: transaction_ArrayList){
-			i.setParentId(newTransaction.getTransactionId());
 			TransactionOut spent = funds_HashMap.get(i.getSourceId());
 			funds_HashMap.remove(i.getSourceId());
 			onHold_HashMap.put(spent.getId(), spent);
