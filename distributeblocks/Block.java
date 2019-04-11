@@ -100,7 +100,7 @@ public class Block implements Serializable {
 		}
 
 		// For testing.
-		Console.log("Block Mined!!! : " + hashBlock);
+		//Console.log("Block Mined!!! : " + hashBlock);
 	}
 
 	public boolean isBlockMined(){
