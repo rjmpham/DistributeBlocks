@@ -80,8 +80,9 @@ public class Node {
 	 * file location.
 	 * 
 	 * @param path		path to the directory where wallet info will be stored
+	 * @param alias		Alias associated with the wallet
 	 */
-	public void createWallet(String path) {
+	public void createWallet(String path, String alias) {
 		// ensure that it is safe to save wallet data to the directory
 		String fullPath = System.getProperty("user.dir") + path;
 		File file = new File(fullPath);
@@ -95,7 +96,7 @@ public class Node {
 		
 		// keep a copy of the current wallet in case creation fails
 		Wallet old = wallet;
-		wallet = new Wallet();
+		wallet = new Wallet(alias);
 		walletPath = fullPath;
 		
 		boolean failed = false;

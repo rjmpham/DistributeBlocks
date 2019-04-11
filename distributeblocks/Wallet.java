@@ -42,7 +42,17 @@ public class Wallet {
 	  KeyPair pair = Crypto.keyPairGenerator();
 	  privateKey = pair.getPrivate();
 	  publicKey = pair.getPublic();
-	  alias = "";
+	  this.alias = "";
+	}
+	
+	/**
+	 * Constructor to create a new empty wallet with a certain alias
+	 */
+	public Wallet(String alias){
+	  KeyPair pair = Crypto.keyPairGenerator();
+	  privateKey = pair.getPrivate();
+	  publicKey = pair.getPublic();
+	  this.alias = alias;
 	}
 
 	/**
@@ -324,13 +334,6 @@ public class Wallet {
 			System.out.println("This node cannot mine as no block rewards can be made!");
 			return null;
 		}
-	}
-
-	/**
-	 * Set the alias of a wallet
-	 */
-	public void setAlias(String newAlias){
-	  alias = newAlias;
 	}
 	
 	// Getter methods

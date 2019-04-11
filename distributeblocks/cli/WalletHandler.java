@@ -38,12 +38,16 @@ class NewHandler implements Callable<Void> {
 
 	public NewHandler() {}
 	
+	@Option(names = {"-a", "--alias"}, 
+			description = "Your alias in the network")
+	private String alias = "";
+	
 	@Parameters(index = "0", description = "File path to store wallet information")
 	private String walletPath;
 	
 	@Override
 	public Void call() throws Exception {
-		WalletHandler.node.createWallet(walletPath);
+		WalletHandler.node.createWallet(walletPath, alias);
 		
 		return null;
 	}
