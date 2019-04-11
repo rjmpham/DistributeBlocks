@@ -139,7 +139,7 @@ public class ConfigManager {
 
 			boolean found = false;
 			for (PeerNode n : nodes) {
-				if (n.equals(node)) {
+				if (n.getListeningAddress().toString().equals(node.getListeningAddress().toString())) {
 					found = true;
 					break;
 				}
