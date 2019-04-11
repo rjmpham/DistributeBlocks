@@ -5,7 +5,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.BufferedReader;
 import java.io.FileWriter;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -51,6 +53,7 @@ public class WalletManager {
 		saveKeyPair(path, new KeyPair(wallet.getPublicKey(), wallet.getPrivateKey()));
 		saveFundsHashMap(path, wallet.getFundsHashMap());
 		saveOnHoldHashMap(path, wallet.getOnHoldHashMap());
+		saveAlias(path, wallet.getAlias());
 	}
 	
 	/**
@@ -68,11 +71,12 @@ public class WalletManager {
 		KeyPair keys = loadKeyPair(path, Crypto.GEN_ALGORITHM);
 		HashMap<String, TransactionResult> funds_HashMap = loadFundsHashMap(path);
 		HashMap<String, TransactionResult> onHold_HashMap = loadOnHoldHashMap(path);
+		String alias = loadAlias(path);
 		
 		if (keys == null)
 			return null;
 		
-		return new Wallet(keys, funds_HashMap, onHold_HashMap);
+		return new Wallet(keys, funds_HashMap, onHold_HashMap, alias);
 	}
 	
 	/**
@@ -303,5 +307,48 @@ public class WalletManager {
 		PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encodedPrivateKey);
 		PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
 		return privateKey;
+	}
+	
+	/**
+	 * Saves an alias to a file
+	 * 
+	 * @param path		the path where the alias.txt file will be created in
+	 * 
+	 * @throws IOException
+	 */
+	public static void saveAlias(String path, String alias) throws IOException {
+		Console.log("test1"); //debug
+		String fullpath = path + "alias.txt";
+		File file = new File(fullpath);
+		file.getParentFile().mkdirs();
+		
+		Console.log("test2"); //debug
+		// Store alias
+		BufferedWriter writer = new BufferedWriter(new FileWriter(fullpath));
+		Console.log("test3"); //debug
+		writer.write(alias);
+		Console.log("test4"); //debug
+		writer.close();
+	}
+	
+	/**
+	 * Loads an alias from a file
+	 * 
+	 * @param path		the path where the alias.txt file will be created in
+	 * 
+	 * @throws IOException
+	 */
+	public static String loadAlias(String path) throws IOException {
+		String fullpath = path + "alias.txt";
+		File file = new File(fullpath);
+		file.getParentFile().mkdirs();
+		
+		// Read Alias
+		String alias;
+		BufferedReader reader = new BufferedReader(new FileReader(fullpath));
+		alias = reader.readLine();
+		reader.close();
+		
+		return alias;
 	}
 }

@@ -50,13 +50,16 @@ public class Wallet {
 	 * @param keys				KeyPair of the wallet
 	 * @param funds_HashMap		funds the wallet has
 	 * @param onHold_HashMap	funds the wallet has on hold
+	 * @param alias				Alias associated with the wallet
 	 */
 	public Wallet(KeyPair keys,
 					HashMap<String,TransactionResult> funds_HashMap,
-					HashMap<String,TransactionResult> onHold_HashMap) {
+					HashMap<String,TransactionResult> onHold_HashMap,
+					String alias) {
 		this.privateKey = keys.getPrivate();
 		this.publicKey = keys.getPublic();
-
+		this.alias = alias;
+		
 		if (funds_HashMap != null)
 			this.funds_HashMap = funds_HashMap;
 
