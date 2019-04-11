@@ -338,7 +338,7 @@ public class WalletManager {
 		// Read Alias
 		String alias;
 		FileReader reader = new FileReader(path);
-		reader.readLine(alias);
+		reader.read(alias);
 		reader.close();
 		
 		return alias;
