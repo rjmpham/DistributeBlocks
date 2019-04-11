@@ -494,12 +494,10 @@ public class NetworkManager implements NetworkActions {
 			// if we know the inputs from the block chain or from the pool, add it. otherwise, it may be from a different fork
 			//if (validationData.inputsAreKnown || poolValidationData.inputsAreKnown){
 				// Put the transaction into the correct pool
-				System.out.println("Adding transaction to the pool: " + transaction.getTransactionId());
 				transactionPool.put(transaction.getTransactionId(), transaction);
 				//updateOrphanPool(transaction);
 			//}
 			//else {
-			//	System.out.println("Whoops, I couldn't find where this transaction is suppossed to come from");
 			//	orphanedTransactionPool.put(transaction.getTransactionId(), transaction);
 			//}
 		}
@@ -1013,7 +1011,6 @@ public class NetworkManager implements NetworkActions {
 
 						if (m.blockHeight == j) {
 							blockChain.addBlock(m.block);
-							System.out.println("In AquireChain: Added block to the chain!");
 							
 							Block lastVerified = blockChain.getLastVerifiedBlock();
 							if (lastVerified != null) {

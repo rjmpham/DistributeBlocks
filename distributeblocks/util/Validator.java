@@ -46,23 +46,10 @@ public class Validator
 				// Get any known spender of the source in question (if spender isn't null, someone else already spent this source)
 				TransactionResult spender = spentTransactionIds.get(sourceId);
 				// ignore block rewards because they always have the same parent id
-//				System.out.println("============================================================================");
-//				System.out.println("I'm checking if transaction " + transaction.getTransactionId() + "is valid");
-//				System.out.println("The input im checking right now is " + i.getId());
-//				System.out.println("I'm going to check to see if Transaction result " + sourceId + " has been spent");
-//				System.out.println("I checked to see if there was a spender, and it was " + spender);
-//				System.out.println("spender != null: " + (spender != null));
-//				if (spender != null) {System.out.println("spender.getId() != i.getId():" + (spender.getId() != i.getId()));}
-//				System.out.println("sourceId != CoinBase.PARENT_TRANSACTION_ID: " + (sourceId != CoinBase.PARENT_TRANSACTION_ID));
 				
 				if (spender != null && spender.getId() != i.getId() && sourceId != CoinBase.PARENT_TRANSACTION_ID) {
-					System.out.println("I decided that it is a double spend");
 					validationData.isDoubleSpend = true;
 				}
-				else {
-					System.out.println("I decided that it is NOT a double spend");
-				}
-				System.out.println("============================================================================");
 			
 				// break if we've set both booleans (no need to keep looking, we have all the info we need)
 				if (!validationData.inputsAreKnown && validationData.isDoubleSpend)
@@ -191,20 +178,18 @@ public class Validator
 	{
 		try {
 			if (!block.getHashBlock().equals(Crypto.calculateBlockHash(block))) {       	 	  //If the block hash isn't correct
-				System.out.println("Block verification error: Failed to verify block hash");
+				Console.log("Block verification error: Failed to verify block hash");
 				return false;
 			}
 //			if (!(block.getHashData().equals(Crypto.calculateObjectHash(block.getData())))) {     //If the data hash isn't correct
-//				System.out.println("Block verification error: Failed to verify data hash of block"
-//						+ "\n" + block.getHashData() + "\n" + Crypto.calculateObjectHash(block.getData()));
 //				return false;
 //			}
 			if (!(block.getTargetNumZeros()==Node.HASH_DIFFICULTY)){                              //if the hash difficulty is different
-				System.out.println("Block verification error: Block does not meet hash difficulty");
+				Console.log("Block verification error: Block does not meet hash difficulty");
 				return false;
 			}
 			if (!block.isBlockMined())    {     							 			       	  //If the block nonce is off
-				System.out.println("Block verification error: Block is not mined");
+				Console.log("Block verification error: Block is not mined");
 				return false;
 			}
 
@@ -222,7 +207,7 @@ public class Validator
 					continue;
 				}
 				if (blockReward > 1){
-					System.out.println("Block verification error: Block contains more than one reward transaction");
+					Console.log("Block verification error: Block contains more than one reward transaction");
 					return false;
 				}
 
@@ -230,24 +215,24 @@ public class Validator
 				 */
 				ValidationData validationData = getValidationDataAlt(t, verifiedTransactions);
 				if(!validationData.inputsAreKnown){
-					System.out.println("Block verification error: Failed to find inputs for transaction " + t.getTransactionId());
+					Console.log("Block verification error: Failed to find inputs for transaction " + t.getTransactionId());
 					return false;
 				}
 				if(validationData.isDoubleSpend){
-					System.out.println("Block verification error: Found double spend transaction " + t.getTransactionId());
+					Console.log("Block verification error: Found double spend transaction " + t.getTransactionId());
 					return false;
 				}
 				if(validationData.alreadyOnBlock) {
-					System.out.println("Block verification error: Found duplicate transaction " + t.getTransactionId());
+					Console.log("Block verification error: Found duplicate transaction " + t.getTransactionId());
 					return false;
 				}
 			}
-			System.out.println("Block verification suceeded");
+			Console.log("Block verification suceeded");
 			return true;													       			      //Otherwise return true
 		}
 		catch (Exception e)
 		{
-			System.out.println("Block verification error: got exception " + e.getMessage());
+			Console.log("Block verification error: got exception " + e.getMessage());
 			return false;   
 		}
 	}

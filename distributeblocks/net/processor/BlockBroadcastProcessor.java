@@ -35,7 +35,6 @@ public class BlockBroadcastProcessor extends AbstractMessageProcessor<BlockBroad
             	return;
             }
             blockChain.save();
-            System.out.println("In BlockBroadcastProcessor: Added block to the chain!");
             
             Block lastVerified = blockChain.getLastVerifiedBlock();
             if (lastVerified != null) {
