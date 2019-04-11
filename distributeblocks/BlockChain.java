@@ -32,16 +32,19 @@ public class BlockChain implements Serializable {
 	 * Adds block to the chain. Automatically puts it on the right fork.
 	 *
 	 * @param block
+	 * 
+	 * @return true if the block was added successfully
 	 */
-	public void addBlock(Block block){
+	public boolean addBlock(Block block){
 
 		if (block == null){
 			Console.log("GOT NULL BLOCK!");
+			return false;
 		}
 
 		// Check to see if we already have the block. If we do it's valid already
 		if (allBlocks.containsKey(block.getHashBlock())){
-			return;
+			return false;
 		}
 
 		allBlocks.put(block.getHashBlock(), block);
@@ -61,7 +64,7 @@ public class BlockChain implements Serializable {
 						ls.add(block);
 						updateAllTransactions();
 						updateAllTransactionResults();
-						return;
+						return true;
 					}
 				} catch (FailedToHashException e) {
 					Console.log("Failed to hash exception! BlockChain class under addBlock.");
@@ -97,10 +100,10 @@ public class BlockChain implements Serializable {
 								blockChain.add(newFork); // And add the new fork.
 								updateAllTransactions();
 								updateAllTransactionResults();
-								return;
+								return true;
 							}
 							else {
-								return;
+								return false;
 							}
 						} catch (FailedToHashException e) {
 							Console.log("Failed to hash exception! BlockChain class under addBlock.");
@@ -115,6 +118,7 @@ public class BlockChain implements Serializable {
 		// Uh oh, WE DIDNT HAVE THE PREVIOUS BLOCK, PANIC!!!!
 		allBlocks.remove(block.getHashBlock());
 		NetworkService.getNetworkManager().asyncEnqueue(new MissingBlockMessage(block.getHashPrevious()));
+		return false;
 	}
 
 	/**
