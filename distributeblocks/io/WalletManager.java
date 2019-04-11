@@ -214,22 +214,14 @@ public class WalletManager {
 	 * @throws IOException
 	 */
 	public static void savePublicKey(String fullPath, PublicKey publicKey) throws IOException {
-		System.out.println("CCCCCCCCH0");
 		File file = new File(fullPath);
-		System.out.println("CCCCCCCCH1");
 		file.getParentFile().mkdirs();
-		System.out.println("CCCCCCCCH2");
 		
 		// Store Public Key
-		System.out.println("CCCCCCCCH3");
 		X509EncodedKeySpec encodedKeySpec = new X509EncodedKeySpec(publicKey.getEncoded());
-		System.out.println("CCCCCCCCH4");
 		FileOutputStream fos = new FileOutputStream(fullPath);
-		System.out.println("CCCCCCCCH5");
 		fos.write(encodedKeySpec.getEncoded());
-		System.out.println("CCCCCCCCH6");
 		fos.close();
-		System.out.println("CCCCCCCCH7");
 	}
 	
 	/**
