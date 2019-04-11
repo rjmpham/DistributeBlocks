@@ -450,9 +450,13 @@ public class NetworkManager implements NetworkActions {
 		}
 		
 		// check against the whole block
-		ValidationData validationData = Validator.getValidationData(transaction, (new BlockChain()).getAllTransactionResults());
+		ValidationData validationData = Validator.getValidationDataAlt(transaction, (new BlockChain()).getAllTransactions());
 		if (validationData.isDoubleSpend) {
 			Console.log("Transaction was a double spend! aborting");
+			return;
+		}
+		if (validationData.alreadyOnBlock) {
+			Console.log("Transaction already exists! aborting");
 			return;
 		}
 		
@@ -464,19 +468,19 @@ public class NetworkManager implements NetworkActions {
 		synchronized (transactionPool) {
 			// Compose a hashmap of all verified transactions, the transaction pool and pending transactions
 
-			//HashMap<String, Transaction> combinedPool = new HashMap<>();
-			//combinedPool.putAll(transactionPool);
+			HashMap<String, Transaction> combinedPool = new HashMap<>();
+			combinedPool.putAll(transactionPool);
 			//combinedPool.putAll(pendingTransactionPool);
 
 			// Check against the blockchain and the transaction pools
-			//ValidationData poolValidationData = Validator.getValidationDataAlt(transaction, combinedPool);
+			ValidationData poolValidationData = Validator.getValidationDataAlt(transaction, combinedPool);
 
-			//if (!validationData.inputsAreKnown && !poolValidationData.inputsAreKnown){
-				
+			// if we know the inputs from the block chain or from the pool, add it. otherwise, it may be from a different fork
+			if (!validationData.inputsAreKnown && !poolValidationData.inputsAreKnown){
 				// Put the transaction into the correct pool
 				transactionPool.put(transaction.getTransactionId(), transaction);
 				//updateOrphanPool(transaction);
-			//}
+			}
 			//else {
 			//	orphanedTransactionPool.put(transaction.getTransactionId(), transaction);
 			//}

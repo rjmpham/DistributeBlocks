@@ -30,22 +30,20 @@ public class Validator
 		ValidationData validationData = new ValidationData();
 		
 		// Get a list of ids from every transaction that has every been spent
-		HashSet<String> parentIds =  new HashSet<String>();
+		HashSet<String> spentTransactionIds =  new HashSet<String>();
 		for (TransactionResult t: verifiedTransactions.values()) {
-			parentIds.addAll(t.getSourceIds());
+			spentTransactionIds.addAll(t.getSourceIds());
 		}
-
-
 		
-		// for each input used, check if its known, and if it's been seen before
+		// for each input used, check if its known, and if it's been spent before
 		for (TransactionResult i: transaction.getInput()) {
 			for(String key: i.getSourceIds()) {
 				if (!verifiedTransactions.containsKey(key))
 					validationData.inputsAreKnown = false;
-				if (parentIds.contains(key))
+				if (spentTransactionIds.contains(key))
 					validationData.isDoubleSpend = true;
 			
-				// break if we've set both booleans (no need to keep looking)
+				// break if we've set both booleans (no need to keep looking, we have all the info we need)
 				if (!validationData.inputsAreKnown && validationData.isDoubleSpend)
 					break;
 			}
@@ -67,12 +65,19 @@ public class Validator
 	public static ValidationData getValidationDataAlt(Transaction transaction, HashMap<String, Transaction> verifiedTransactions) {
 		HashMap<String, TransactionResult> verifiedTransactionResults = new HashMap<>();
 		
+		// get all the TransactionResult inputs from the verified transactions
 		for(Transaction t: verifiedTransactions.values()) {
 			for(TransactionResult r: t.getInput()) {
 				verifiedTransactionResults.put(r.getId(), r);
 			}
 		}
-		return getValidationData(transaction, verifiedTransactionResults);
+		// check over the transaction results for doubleSpent and inputsAreKnow
+		ValidationData validationData = getValidationData(transaction, verifiedTransactionResults);
+		
+		// check to see if the whole transaction is itself a duplicate
+		validationData.alreadyOnBlock = verifiedTransactions.containsKey(transaction.getTransactionId());
+		
+		return validationData;
 	}
 	
 	/**
@@ -195,14 +200,16 @@ public class Validator
 
 				/* Use the validation data to determine if the transaction is valid or not
 				 */
-				ValidationData validationData = getValidationData(t, verifiedTransactions);
+				ValidationData validationData = getValidationDataAlt(t, verifiedTransactions);
 				if(!validationData.inputsAreKnown){
 					return false;
 				}
 				if(!validationData.isDoubleSpend){
 					return false;
 				}
-
+				if(validationData.alreadyOnBlock) {
+					return false;
+				}
 			}
 
 			return true;													       			      //Otherwise return true
