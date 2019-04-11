@@ -695,7 +695,7 @@ public class NetworkManager implements NetworkActions {
 	}
 
 
-	public void sendToMonitor(AbstractMessage message){
+	public void sendToMonitor(AbstractMessage message, IPAddress peerNode){
 
 	 //	Console.log("!!!!!!!!!!!!!!!!!!!!!!!! Sending message to monitor");
 	 	synchronized (monitorLock) {
@@ -710,15 +710,15 @@ public class NetworkManager implements NetworkActions {
 					}
 
 
-					monitorOutput.writeObject(new MonitorDataMessage(message, addresses));
+					monitorOutput.writeObject(new MonitorDataMessage(message, addresses, peerNode));
 					//Console.log("!!!!!!!!!!!!!!!!!!!!!!!! Sent message to monitor");
 				} catch (IOException e) {
 					try {
 						monitorSocket.close();
 					} catch (IOException e1) {
-						e1.printStackTrace();
+						//e1.printStackTrace();
 					}
-					e.printStackTrace();
+					//e.printStackTrace();
 
 					monitorSocket = null;
 					MonitorNotifierProcessor.receivedIDs = new HashSet<>();

@@ -5,6 +5,7 @@ import distributeblocks.net.NetworkService;
 import distributeblocks.net.PeerNode;
 import distributeblocks.net.message.*;
 import org.graphstream.algorithm.generator.Generator;
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.MultiGraph;
 import org.graphstream.graph.implementations.SingleGraph;
@@ -22,13 +23,13 @@ import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class NetworkMonitor {
 
 
 	ExecutorService executorService;
+	ScheduledExecutorService scheduledExecutorService;
 	ServerSocket serverSocket;
 	MultiGraph graph;
 
@@ -42,6 +43,7 @@ public class NetworkMonitor {
 	public NetworkMonitor() {
 
 		executorService = Executors.newCachedThreadPool();
+		scheduledExecutorService = Executors.newScheduledThreadPool(5);
 		graph = new MultiGraph("Network Graph");
 		generator = new NodeGraphGenerator();
 		generator.addSink(graph);
@@ -73,7 +75,7 @@ public class NetworkMonitor {
 	}
 
 
-	private class NodeGraphGenerator extends SourceBase implements Generator{
+	private class NodeGraphGenerator extends SourceBase implements Generator {
 
 		int currentIndex = 0;
 		int edgeId = 0;
@@ -111,11 +113,13 @@ public class NetworkMonitor {
 
 		Socket socket;
 		String address;
+		ArrayList<String> edgeIDs;
 
 
 		public MonitorListener(Socket socket) {
 			this.socket = socket;
 			System.out.println("Starting listener on: " + socket.getInetAddress().getHostAddress().toString() + ":" + socket.getPort());
+			edgeIDs = new ArrayList<>();
 		}
 
 		@Override
@@ -129,62 +133,124 @@ public class NetworkMonitor {
 				while (true) {
 
 
-					System.out.println("Waiting for a message");
+					//System.out.println("Waiting for a message");
 					MonitorDataMessage message = (MonitorDataMessage) input.readObject();
-					System.out.println("Got a message");
-
-
+					//System.out.println("Got a message");
 
 
 					address = message.listeningAddress.toString();
 
 					if (graph.getNode(address) == null) {
-						graph.addNode(address);
-						pipe.pump();
+
+						synchronized (graph) {
+							org.graphstream.graph.Node gNode = graph.addNode(address);
+
+							gNode.addAttribute("ui.style", "shape:circle;fill-color: blue;size: 25px; text-alignment: center;");
+							gNode.addAttribute("ui.label", address);
+
+							pipe.pump();
+						}
 					}
 
 
+					synchronized (graph) {
+						for (IPAddress address : message.connectedPeers) {
 
-					for (IPAddress address : message.connectedPeers) {
-						String edgeId = message.listeningAddress.toString() + address.toString();
-						String node1 = message.listeningAddress.toString();
-						String node2 = message.listeningAddress.toString();
-
-						try {
-							if (graph.getNode(address.toString()) == null) {
-								graph.addNode(address.toString());
+							try {
+								if (graph.getNode(address.toString()) == null) {
+									//graph.addNode(address.toString());
+								}
+							} catch (Exception e) {
+								e.printStackTrace();
 							}
-						} catch (Exception e) {
-							e.printStackTrace();
+
+							String id = message.listeningAddress.toString() + address.toString();
+
+							try {
+
+
+								if (graph.getEdge(id) == null) {
+									graph.addEdge(id, message.listeningAddress.toString(), address.toString());
+									edgeIDs.add(id);
+									pipe.pump();
+								}
+
+
+							} catch (Exception e) {
+							//	e.printStackTrace();
+							}
+
+							//graph.
 						}
 
-						String id = message.listeningAddress.toString() + address.toString();
+						// Get the edge representing the communication path for this paticular message.
 
 						try {
-							if (graph.getEdge(id) == null) {
-								graph.addEdge(id, message.listeningAddress.toString(), address.toString());
-								pipe.pump();
-							}
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
 
-						//graph.
+							Edge edge = graph.getEdge(message.listeningAddress + message.recipient.toString());
+
+							if (edge != null){
+
+								if (message.message instanceof BlockBroadcastMessage){
+									edge.addAttribute("ui.style", "size: 5px; fill-color: green;");
+									pipe.pump();
+									scheduleThing(edge);
+								} else if (message.message instanceof TransactionBroadcastMessage){
+									edge.addAttribute("ui.style", "size: 5px; fill-color: orange;");
+									pipe.pump();
+									scheduleThing(edge);
+								}
+
+
+							}
+
+						} catch (Exception e2){
+
+						}
 					}
-
-
-					System.out.println("got to end of loop");
+					//System.out.println("got to end of loop");
 				}
 
-			} catch (Exception e){
+			} catch (Exception e) {
 				e.printStackTrace();
 
-				graph.removeNode(address);
+
+				synchronized (graph) {
+					try {
+						graph.removeNode(address);
+					} catch (Exception e2) {
+
+					}
+
+					for (String id : edgeIDs) {
+						try {
+							graph.removeEdge(id);
+
+						} catch (Exception e2) {
+
+						}
+					}
+
+					pipe.pump();
+				}
 			}
 
 
 			System.out.println("Exiting listener.");
 		}
+	}
+
+	private void scheduleThing(Edge edge){
+		scheduledExecutorService.schedule(new Runnable() {
+			@Override
+			public void run() {
+
+				synchronized (graph){
+					edge.addAttribute("ui.style", "size: 1px; fill-color: back;");
+					pipe.pump();
+				}
+			}
+		}, 500, TimeUnit.MILLISECONDS);
 	}
 
 	private class NodeAnnouncer implements Runnable {
@@ -211,4 +277,12 @@ public class NetworkMonitor {
 			}
 		}
 	}
+
+	private abstract class GraphAction{
+
+		public abstract void action();
+
+	}
+
+	//private class ActionProcessor
 }

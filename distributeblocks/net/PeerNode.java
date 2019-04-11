@@ -288,7 +288,7 @@ public class PeerNode {
 
 					message = outQueue.take();
 					stream.writeObject(message);
-					NetworkService.getNetworkManager().sendToMonitor(message);
+					NetworkService.getNetworkManager().sendToMonitor(message, PeerNode.this.getListeningAddress());
 
 				} catch (InterruptedException | IOException e) {
 					//e.printStackTrace();
