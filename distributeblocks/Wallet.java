@@ -24,7 +24,7 @@ import distributeblocks.io.WalletManager;
 public class Wallet {
 	// Coin base keys are used for signing block reward transactions from a static source
 	private static final String COIN_BASE_ID = "COIN_BASE";
-	private static final String COIN_BASE_DIR = "/coinBase/";
+	private static final String COIN_BASE_DIR = "./coinBase/";
 	public static final KeyPair COIN_BASE_KEYS = loadCoinBase();
 	private static final float BLOCK_REWARD_AMOUNT = 5.0f;
 
