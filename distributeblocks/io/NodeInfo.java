@@ -12,7 +12,7 @@ public class NodeInfo {
 	
 	public NodeInfo(IPAddress address, PublicKey publicKey, String alias)
 	{
-		this.addr = address;
+		this.address = address;
 		this.publicKey = publicKey;
 		this.alias = alias;
 	}
