@@ -151,41 +151,65 @@ public class Validator
 		else
 			return false;
 	}
-	
-	//Checks if a given block is valid
-	//Currently does not check whether the block satisfies the target
-	public static boolean isValidBlock(Block block, String hashPreviousBlock) throws FailedToHashException
+
+	/**
+	 * Checks if a given block is valid
+	 * Currently does not check whether the block satisfies the target
+	 *
+	 * @param block is the block to check
+	 * @param verifiedTransactions is a list of transactions that appear before said block on the fork of said block
+	 * @return true if the block has all the required variables
+	 * @throws FailedToHashException happens when the crypto methods fails to use their hashing algorithm
+	 */
+	public static boolean isValidBlock(Block block,HashMap<String, Transaction> verifiedTransactions) throws FailedToHashException
 	{
-		try
-		{
-			if (!block.getHashBlock().equals(Crypto.calculateBlockHash(block)))				//If the block hash isn't correct...
+		try {
+			if (!block.getHashBlock().equals(Crypto.calculateBlockHash(block))) {       	 	  //If the block hash isn't correct
 				return false;
-			if (block.getHashData().equals(Crypto.calculateObjectHash(block.getData())))	//If the data hash isn't correct...
+			}
+			if (!(block.getHashData().equals(Crypto.calculateObjectHash(block.getData())))) {     //If the data hash isn't correct
 				return false;
-			if (block.getHashPrevious().equals(hashPreviousBlock))							//If the previous hash isn't correct...
+			}
+			if (!(block.getTargetNumZeros()==Node.HASH_DIFFICULTY)){                              //if the hash difficulty is different
 				return false;
-			return true;																	//Otherwise return true
+			}
+			if (!block.isBlockMined())    {     							 			       	  //If the block nonce is off
+				return false;
+			}
+
+			/* run a for loop that checks every transaction on the block to check it's validity against
+			 * strictly OLDER blocks
+			 */
+			int blockReward = 0;
+			HashMap<String, Transaction> data = block.getData();
+			for (Transaction t : data.values()){
+
+
+				//if the transaction is a valid coinbase transaction
+				if (Crypto.verifySignature(CoinBase.COIN_BASE_KEYS.getPublic(),t.getTransactionId(),t.getSignature())){
+					blockReward++;
+				}
+				if (blockReward>1){
+					return false;
+				}
+
+				/* Use the validation data to determine if the transaction is valid or not
+				 */
+				ValidationData validationData = getValidationData(t, verifiedTransactions);
+				if(!validationData.inputsAreKnown){
+					return false;
+				}
+				if(!validationData.isDoubleSpend){
+					return false;
+				}
+
+			}
+
+			return true;													       			      //Otherwise return true
 		}
 		catch (Exception e)
 		{
-			throw new FailedToHashException(block,e);
+			return false;   
 		}
-	}
-
-	//Checks whether an ArrayList of blocks is valid
-	public static boolean isValidBlockchain(LinkedList<Block> blockchain) throws FailedToHashException
-	{
-		Block currentBlock = blockchain.getFirst();										//Get the genesis block
-		if (!isValidBlock(currentBlock,""))												//If the genesis block is not correct...
-			return false;
-		String previousHashBlock = blockchain.getFirst().getHashBlock();
-		for (int i = 1; i < blockchain.size(); i++)										//For all the blocks AFTER the genesis block
-		{
-			currentBlock = blockchain.get(i);
-			if (!isValidBlock(currentBlock,previousHashBlock))							//If block "i" is invalid...
-				return false;
-			previousHashBlock = blockchain.get(i).getHashBlock();
-		}
-		return true;																	//If all the blocks are valid then return true
 	}
 }
