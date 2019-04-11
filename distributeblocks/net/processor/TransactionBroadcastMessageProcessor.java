@@ -22,14 +22,14 @@ public class TransactionBroadcastMessageProcessor extends AbstractMessageProcess
 		try {
 			PublicKey publicKey = WalletManager.loadPublicKey(fullPath, Crypto.GEN_ALGORITHM);
 			if(message.transaction.verifySignature()) {
-				if (Crypto.verifySignature(publicKey, message.transaction.getTransactionId(),message.transaction.getSignature()){
-					return
+				if (Crypto.verifySignature(publicKey, message.transaction.getTransactionId(),message.transaction.getSignature())){
+					return;
 				}else{
 					NetworkService.getNetworkManager().addTransaction(message.transaction);
 					return;
 				}
 			}
-		}catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
+		} catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException e) {
 			Console.log("DDoS TransactionBroadcastMessageProcessor error");
 		}
 
