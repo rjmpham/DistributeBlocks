@@ -30,13 +30,14 @@ public class Transaction implements Serializable {
 	private PublicKey pk_Receiver; // receivers address
 	private float exchange; // the amount to be exchanged
 	private byte[] signature; // for user's personal wallet
-	private ArrayList<TransactionIn> input = new ArrayList<TransactionIn>();
-	private ArrayList<TransactionOut> output = new ArrayList<TransactionOut>();
+	private ArrayList<String> sourceIds = new ArrayList<String>();	// the ids of TransactionResults this uses
+	private ArrayList<TransactionResult> input = new ArrayList<TransactionResult>();
+	private ArrayList<TransactionResult> output = new ArrayList<TransactionResult>();
 	private long timestamp; //timestamp for the block
 	//private static int count_Transactions = 0; // estimates number of transactions created.
 
 	/**
-   	* Constructor for a new transactionl
+   	* Constructor for a new transaction
    	* Generating transactions requires the public keys of both
    	* the sender and receiver as well as the amount.
    	* 
@@ -46,11 +47,17 @@ public class Transaction implements Serializable {
    	* @param amount				Amount to send
    	* @param variables			Inputs being used
    	*/
-	public Transaction(PrivateKey senderPrivateKey, PublicKey send, PublicKey recieve , float amount,  ArrayList<TransactionIn> variables) {
+	public Transaction(PrivateKey senderPrivateKey, PublicKey send, PublicKey recieve , float amount,  ArrayList<TransactionResult> variables) {
 		this.pk_Sender = send;
 		this.pk_Receiver = recieve;
 		this.exchange = amount;
 		this.input = variables;
+		
+		this.sourceIds = new ArrayList<String>();
+		for (TransactionResult r: this.input) {
+			this.sourceIds.add(r.getId());
+		}
+		
 		this.timestamp = new Date().getTime();
 		try {
 			this.transactionId = calculateHash();
@@ -128,9 +135,9 @@ public class Transaction implements Serializable {
   		try {
   		//generate transaction output:
   		float remaining = getInputExchange() - exchange;
-  		output.add(new TransactionOut(this.pk_Receiver, exchange, transactionId));		// Send exchange to receiver
+  		output.add(new TransactionResult(this.pk_Receiver, exchange, transactionId, sourceIds));		// Send exchange to receiver
   		if (remaining != 0.0f)
-  			output.add(new TransactionOut(this.pk_Sender, remaining, transactionId)); 	// Send the left over 'change' back to sender
+  			output.add(new TransactionResult(this.pk_Sender, remaining, transactionId, sourceIds)); 	// Send the left over 'change' back to sender
 
   		return true;
   		
@@ -140,7 +147,7 @@ public class Transaction implements Serializable {
   		}
 	}
   
-	public ArrayList<TransactionIn> getTransactionInputs() {
+	public ArrayList<TransactionResult> getTransactionInputs() {
 		return this.input;
 	}
 
@@ -152,7 +159,7 @@ public class Transaction implements Serializable {
   	 */
   	public float getInputExchange() {
   		float total = 0;
-  		for(TransactionIn i : input) {
+  		for(TransactionResult i : input) {
   			total += i.getExchange();
   		}
   		return total;
@@ -170,7 +177,7 @@ public class Transaction implements Serializable {
   	 */
   	public float getOutputExchange() {
   		float total = 0;
-  		for(TransactionOut o : output) {
+  		for(TransactionResult o : output) {
   			total += o.getExchange();
   		}
   		return total;
@@ -178,8 +185,9 @@ public class Transaction implements Serializable {
 
   	// Getter methods
   	public byte[] getSignature() { return this.signature; }
-   	public ArrayList<TransactionIn> getInput() { return input; }
-   	public ArrayList<TransactionOut> getOutput() { return output; }
+   	public ArrayList<TransactionResult> getInput() { return input; }
+   	public ArrayList<TransactionResult> getOutput() { return output; }
 	public String getTransactionId() { return transactionId; }
     public PublicKey getPublicKeySender(){ return pk_Sender; }
+    public ArrayList<String> getParentIds() { return sourceIds; }
 }
