@@ -17,26 +17,24 @@ public class Validator
 	
 	/**
 	 * Compares a transaction against a HashMap of all
-	 * verified transactions. The returned ValidationData
+	 * verified transaction results. The returned ValidationData
 	 * will tell whether the transaction is a doubleSpend, and
 	 * whether all its inputs exist.
 	 * 
 	 * @param transaction				transaction to check
-	 * @param verifiedTransactions		transactions to check against
+	 * @param verifiedTransactions		transaction results to check against
 	 * 
 	 * @return	ValidationData containing resulting transaction state
 	 */
-	public static ValidationData getValidationData(Transaction transaction, HashMap<String, Transaction> verifiedTransactions) {
+	public static ValidationData getValidationData(Transaction transaction, HashMap<String, TransactionResult> verifiedTransactions) {
 		ValidationData validationData = new ValidationData();
 		
 		// Get a list of ids from every transaction that has every been spent
 		HashSet<String> parentIds =  new HashSet<String>();
 		System.out.println("============== every transaction ID that I have ==============");
-		for (Transaction t: verifiedTransactions.values()) {
-			System.out.println(t.getTransactionId());
-			for (TransactionResult i: t.getInput()) {
-				parentIds.addAll(i.getSourceIds());
-			}
+		for (TransactionResult t: verifiedTransactions.values()) {
+			System.out.println(t.getId());
+			parentIds.addAll(t.getSourceIds());
 		}
 		
 		// for each input used, check if its known, and if it's been seen before
@@ -53,6 +51,28 @@ public class Validator
 			}
 		}
 		return validationData;
+	}
+	
+	/**
+	 * Compares a transaction against a HashMap of all
+	 * verified transactions. The returned ValidationData
+	 * will tell whether the transaction is a doubleSpend, and
+	 * whether all its inputs exist.
+	 * 
+	 * @param transaction				transaction to check
+	 * @param verifiedTransactions		transactions to check against
+	 * 
+	 * @return	ValidationData containing resulting transaction state
+	 */
+	public static ValidationData getValidationDataAlt(Transaction transaction, HashMap<String, Transaction> verifiedTransactions) {
+		HashMap<String, TransactionResult> verifiedTransactionResults = new HashMap<>();
+		
+		for(Transaction t: verifiedTransactions.values()) {
+			for(TransactionResult r: t.getInput()) {
+				verifiedTransactionResults.put(r.getId(), r);
+			}
+		}
+		return getValidationData(transaction, verifiedTransactionResults);
 	}
 	
 	/**
@@ -78,7 +98,7 @@ public class Validator
 		
 		// compare the transaction to all that have been verified so far
 		BlockChain blockChain = new BlockChain();
-		ValidationData validationData = getValidationData(transaction, blockChain.getAllTransactions());
+		ValidationData validationData = getValidationData(transaction, blockChain.getAllTransactionResults());
 		if(!validationData.inputsAreKnown) {
 			Console.log("Unknown inputs for transaction " + transaction.getTransactionId());
 			return false;
@@ -101,7 +121,7 @@ public class Validator
 	 */
 	public static boolean isDoubleSpend(Transaction transaction) {
 		// compare the transaction to all that have been verified so far
-		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactions());
+		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactionResults());
 		if(validationData.isDoubleSpend) 
 			return true;
 		else
@@ -119,7 +139,7 @@ public class Validator
 	 */
 	public static boolean inputsAreKnown(Transaction transaction) {
 		// compare the transaction to all that have been verified so far
-		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactions());
+		ValidationData validationData = getValidationData(transaction, (new BlockChain()).getAllTransactionResults());
 		if(validationData.inputsAreKnown) 
 			return true;
 		else

@@ -469,7 +469,7 @@ public class NetworkManager implements NetworkActions {
 				asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
 				
 				// Put the transaction into the correct pool
-				if (Validator.getValidationData(transaction, combinedPool).inputsAreKnown) {
+				if (Validator.getValidationDataAlt(transaction, combinedPool).inputsAreKnown) {
 					transactionPool.put(transaction.getTransactionId(), transaction);
 					updateOrphanPool(transaction);
 				}
@@ -516,7 +516,7 @@ public class NetworkManager implements NetworkActions {
 		for (Map.Entry<String,Transaction> o: orphanedTransactionPool.entrySet()){
 			
 			// check the orphan against all the potentialParents
-			if (Validator.getValidationData(o.getValue(), potentialParents).inputsAreKnown) {
+			if (Validator.getValidationDataAlt(o.getValue(), potentialParents).inputsAreKnown) {
 				// all parents were found! remove orphaned status
 				orphanedTransactionPool.remove(o.getKey());
 				transactionPool.put(o.getKey(), o.getValue());
