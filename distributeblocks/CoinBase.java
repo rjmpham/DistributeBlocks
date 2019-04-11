@@ -24,7 +24,7 @@ public class CoinBase {
 	public static final String COIN_BASE_ID = "COIN_BASE";
 	public static final String COIN_BASE_DIR = "coinBase";
 	public static final KeyPair COIN_BASE_KEYS = loadCoinBase();
-	public static final String PARENT_TRANSACTION_ID = "blockReward"; // TODO: does this cause any hashing conficts?
+	public static final String PARENT_TRANSACTION_ID = "blockReward";
 	public static final float BLOCK_REWARD_AMOUNT = 5.0f;
 	
 	/**
