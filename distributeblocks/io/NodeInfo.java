@@ -1,4 +1,4 @@
-package distributeblocks.net.io;
+package distributeblocks.io;
 
 import distributeblocks.net.IPAddress;
 

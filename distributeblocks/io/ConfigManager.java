@@ -81,7 +81,7 @@ public class ConfigManager {
 				ArrayList<PeerNode> peerNodes = new ArrayList<PeerNode>();
 
 				for (NodeInfo node : nodes) {
-					PeerNode peer = new PeerNode(node.getAddr());
+					PeerNode peer = new PeerNode(node.getAddress());
 					peer.setPublicKey(node.getPublicKey());
 					peer.setAlias(node.getAlias());
 					peerNodes.add(peer);
