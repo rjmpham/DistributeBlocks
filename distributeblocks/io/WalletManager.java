@@ -197,8 +197,11 @@ public class WalletManager {
 	 * @throws IOException 
 	 */
 	public static void saveKeyPair(String path, KeyPair keyPair) throws IOException {
+		Console.log("BBBBBBBBBBBBBH0");
 		savePublicKey(path + "public.key", keyPair.getPublic());
+		Console.log("BBBBBBBBBBBBBH1");
 		savePrivateKey(path + "private.key", keyPair.getPrivate());
+		Console.log("BBBBBBBBBBBBBH2");
 	}
 	
 	
