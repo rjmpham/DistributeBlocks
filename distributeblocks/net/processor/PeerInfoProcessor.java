@@ -43,7 +43,7 @@ public class PeerInfoProcessor extends AbstractMessageProcessor<PeerInfoMessage>
 		}
 
 		if (suceeded < needed){
-			Console.log("Did not get enough peers in peer info :(");
+			Console.log("Did not get enough peers in peer info");
 		}
 
 		NetworkService.getNetworkManager().removeTemporaryNode(message.senderNode);
