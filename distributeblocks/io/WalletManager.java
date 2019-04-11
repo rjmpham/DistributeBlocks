@@ -51,7 +51,6 @@ public class WalletManager {
 		saveKeyPair(path, new KeyPair(wallet.getPublicKey(), wallet.getPrivateKey()));
 		saveFundsHashMap(path, wallet.getFundsHashMap());
 		saveOnHoldHashMap(path, wallet.getOnHoldHashMap());
-		saveAlias(path, wallet.getAlias());
 	}
 	
 	/**
@@ -69,12 +68,11 @@ public class WalletManager {
 		KeyPair keys = loadKeyPair(path, Crypto.GEN_ALGORITHM);
 		HashMap<String, TransactionResult> funds_HashMap = loadFundsHashMap(path);
 		HashMap<String, TransactionResult> onHold_HashMap = loadOnHoldHashMap(path);
-		String alias = loadAlias(path);
 		
 		if (keys == null)
 			return null;
 		
-		return new Wallet(keys, funds_HashMap, onHold_HashMap, alias);
+		return new Wallet(keys, funds_HashMap, onHold_HashMap);
 	}
 	
 	/**
@@ -305,42 +303,5 @@ public class WalletManager {
 		PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encodedPrivateKey);
 		PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
 		return privateKey;
-	}
-	
-	/**
-	 * Saves an alias to a file
-	 * 
-	 * @param path		the path where the alias.txt file will be created in
-	 * 
-	 * @throws IOException
-	 */
-	public static void saveAlias(String path, String alias) throws IOException {
-		File file = new File(path + "alias.txt");
-		file.getParentFile().mkdirs();
-		
-		// Store alias
-		FileWriter writer = new FileWriter(path);
-		writer.write(alias);
-		writer.close();
-	}
-	
-	/**
-	 * Loads an alias from a file
-	 * 
-	 * @param path		the path where the alias.txt file will be created in
-	 * 
-	 * @throws IOException
-	 */
-	public static String loadAlias(String path) throws IOException {
-		File file = new File(path + "alias.txt");
-		file.getParentFile().mkdirs();
-		
-		// Read Alias
-		String alias;
-		FileReader reader = new FileReader(path);
-		reader.read(alias);
-		reader.close();
-		
-		return alias;
 	}
 }
