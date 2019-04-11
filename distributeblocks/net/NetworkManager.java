@@ -5,6 +5,7 @@ import distributeblocks.io.ConfigManager;
 import distributeblocks.mining.Miner;
 import distributeblocks.net.message.*;
 import distributeblocks.net.processor.MonitorNotifierProcessor;
+import distributeblocks.util.ValidationData;
 import distributeblocks.util.Validator;
 import distributeblocks.io.Console;
 
@@ -16,26 +17,27 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-// TODO: make the pending transaction pool clearing intelligent
-// TODO: force agreement on a comment block as the true head in case of a a branch (maybe shortest hash)
+// TODO: this class has become bloated. It should be split up
+// TODO: make the pending transaction pool clearing intelligent (instead of clearing it all, just clear what's been verified)
+// TODO: force agreement on a common block as the true head in case of a a branch (maybe shortest hash)
 public class NetworkManager implements NetworkActions {
 
 	private HashMap<String, Transaction> transactionPool;
-	private HashMap<String, Transaction> orphanedTransactionPool;
-	private HashMap<String, Transaction> pendingTransactionPool; // Transactions that are being put into a block.
-
+	//private HashMap<String, Transaction> orphanedTransactionPool;
+	private HashMap<String, Transaction> pendingTransactionPool; 	// Transactions that are being put into a block.
 	private LinkedBlockingQueue<AbstractMessage> incommingQueue;
 	private LinkedBlockingQueue<ArrayList<BlockHeader>> headerQueue;
 	private LinkedBlockingQueue<BlockMessage> blockQueue;
+	private HashSet<String> sentTransactions;
 
 	private volatile AquireChain aquireChain; // TODO: Replace with events to make this not awfull?
 
 	private int minPeers = 0;
 	private int maxPeers = Integer.MAX_VALUE;
 	private int port = -1;
-	private int seedPeerTimeout = 30000; // mililiseconds
-	private int seedCheckoutTimer = 35; // seconds
-	private int aliveNotifierTime = 20; // seconds
+	private int seedPeerTimeout = 30000; 	// mililiseconds
+	private int seedCheckoutTimer = 35; 	// seconds
+	private int aliveNotifierTime = 20; 	// seconds
 
 	private IPAddress localAddr;
 	private boolean seed;
@@ -46,10 +48,7 @@ public class NetworkManager implements NetworkActions {
 	private volatile ObjectOutputStream monitorOutput;
 	private Object monitorLock = new Object();
 
-	/**
-	 * Time in seconds between attempts at discovering more peer nodes.
-	 */
-	private int peerSearchRate = 10;
+	private int peerSearchRate = 10;		// Time in seconds between attempts at discovering more peer nodes.
 
 	private ExecutorService executorService;
 	private ScheduledExecutorService scheduledExecutorService; // For requesting new peers.
@@ -66,6 +65,8 @@ public class NetworkManager implements NetworkActions {
 	private volatile boolean shutDown = false;
 
 	/**
+	 * Starts all threads necessary to enter the P2P network.
+	 * This will download or update the blockchain if necessary as well.
 	 */
 	public NetworkManager(NetworkConfig networkConfig) {
 
@@ -105,8 +106,9 @@ public class NetworkManager implements NetworkActions {
 		headerQueue = new LinkedBlockingQueue<>();
 		blockQueue = new LinkedBlockingQueue<>();
 		transactionPool = new HashMap<>();
-		orphanedTransactionPool = new HashMap<>();
+		//orphanedTransactionPool = new HashMap<>();
 		pendingTransactionPool = new HashMap<>();
+		sentTransactions = new HashSet<>();
 	}
 
 
@@ -114,8 +116,6 @@ public class NetworkManager implements NetworkActions {
 	 * Starts handshake process with known nodes.
 	 */
 	public void initialize() {
-
-
 		// Grab known peer nodes from file.
 		ConfigManager configManager = new ConfigManager();
 		peerNodes = Collections.synchronizedList(configManager.readPeerNodes());
@@ -202,7 +202,7 @@ public class NetworkManager implements NetworkActions {
 	public IPAddress getLocalAddr() {
 		return localAddr;
 	}
-
+	
 	/**
 	 * Removes a node by reference.
 	 *
@@ -447,8 +447,7 @@ public class NetworkManager implements NetworkActions {
 	public Miner getMiner(){
 		return miner;
 	}
-
-
+	
 	/**
 	 * Validates transactions.
 	 *
@@ -458,72 +457,64 @@ public class NetworkManager implements NetworkActions {
 	 *
 	 * @param transaction
 	 */
-	// TODO: make the locks more reasonable here. maybe move code into synchronized sub methods
-	// TODO: merge isUnspent, containsValidTransactionInputs, and existsInChain, then call it here
 	public void addTransaction(Transaction transaction){
-//		BlockChain chain = new BlockChain();
-//		LinkedList<Block> longestChain = chain.getLongestChain();
-
-		// TODO Ian figure out the validation crap.
-//		if (!Validator.isUnspent(transaction, longestChain)) {
-//			Console.log("Transaction was a double spend! aborting");
-//			return;
-//		}
+		// if we've sent this transaction before, exit immediately 
+		if (sentTransactions.contains(transaction.getTransactionId())) {
+			return;
+		}
+		
+		// check against the whole block
+		ValidationData validationData = Validator.getValidationDataAlt(transaction, (new BlockChain()).getAllTransactions());
+		if (validationData.isDoubleSpend) {
+			Console.log("Transaction was a double spend! aborting");
+			return;
+		}
+		if (validationData.alreadyOnBlock) {
+			Console.log("Transaction already exists! aborting");
+			return;
+		}
+		
+		// broadcast transaction if we have not seen it before and it is valid
+		Console.log("Transaction " + transaction.getTransactionId() + "is new. Broadcasting...");
+		asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
+		sentTransactions.add(transaction.getTransactionId());
 
 		synchronized (transactionPool) {
+			// Compose a hashmap of all verified transactions, the transaction pool and pending transactions
 
-			// Only re-broadcast transaction if we have not seen it before.
-			boolean found = false;
-
-			// TODO: should check over blockchain as well to find out if we've seen it there already
-			// Compose a hashmap of the normal transaction pool and pending transactions
 			HashMap<String, Transaction> combinedPool = new HashMap<>();
 			combinedPool.putAll(transactionPool);
-			combinedPool.putAll(pendingTransactionPool);
+			//combinedPool.putAll(pendingTransactionPool);
 
-			// Check if we have seen this transaction before
-			for (String id : combinedPool.keySet()){
-				if (id.equals(transaction.getId_Transaction())) {
-					found = true;
-					break;
-				}
-			}
+			// Check against the blockchain and the transaction pools
+			ValidationData poolValidationData = Validator.getValidationDataAlt(transaction, combinedPool);
 
-			if (!found){
-				Console.log("Transaction " + transaction.getId_Transaction() + "is new. Broadcasting...");
-				// if we've never seen this transaction before, send it to peers
-				asyncSendToAllPeers(new TransactionBroadcastMessage(transaction));
-				
-//				// Put the transaction into the correct pool
-//				if (Validator.containsValidTransactionInputs(transaction, longestChain)) {
-					transactionPool.put(transaction.getId_Transaction(), transaction);
-//					updateOrphanPool(transaction);
-//				}
-//				else {
-//					orphanedTransactionPool.put(transaction.getId_Transaction(), transaction);
-//				}
+			// if we know the inputs from the block chain or from the pool, add it. otherwise, it may be from a different fork
+			if (!validationData.inputsAreKnown && !poolValidationData.inputsAreKnown){
+				// Put the transaction into the correct pool
+				transactionPool.put(transaction.getTransactionId(), transaction);
+				//updateOrphanPool(transaction);
 			}
+			//else {
+			//	orphanedTransactionPool.put(transaction.getTransactionId(), transaction);
+			//}
 		}
 	}
 	
 	/**
 	 * Updates the transaction pools to remove any transactions
-	 * that have been verified on a block.
-	 * 
-	 * This method is called whenever a block becomes verified (sufficiently deep).
-	 * 
-	 * @param block	the most recently verified block of the longest chain
+	 * that have been added to the chain, and move orphans
+	 * if necessary.
 	 */
-	public void updateTransactionPools(Block block) {
-		Console.log("Updating local transaction pools from block " + block.getHashBlock());
-		HashMap<String, Transaction> blockData = block.getData();
-		updateOrphanPool(blockData);
-		updateTransactionPool(blockData);
+	public synchronized void updateTransactionPools() {
+		BlockChain blockChain = new BlockChain();
+		//updateOrphanPool(blockChain.getAllTransactions());
+		updateTransactionPool(blockChain.getAllTransactions());
 	}
 	
 	/**
 	 * Checks over each transaction in the potentialParants and moves
-	 * any orphaned transaction whose parant is discovered over the to
+	 * any orphaned transaction whose parent is discovered over the to
 	 * normal transactionPool. 
 	 * 
 	 * This operation will be called recursively, as any transaction which is
@@ -532,34 +523,33 @@ public class NetworkManager implements NetworkActions {
 	 * This method is called whenever a block becomes verified (sufficiently deep),
 	 * or when a new transaction is received
 	 * 
-	 * @param potentialParants		Hashmap of Transaction ids to Transactions
+	 * @param potentialParents		Hashmap of Transaction ids to Transactions
 	 */
-	// TODO: does this have to be recursive if we properly check if a transaction is an orphan or not when receiving a transaction?
-	// TODO: should this be synchronized? it is called whenever a transaction is received
-	public void updateOrphanPool(HashMap<String, Transaction> potentialParants) {
-		// Recursive basecase
-		if (potentialParants.isEmpty())
-			return;
-		
-		Transaction transaction;
-		HashMap<String, Transaction> newParents = new HashMap<String, Transaction>();
-		
-		// Process the parants, and keep track of any moved Transactions in newParants
-		for (Map.Entry<String,Transaction> i: potentialParants.entrySet()){
-			if(orphanedTransactionPool.containsKey(i.getKey())) { //TODO: shouldnt this be the parents id we check against?
-				transaction = orphanedTransactionPool.get(i.getKey());
-				orphanedTransactionPool.remove(i.getKey());
-				
-				transactionPool.put(i.getKey(), i.getValue());
-				newParents.put(i.getKey(), i.getValue());
-			}
-		}
-		// Call recursively on the new potential parents
-		updateOrphanPool(newParents);
-	}
+//	public void updateOrphanPool(HashMap<String, Transaction> potentialParents) {
+//		// Recursive basecase
+//		if (potentialParents.isEmpty())
+//			return;
+//		
+//		// we may find orphan grandchildren when called recursive. keep track of any transaction moved
+//		HashMap<String, Transaction> newParents = new HashMap<String, Transaction>();
+//		
+//		// Process the parents, and keep track of any moved Transactions in newParants
+//		for (Map.Entry<String,Transaction> o: orphanedTransactionPool.entrySet()){
+//			
+//			// check the orphan against all the potentialParents
+//			if (Validator.getValidationDataAlt(o.getValue(), potentialParents).inputsAreKnown) {
+//				// all parents were found! remove orphaned status
+//				orphanedTransactionPool.remove(o.getKey());
+//				transactionPool.put(o.getKey(), o.getValue());
+//				newParents.put(o.getKey(), o.getValue());
+//			}
+//		}
+//		// Call recursively on the new potential parents
+//		//updateOrphanPool(newParents);
+//	}
 	
 	/**
-	 * Moves any orphaned transaction whose who are children of the given
+	 * Moves any orphaned transaction who are children of the given
 	 * transaction out of the orphaned transaction pool.
 	 * 
 	 * This operation is called whenever a new transaction is received and
@@ -567,14 +557,14 @@ public class NetworkManager implements NetworkActions {
 	 * 
 	 * @param transaction		the potential parent Transactions
 	 */
-	public void updateOrphanPool(Transaction transaction) {
-		HashMap<String, Transaction> container = new HashMap<String, Transaction>();
-		container.put(transaction.getId_Transaction(), transaction);
-		updateOrphanPool(container);
-	}
+//	public void updateOrphanPool(Transaction transaction) {
+//		HashMap<String, Transaction> container = new HashMap<String, Transaction>();
+//		container.put(transaction.getTransactionId(), transaction);
+//		updateOrphanPool(container);
+//	}
 	
 	/**
-	 * Checks over each transaction i the verifiedTransactions and removes
+	 * Checks over each transaction i the allTransactions and removes
 	 * any matches from the transactionPool, since they have been placed onto a 
 	 * verified block.
 	 * 
@@ -588,8 +578,6 @@ public class NetworkManager implements NetworkActions {
 				transactionPool.remove(i.getKey());
 		}
 	}
-	
-
 
 	/**
 	 * Simply connects to all the peers currently loaded into the peer nodes list.
@@ -603,7 +591,6 @@ public class NetworkManager implements NetworkActions {
 			p.connect();
 		}
 	}
-
 
 	/**
 	 * Goes through the network interfaces, extracts InetAddresses,
@@ -1005,10 +992,11 @@ public class NetworkManager implements NetworkActions {
 
 				}
 				Console.log("AQUIRED THE BLOCKCHAIN!");
+				// Update the transaction pools with received block
+				updateTransactionPools();
 
 				// Process blocks into a chain and save them
 				for (int j = 0; j < highestHeaders.size(); j ++) {
-
 					for (BlockMessage m : blockQueue) {
 
 						if (m.blockHeight == j) {
@@ -1018,8 +1006,6 @@ public class NetworkManager implements NetworkActions {
 							if (lastVerified != null) {
 								// Update node wallet with the block which is now verified
 								NodeService.getNode().updateWallet(lastVerified);
-								// Update the transaction pools now that a new block is verified
-								NetworkService.getNetworkManager().updateTransactionPools(lastVerified);
 							 }
 							break;
 						}
@@ -1080,8 +1066,8 @@ public class NetworkManager implements NetworkActions {
 	}
 
 	/**
-	 * Seed nodes will uise this periodicaly to go through its timeouts file, and remove nodes
-	 * who have not contacted this node for some ammount of time.
+	 * Seed nodes will use this periodically to go through its timeouts file, and remove nodes
+	 * who have not contacted this node for some amount of time.
 	 */
 	private class TimeoutChecker implements Runnable {
 
