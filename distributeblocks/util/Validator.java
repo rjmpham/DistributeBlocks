@@ -184,7 +184,7 @@ public class Validator
 //			if (!(block.getHashData().equals(Crypto.calculateObjectHash(block.getData())))) {     //If the data hash isn't correct
 //				return false;
 //			}
-			if (!(block.getTargetNumZeros()==Node.HASH_DIFFICULTY)){                              //if the hash difficulty is different
+			if (!((block.getTargetNumZeros()==(Node.HASH_DIFFICULTY-1))||block.getTargetNumZeros()==(Node.HASH_DIFFICULTY))){                              //if the hash difficulty is different
 				Console.log("Block verification error: Block does not meet hash difficulty");
 				return false;
 			}

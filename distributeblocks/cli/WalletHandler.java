@@ -14,8 +14,9 @@ import picocli.CommandLine.Parameters;
 		 subcommands = {
 				 NewHandler.class,
 				 LoadHandler.class,
-				 FundsHandler.class,
-				 RescindHandler.class})
+				 FundsHandler.class
+				 //RescindHandler.class
+				 })
 public class WalletHandler implements Callable<Void> {
 	protected static Node node; 	// Must be protected static so sub commands can access it
 	
@@ -80,7 +81,7 @@ class FundsHandler implements Callable<Void> {
 	}
 }
 
-// TODO: allow the user to rescind a specific fund
+/*/ TODO: allow the user to rescind a specific fund
 @Command(description = "Rescind all held funds",
 		 name = "rescind", mixinStandardHelpOptions = true)
 class RescindHandler implements Callable<Void> {
@@ -93,4 +94,4 @@ class RescindHandler implements Callable<Void> {
 		
 		return null;
 	}	
-}
+}*/
