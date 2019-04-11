@@ -59,8 +59,8 @@ public class BlockChain implements Serializable {
 				try {
 					if (validator.isValidBlock(block,this.getVerifiedTransactions(ls))) {
 						ls.add(block);
-            updateAllTransactions();
-				    updateAllTransactionResults();
+						updateAllTransactions();
+						updateAllTransactionResults();
 						return;
 					}
 				} catch (FailedToHashException e) {
@@ -95,8 +95,8 @@ public class BlockChain implements Serializable {
 								/* Finish off by adding the new block. */
 								newFork.add(block);
 								blockChain.add(newFork); // And add the new fork.
-                updateAllTransactions();
-						    updateAllTransactionResults();
+								updateAllTransactions();
+								updateAllTransactionResults();
 								return;
 							}
 							else {
