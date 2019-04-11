@@ -25,3 +25,6 @@ hs_err_pid*
 .classpath
 build/*
 wallet/*
+
+# txt config files
+*.txt

@@ -4,6 +4,7 @@ import distributeblocks.io.ConfigManager;
 import distributeblocks.net.NetworkService;
 import distributeblocks.net.message.MissingBlockMessage;
 import distributeblocks.io.Console;
+import distributeblocks.util.Validator;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -36,24 +37,33 @@ public class BlockChain implements Serializable {
 			Console.log("GOT NULL BLOCK!");
 		}
 
-		// Check to see if we already have the block.
+		// Check to see if we already have the block. If we do it's valid already
 		if (allBlocks.containsKey(block.getHashBlock())){
 			return;
 		}
 
 		allBlocks.put(block.getHashBlock(), block);
 
-
-		// Lets look at all the heads to see if we have previousBlock
 		String previous = block.getHashPrevious();
 
+
+		Validator validator = new Validator();
+		//Checks for the parent block on all chains
 		for (LinkedList<Block> ls : blockChain){
 
+			//If the block is a new header block add it to the head of a chain
 			if (ls.getLast().getHashBlock().equals(previous)){
 
-				// Add it to current fork.
-				ls.add(block);
-				return;
+				try {
+					if (validator.isValidBlock(block,this.getVerifiedTransactions(ls))) {
+						ls.add(block);
+						return;
+					}
+				} catch (FailedToHashException e) {
+					Console.log("Failed to hash exception! BlockChain class under addBlock.");
+				}
+
+				//else, if the parent is down the chain make a fork
 			} else {
 
 				// Wasnt at the end, so either we dont have the previous, or this is a new fork.
@@ -76,10 +86,20 @@ public class BlockChain implements Serializable {
 							newFork.add(bl);
 						}
 
-						// Finish off by adding the new block.
-						newFork.add(block);
-						blockChain.add(newFork); // And add the new fork.
-						return;
+						try {
+							if (validator.isValidBlock(block,this.getVerifiedTransactions(newFork))) {
+								/* Finish off by adding the new block. */
+								newFork.add(block);
+								blockChain.add(newFork); // And add the new fork.
+								return;
+							}
+							else {
+								return;
+							}
+						} catch (FailedToHashException e) {
+							Console.log("Failed to hash exception! BlockChain class under addBlock.");
+						}
+
 					}
 
 					index ++;
@@ -141,18 +161,39 @@ public class BlockChain implements Serializable {
 		}
 		return block;
 	}
-	
+
+	/**
+	 * Creates a HashMap of Strings to Transactions of every verified
+	 * transaction before the input block. This is from the genesis
+	 * block, up to and excluding the block to be verified;
+	 * TODO RICHARD THIS
+	 * @param chain the block to be considered the head of the chain for the validation check
+	 * @return HashMap of Strings to Transaction of every verified transaction before the input block
+	 */
+	public HashMap<String, Transaction> getVerifiedTransactions(LinkedList<Block> chain) {
+		HashMap<String, Transaction> allVerifiedTransactions = new HashMap<String, Transaction>();
+		
+		// Go from the genesis block to the current
+		// TODO: time complexity of this: is Java LinkedList doubly linked, or is going from the head faster?
+		for(int i = 0; i < chain.size(); i++) {
+			// Add every transaction on the block
+			Block block = chain.get(i);
+			allVerifiedTransactions.putAll(block.getData());
+		}
+		return allVerifiedTransactions;
+	}
+
 	/**
 	 * Creates a HashMap of Strings to Transactions of every verified
 	 * transaction within the longest chain. This is from the genesis
 	 * block, up to and including the last verified block;
-	 * 
+	 *
 	 * @return HashMap of Strings to Transaction of every verified transaction
 	 */
 	public HashMap<String, Transaction> getVerifiedTransactions() {
 		LinkedList<Block> longest = getLongestChain();
 		HashMap<String, Transaction> allVerifiedTransactions = new HashMap<String, Transaction>();
-		
+
 		// Go from the genesis block to the current
 		// TODO: time complexity of this: is Java LinkedList doubly linked, or is going from the head faster?
 		for(int i = 0; i < longest.size() - BlockChain.VERIFIED_DEPTH; i++) {
@@ -162,33 +203,6 @@ public class BlockChain implements Serializable {
 		}
 		return allVerifiedTransactions;
 	}
-
-	/**
-	 * Creates a HashMap of Strings to Transactions of every verified
-	 * transaction before the input block. This is from the genesis
-	 * block, up to and excluding the block to be verified;
-	 *
-	 * @param toVerify the block to be considered the head of the chain for the validation check
-	 * @return HashMap of Strings to Transaction of every verified transaction before the input block
-	 */
-	public HashMap<String, Transaction> getVerifiedTransactions(Block toVerify) {
-		//Need to check if there is another blockchain where the block to verify is forked on
-
-		LinkedList<Block> longest = getLongestChain();
-		HashMap<String, Transaction> allVerifiedTransactions = new HashMap<String, Transaction>();
-
-		// Go from the genesis block to the current
-		// TODO: time complexity of this: is Java LinkedList doubly linked, or is going from the head faster?
-		for(int i = 0; i < toVerify; i++) {
-			// Add every transaction on the block
-			Block block = longest.get(i);
-			allVerifiedTransactions.putAll(block.getData());
-		}
-		return allVerifiedTransactions;
-	}
-
-
-
 	/**
 	 * Loads blockchain from file.
 	 */

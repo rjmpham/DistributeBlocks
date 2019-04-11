@@ -119,8 +119,6 @@ public class Block implements Serializable {
 		return stopMining;
 	}
 
-	public boolean getTargetNumZeros() {return targetNumZeros}
-
 	public void setStopMining(boolean stopMining) {
 		this.stopMining = stopMining;
 	}
