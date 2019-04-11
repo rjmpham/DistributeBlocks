@@ -59,7 +59,7 @@ public class ConfigManager {
 			}
 
 			String json = "";
-			IPAddress[] nodes;
+			NodeInfo[] nodes;
 
 			try (Scanner scanner = new Scanner(file)) {
 

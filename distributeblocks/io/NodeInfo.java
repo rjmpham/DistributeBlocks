@@ -17,8 +17,8 @@ public class NodeInfo {
 		this.alias = alias;
 	}
 	
-	public IPAddress getAddress() { return addr; }
+	public IPAddress getAddress() { return address; }
 	public PublicKey getPublicKey() { return publicKey; }
-	public IPAddress getAlias() { return alias; }
+	public String getAlias() { return alias; }
 
 }
