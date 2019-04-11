@@ -4,13 +4,13 @@ import distributeblocks.net.IPAddress;
 
 import java.security.PublicKey;
 
-public class PeerInfoMessage {
+public class NodeInfo {
 
 	private IPAddress address;
 	private PublicKey publicKey;
 	private String alias;
 	
-	public PeerInfoMessage(IPAddress address, PublicKey publicKey, String alias)
+	public NodeInfo(IPAddress address, PublicKey publicKey, String alias)
 	{
 		this.addr = address;
 		this.publicKey = publicKey;
