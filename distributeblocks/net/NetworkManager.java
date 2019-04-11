@@ -29,6 +29,7 @@ public class NetworkManager implements NetworkActions {
 	private LinkedBlockingQueue<ArrayList<BlockHeader>> headerQueue;
 	private LinkedBlockingQueue<BlockMessage> blockQueue;
 	private HashSet<String> sentTransactions;
+	private HashSet<String> sentBlocks;
 
 	private volatile AquireChain aquireChain; // TODO: Replace with events to make this not awfull?
 
@@ -109,6 +110,7 @@ public class NetworkManager implements NetworkActions {
 		//orphanedTransactionPool = new HashMap<>();
 		pendingTransactionPool = new HashMap<>();
 		sentTransactions = new HashSet<>();
+		sentBlocks = new HashSet<>();
 	}
 
 
@@ -490,12 +492,14 @@ public class NetworkManager implements NetworkActions {
 			ValidationData poolValidationData = Validator.getValidationDataAlt(transaction, combinedPool);
 
 			// if we know the inputs from the block chain or from the pool, add it. otherwise, it may be from a different fork
-			if (!validationData.inputsAreKnown && !poolValidationData.inputsAreKnown){
+			//if (validationData.inputsAreKnown || poolValidationData.inputsAreKnown){
 				// Put the transaction into the correct pool
+				System.out.println("Adding transaction to the pool: " + transaction.getTransactionId());
 				transactionPool.put(transaction.getTransactionId(), transaction);
 				//updateOrphanPool(transaction);
-			}
+			//}
 			//else {
+			//	System.out.println("Whoops, I couldn't find where this transaction is suppossed to come from");
 			//	orphanedTransactionPool.put(transaction.getTransactionId(), transaction);
 			//}
 		}
@@ -578,6 +582,14 @@ public class NetworkManager implements NetworkActions {
 				transactionPool.remove(i.getKey());
 		}
 	}
+	
+	public void addSentBlock(Block block) {
+		this.sentBlocks.add(block.getHashBlock());
+	}
+	
+	public boolean sentBlockBefore(Block block) {
+		return this.sentBlocks.contains(block.getHashBlock());
+	} 
 
 	/**
 	 * Simply connects to all the peers currently loaded into the peer nodes list.
@@ -1001,6 +1013,7 @@ public class NetworkManager implements NetworkActions {
 
 						if (m.blockHeight == j) {
 							blockChain.addBlock(m.block);
+							System.out.println("In AquireChain: Added block to the chain!");
 							
 							Block lastVerified = blockChain.getLastVerifiedBlock();
 							if (lastVerified != null) {

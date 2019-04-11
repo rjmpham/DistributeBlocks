@@ -27,11 +27,13 @@ public class MiningFinishedProcessor extends AbstractMessageProcessor<MiningFini
         Block lastVerified = blockChain.getLastVerifiedBlock();
 		if (lastVerified != null) {
 			// Update node wallet with the block which is now verified
+			System.out.println("MiningFinishedProcessor: Added block to the chain!");
 			NodeService.getNode().updateWallet(lastVerified);
 		 }
 
         NetworkService.getNetworkManager().clearPendingTransactions();
         NetworkService.getNetworkManager().asyncSendToAllPeers(new BlockBroadcastMessage(message.block)); // Send block to peers.
+        NetworkService.getNetworkManager().addSentBlock(message.block);
         NetworkService.getNetworkManager().beginMining();
     }
 }
