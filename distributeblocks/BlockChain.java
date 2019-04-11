@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public class BlockChain implements Serializable {
-	private static final int VERIFIED_DEPTH = 2;				// depth from the head we consider a block to be verified
+	private static final int VERIFIED_DEPTH = 3;				// depth from the head we consider a block to be verified
 
 	private ArrayList<LinkedList<Block>> blockChain;
 
