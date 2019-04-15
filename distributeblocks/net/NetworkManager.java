@@ -886,6 +886,7 @@ public class NetworkManager implements NetworkActions {
 		private volatile int leftBound = 0;
 		private volatile int rightBound = 10;
 		private int highestBlock = 0;
+		private int highestHave = 0;
 
 		private HashMap<Integer, Boolean> recievedBlocks;
 
@@ -897,13 +898,19 @@ public class NetworkManager implements NetworkActions {
 
 		public void gotBlock(BlockMessage blockMessage){
 
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
 			synchronized (recievedBlocks) {
 
 				recievedBlocks.put(blockMessage.blockHeight, true);
 
 				// Update bounds.
-				int min = -1;
-				for (int i = 0; i < highestBlock; i++) {
+				int min = highestHave;
+				for (int i = highestHave; i < highestBlock; i++) {
 					if (recievedBlocks.keySet().contains(i)) {
 						min = i;
 					} else {
@@ -911,6 +918,7 @@ public class NetworkManager implements NetworkActions {
 					}
 				}
 
+				Console.log("Min: " + min);
 				leftBound = Math.min(highestBlock - 1, min + 1); // So it doesnt try to grab n + 1 blocks.
 				rightBound = min + 10;
 
@@ -961,23 +969,38 @@ public class NetworkManager implements NetworkActions {
 				}
 
 				Console.log("Aquireing blockchain with height: " + highestHeaders.size());
+				HashMap<String, Block> allblocks = blockChain.getAllBlocks();
+
+				// Figure out what the last block we have is.
+				highestHave = 0;
+				for (BlockHeader b : highestHeaders){
+					if (allblocks.containsKey(b.blockHash)){
+						highestHave ++;
+					} else {
+						break;
+					}
+				}
 
 				// Now that we have identified the longest list of blockHeaders, request them all.
 				Random rand = new Random();
 				List<PeerNode> nodes = getPeerNodes();
-				int i = 0;
+				int i = highestHave;
+				leftBound = highestHave;
+				rightBound = leftBound + 10;
 
-				for (int j = 0; j < highestHeaders.size(); j ++){
+				Console.log("Highest Have: " + highestHave);
+
+				for (int j = highestHave; j < highestHeaders.size(); j ++){
 					requestTimes.put(j, (long) 0.0); // too tired.
 				}
 				highestBlock = highestHeaders.size();
 
-				while (recievedBlocks.size() < highestHeaders.size()) {
+				while (recievedBlocks.size() < highestHeaders.size() - highestHave) {
 
-					Thread.sleep(100);
+					Thread.sleep(150);
 					synchronized (recievedBlocks) {
 
-						if (i > rightBound || i >= highestHeaders.size() - 1) {
+						if (i > rightBound || i >= highestHeaders.size()) {
 							//	Thread.sleep(100); // Wait for responses.
 
 							//if (requestTimes.get(leftBound) + 3000 <  System.currentTimeMillis()) { // Only make another request every 3 seconds
@@ -994,7 +1017,7 @@ public class NetworkManager implements NetworkActions {
 							//Thread.sleep(100);
 							//}
 
-							if (i < highestHeaders.size() - 1) {
+							if (i <= highestHeaders.size()){
 								i++;
 							}
 						}
