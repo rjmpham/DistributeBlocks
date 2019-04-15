@@ -28,10 +28,6 @@ import java.util.Map;
  *		up for the demo.
  */
 
-// TODO: the "coinBase" transaction id may cause problems with hashes and removing old funds that are marked as spent
-// TODO: the "blockReward" parent id might also have this problem
-
-// TODO: make killing mining sychronized with the new block broadcast, or make sure it doesn't kill it part way through
 /**
  *  Represents an agent within the P2P network. This class houses a wallet,
  *  and may run all the thread necessary to perform network actions.
@@ -39,6 +35,7 @@ import java.util.Map;
  *	Run the main method to start up a node and interact with the network.
  */
 public class Node {
+
 
 	public static int HASH_DIFFICULTY = 4;
 	public static int MONITOR_PORT = 7329;
@@ -192,7 +189,7 @@ public class Node {
 		if (block == null)
 			return;
 					
-		System.out.println("New verified block added. Updating local funds");
+		System.out.println("New verified block added");
 		// Process all the transactions in the block
 		HashMap<String, Transaction> blockData = block.getData();
 		for (Map.Entry<String, Transaction> i: blockData.entrySet()){

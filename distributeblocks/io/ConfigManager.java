@@ -3,6 +3,7 @@ package distributeblocks.io;
 import com.google.gson.reflect.TypeToken;
 import distributeblocks.Block;
 import distributeblocks.BlockChain;
+import distributeblocks.CoinBase;
 import distributeblocks.Node;
 import distributeblocks.Transaction;
 import distributeblocks.net.IPAddress;
@@ -43,7 +44,7 @@ public class ConfigManager {
 	/**
 	 * Reads peer node data from a config file.
 	 * Creates the config file if it does not exist.
-	 * 
+	 *
 	 * @return
 	 *   All known peer nodes from the config file.
 	 */
@@ -118,7 +119,7 @@ public class ConfigManager {
 				throw new RuntimeException("Could not write to peer node config file");
 			}
 		}
-		
+
 	}
 
 
@@ -200,17 +201,10 @@ public class ConfigManager {
 			}
 
 
-			/*
-			 * This particular part saves the longest blockchain into a human readable form into a file
-			 */
 
+			try (PrintWriter out = new PrintWriter(new FileOutputStream(HUMAN_READABLE))) {
 
-			//TODO Eric look at this 2 electric boogaloo
-			File file2 = new File(HUMAN_READABLE);
-			try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(HUMAN_READABLE))) {
-
-
-				String outString = new String();
+				String outString = "";
 
 				//For each block make a section with the block information
 				for( int i = longestChain.size()-1 ; i>= 0 ; i--){
@@ -229,24 +223,24 @@ public class ConfigManager {
 					//For each transaction on a block make a section that represents the to and from transaction
 					for (String id : blockTransactions.keySet())
 					{
+						Transaction t = blockTransactions.get(id);
 						outString += "\n";
-						outString += "From: \n" +blockTransactions.get(id).getPublicSender()+"\n";
-						outString += "To:   \n" +blockTransactions.get(id).getPublicReceiver()+"\n";
-						outString += "Amount: " +blockTransactions.get(id).getExchangeAmmountString()+"\n";
+						outString += "Id:   \n" + ((t.getInput().get(0).getContainerId() == CoinBase.COIN_BASE_ID)?
+													CoinBase.PARENT_TRANSACTION_ID		:	 t.getTransactionId())+"\n";
+						outString += "From: \n" + ((t.getInput().get(0).getContainerId() == CoinBase.COIN_BASE_ID)?
+													CoinBase.COIN_BASE_ID		:	 t.getPublicSender())+"\n";
+						outString += "To:   \n" + t.getPublicReceiver()+"\n";
+						outString += "Amount: " + t.getExchangeAmmountString()+"\n";
 					}
 
 				}
-				out.writeObject(outString);
+				out.write(outString);
 
 
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 				throw new RuntimeException("Could not save blockchain to file.");
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-
+			} 
 		}
 
 	}
@@ -508,6 +502,6 @@ public class ConfigManager {
 		}
 
 	}
-	
+
 
 }

@@ -167,7 +167,7 @@ public class PeerNode {
 
 	public void shutDown() {
 
-		Console.log("SHUTDOWN WAS CALLED ON NODE: " + getListeningAddress());
+		Console.log("Shutdown was called on node: " + getListeningAddress());
 		shutDown = true;
 		executorService.shutdown();
 
@@ -214,11 +214,7 @@ public class PeerNode {
 		if (!(o instanceof PeerNode)) return false;
 		PeerNode peerNode = (PeerNode) o;
 
-		if (NetworkService.getNetworkManager().inSeedMode()){
-			return getLocalAddress().equals(peerNode.getLocalAddress()) && listenPort == peerNode.getListenPort();
-		} else {
-			return getListeningAddress().equals(peerNode.getListeningAddress());
-		}
+		return getListeningAddress().equals(peerNode.getListeningAddress());
 	}
 
 
