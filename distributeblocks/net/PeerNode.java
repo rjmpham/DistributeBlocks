@@ -214,11 +214,7 @@ public class PeerNode {
 		if (!(o instanceof PeerNode)) return false;
 		PeerNode peerNode = (PeerNode) o;
 
-		if (NetworkService.getNetworkManager().inSeedMode()){
-			return getLocalAddress().equals(peerNode.getLocalAddress()) && listenPort == peerNode.getListenPort();
-		} else {
-			return getListeningAddress().equals(peerNode.getListeningAddress());
-		}
+		return getListeningAddress().equals(peerNode.getListeningAddress());
 	}
 
 
