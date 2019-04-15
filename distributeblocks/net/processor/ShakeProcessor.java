@@ -29,7 +29,7 @@ public class ShakeProcessor extends AbstractMessageProcessor<ShakeMessage> {
 			wantMoreFriends = false;
 		}
 
-		message.senderNode.asyncSendMessage(new ShakeResponseMessage("Hey back at ya ;): WantMoreFriend: " + wantMoreFriends,
+		message.senderNode.asyncSendMessage(new ShakeResponseMessage("Hello friend :) : WantMoreFriend: " + wantMoreFriends,
 				NetworkService.getNetworkManager().getPort(), wantMoreFriends));
 
 		if (wantMoreFriends) {

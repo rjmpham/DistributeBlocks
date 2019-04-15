@@ -16,10 +16,12 @@ public class MiningFinishedProcessor extends AbstractMessageProcessor<MiningFini
     public void processMessage(MiningFinishedMessage message) {
         Console.log("Got Finished mining message.");
 
+        
         ConfigManager configManager = new ConfigManager();
         // Add the newly mined block to our chain
         BlockChain blockChain = new BlockChain();
         blockChain.addBlock(message.block);
+        System.out.println("Mined new block. Id: " + message.block.getHashBlock());
         blockChain.save();
         
         // Update the transaction pools now that a new block is verified
@@ -65,6 +67,7 @@ public class MiningFinishedProcessor extends AbstractMessageProcessor<MiningFini
 			}
 		}
 
+        NetworkService.getNetworkManager().addSentBlock(message.block);
         NetworkService.getNetworkManager().beginMining();
     }
 }
