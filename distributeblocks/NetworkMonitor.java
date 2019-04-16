@@ -7,23 +7,16 @@ import distributeblocks.net.PeerNode;
 import distributeblocks.net.message.*;
 import org.graphstream.algorithm.generator.Generator;
 import org.graphstream.graph.Edge;
-import org.graphstream.graph.Graph;
 import org.graphstream.graph.implementations.MultiGraph;
-import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.stream.ProxyPipe;
 import org.graphstream.stream.SourceBase;
 import org.graphstream.ui.view.Viewer;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.*;
 
 public class NetworkMonitor {
