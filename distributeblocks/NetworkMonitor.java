@@ -141,20 +141,22 @@ public class NetworkMonitor {
 
 					address = message.listeningAddress.toString();
 
-					if (graph.getNode(address) == null) {
+					synchronized (graph) {
 
-						synchronized (graph) {
+						if (graph.getNode(address) == null) {
+
+							//synchronized (graph) {
 							org.graphstream.graph.Node gNode = graph.addNode(address);
 
 							gNode.addAttribute("ui.style", "shape:circle;fill-color: blue;size: 25px; text-alignment: center;");
 							gNode.addAttribute("ui.label", address);
 
 							pipe.pump();
+							//}
 						}
-					}
 
 
-					synchronized (graph) {
+						//synchronized (graph) {
 						for (IPAddress address : message.connectedPeers) {
 
 							try {
@@ -178,43 +180,55 @@ public class NetworkMonitor {
 
 
 							} catch (Exception e) {
-							//	e.printStackTrace();
+								//	e.printStackTrace();
 							}
 
 							//graph.
-						}
+							//}
 
-						// Get the edge representing the communication path for this paticular message.
+							// Get the edge representing the communication path for this paticular message.
 
-						try {
+							try {
 
-							Edge edge = graph.getEdge(message.listeningAddress + message.recipient.toString());
+								//synchronized (graph) {
+								Edge edge = graph.getEdge(message.listeningAddress + message.recipient.toString());
 
-							if (edge != null){
+								if (edge != null) {
 
-								if (message.message instanceof BlockBroadcastMessage){
-									edge.addAttribute("ui.style", "size: 5px; fill-color: green;");
-									pipe.pump();
-									scheduleThing(edge);
-								} else if (message.message instanceof TransactionBroadcastMessage){
-									edge.addAttribute("ui.style", "size: 5px; fill-color: orange;");
-									pipe.pump();
-									scheduleThing(edge);
+									if (message.message instanceof BlockBroadcastMessage) {
+
+										edge.addAttribute("ui.style", "size: 5px; fill-color: green;");
+										pipe.pump();
+
+										scheduleThing(edge);
+									} else if (message.message instanceof TransactionBroadcastMessage) {
+
+										edge.addAttribute("ui.style", "size: 5px; fill-color: orange;");
+										pipe.pump();
+
+										scheduleThing(edge);
+									}
+
+
 								}
+								//}
 
+							} catch (Exception e2) {
 
 							}
-
-						} catch (Exception e2){
-
 						}
+						//System.out.println("got to end of loop");
 					}
-					//System.out.println("got to end of loop");
 				}
 
 			} catch (Exception e) {
 				//e.printStackTrace();
 
+				try {
+					Thread.sleep(200);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
 
 				synchronized (graph) {
 					try {
@@ -251,7 +265,7 @@ public class NetworkMonitor {
 					pipe.pump();
 				}
 			}
-		}, 500, TimeUnit.MILLISECONDS);
+		}, 2000, TimeUnit.MILLISECONDS);
 	}
 
 	private class NodeAnnouncer implements Runnable {
