@@ -892,7 +892,6 @@ public class NetworkManager implements NetworkActions {
 		private volatile int leftBound = 0;
 		private volatile int rightBound = 10;
 		private int highestBlock = 0;
-		private int highestHave = 0;
 
 		private HashMap<Integer, Boolean> recievedBlocks;
 
@@ -904,19 +903,13 @@ public class NetworkManager implements NetworkActions {
 
 		public void gotBlock(BlockMessage blockMessage){
 
-			try {
-				Thread.sleep(50);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-
 			synchronized (recievedBlocks) {
 
 				recievedBlocks.put(blockMessage.blockHeight, true);
 
 				// Update bounds.
-				int min = highestHave;
-				for (int i = highestHave; i < highestBlock; i++) {
+				int min = -1;
+				for (int i = 0; i < highestBlock; i++) {
 					if (recievedBlocks.keySet().contains(i)) {
 						min = i;
 					} else {
@@ -924,7 +917,6 @@ public class NetworkManager implements NetworkActions {
 					}
 				}
 
-				Console.log("Min: " + min);
 				leftBound = Math.min(highestBlock - 1, min + 1); // So it doesnt try to grab n + 1 blocks.
 				rightBound = min + 10;
 
@@ -953,7 +945,7 @@ public class NetworkManager implements NetworkActions {
 						break;
 					}
 				}
-				
+
 				// Now that we got some headers, lets see what the highest block is.
 				ArrayList<BlockHeader> highestHeaders = new ArrayList<>(); // A little janky.
 
@@ -975,38 +967,23 @@ public class NetworkManager implements NetworkActions {
 				}
 
 				Console.log("Aquireing blockchain with height: " + highestHeaders.size());
-				HashMap<String, Block> allblocks = blockChain.getAllBlocks();
-
-				// Figure out what the last block we have is.
-				highestHave = 0;
-				for (BlockHeader b : highestHeaders){
-					if (allblocks.containsKey(b.blockHash)){
-						highestHave ++;
-					} else {
-						break;
-					}
-				}
 
 				// Now that we have identified the longest list of blockHeaders, request them all.
 				Random rand = new Random();
 				List<PeerNode> nodes = getPeerNodes();
-				int i = highestHave;
-				leftBound = highestHave;
-				rightBound = leftBound + 10;
+				int i = 0;
 
-				Console.log("Highest Have: " + highestHave);
-
-				for (int j = highestHave; j < highestHeaders.size(); j ++){
+				for (int j = 0; j < highestHeaders.size(); j ++){
 					requestTimes.put(j, (long) 0.0); // too tired.
 				}
 				highestBlock = highestHeaders.size();
 
-				while (recievedBlocks.size() < highestHeaders.size() - highestHave) {
+				while (recievedBlocks.size() < highestHeaders.size()) {
 
-					Thread.sleep(150);
+					Thread.sleep(100);
 					synchronized (recievedBlocks) {
 
-						if (i > rightBound || i >= highestHeaders.size()) {
+						if (i > rightBound || i >= highestHeaders.size() - 1) {
 							//	Thread.sleep(100); // Wait for responses.
 
 							//if (requestTimes.get(leftBound) + 3000 <  System.currentTimeMillis()) { // Only make another request every 3 seconds
@@ -1015,7 +992,7 @@ public class NetworkManager implements NetworkActions {
 							requestTimes.put(i, System.currentTimeMillis());
 							//}
 						} else {
-							
+
 							//if (requestTimes.get(i) + 3000 <  System.currentTimeMillis()) { // Only make another request every 3 seconds
 							nodes.get(nodes.size() == 1 ? 0 : rand.nextInt(nodes.size() - 1)).asyncSendMessage(new RequestBlockMessage(highestHeaders.get(i).blockHash, i));
 							requestTimes.put(i, System.currentTimeMillis());
@@ -1023,13 +1000,15 @@ public class NetworkManager implements NetworkActions {
 							//Thread.sleep(100);
 							//}
 
-							if (i <= highestHeaders.size()){
+							if (i < highestHeaders.size() - 1) {
 								i++;
 							}
 						}
 					}
 
 				}
+
+
 				Console.log("AQUIRED THE BLOCKCHAIN!");
 				// Update the transaction pools with received block
 				updateTransactionPools();
@@ -1040,12 +1019,12 @@ public class NetworkManager implements NetworkActions {
 
 						if (m.blockHeight == j) {
 							blockChain.addBlock(m.block);
-							
+
 							Block lastVerified = blockChain.getLastVerifiedBlock();
 							if (lastVerified != null) {
 								// Update node wallet with the block which is now verified
 								NodeService.getNode().updateWallet(lastVerified);
-							 }
+							}
 							break;
 						}
 					}
